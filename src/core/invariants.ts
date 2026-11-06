@@ -5,6 +5,7 @@
 
 import type { ResolvedConfig } from '../config.ts'
 import { InternalError } from '../errors.ts'
+import { RE_ALL_DIGITS, RE_FIRST_LETTER, RE_ID_DASH, RE_ID_PLAIN, RE_ID_UNDERSCORE } from './regexes.ts'
 import {
   bodyBlocked,
   fold,
@@ -16,9 +17,9 @@ import {
 } from './safety.ts'
 
 const PATTERNS: Record<string, RegExp> = {
-  '-': /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/,
-  _: /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/,
-  '': /^[a-z][a-z0-9]*$/,
+  '-': RE_ID_DASH,
+  _: RE_ID_UNDERSCORE,
+  '': RE_ID_PLAIN,
 }
 
 /** The ID pattern for a separator (I2). */
@@ -39,7 +40,7 @@ function asciiOnly(id: string): boolean {
 
 function allDigits(id: string, sep: string): boolean {
   const s = sep ? id.split(sep).join('') : id
-  return s.length > 0 && /^[0-9]+$/.test(s)
+  return s.length > 0 && RE_ALL_DIGITS.test(s)
 }
 
 /**
@@ -62,7 +63,7 @@ export function invariantFailure(
   if (segs.map((s) => s.text).join(sep) !== body) return 'shape'
   if (!lengthOk(id, cfg)) return 'I1'
   if (!patternFor(sep).test(id)) return 'I2'
-  if (!/^[a-z]/.test(id)) return 'I3'
+  if (!RE_FIRST_LETTER.test(id)) return 'I3'
   if (allDigits(id, sep)) return 'I4'
   if (tail !== '') {
     if (!cfg.tailFirst.includes(tail[0] as string)) return 'I5'

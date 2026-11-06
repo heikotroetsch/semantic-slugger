@@ -20,7 +20,20 @@ src/hash/siphash.ts
   Own implementation from the paper "SipHash: a fast short-input PRF" (2012).
   Test vectors from the reference implementation https://github.com/veorq/SipHash (CC0 / MIT).
 
-Vendored code (from M2)
------------------------
-src/vendor/cistem.ts   CISTEM stemmer (Weissweiler and Fraser, 2017). License: MIT.
-src/vendor/porter2.ts  Snowball English (Porter2) stemmer. License: BSD-3-Clause.
+Vendored code
+-------------
+src/vendor/cistem.ts
+  CISTEM stemmer for German (Leonie Weissweiler, Alexander Fraser, 2017), ported from the official
+  Cistem.js, https://github.com/LeonieWeissweiler/CISTEM. Copyright (c) 2017 Leonie Weissweiler.
+  License: MIT.
+src/vendor/porter2.ts
+  Snowball English (Porter2) stemmer, generated JavaScript of Snowball 3.2.0
+  (jsstemmer-3.2.0, https://snowballstem.org/). Copyright (c) 2001 Dr Martin Porter,
+  (c) 2004, 2005 Richard Boulton, (c) 2013 Yoshiki Shibukawa, (c) 2006-2025 Olly Betts.
+  License: BSD-3-Clause.
+
+Test data
+---------
+test/fixtures/porter2-sample.json
+  500 word pairs from snowball-data english/voc.txt and output.txt,
+  https://github.com/snowballstem/snowball-data. License: BSD-3-Clause.

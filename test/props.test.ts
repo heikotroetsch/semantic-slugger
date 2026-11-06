@@ -9,8 +9,15 @@ import { driveSync } from '../src/core/drivers.ts'
 import { emptyPath } from '../src/core/empty.ts'
 import { foldTail, segmentBlocked, tailBlocked } from '../src/core/safety.ts'
 import { BLOCK_HARD } from '../src/data/v1/blocklist.ts'
-import { isValidSlug } from '../src/index.ts'
+import { isSluggerError, isValidSlug } from '../src/index.ts'
 import { drive } from './helpers/drive.ts'
+
+const driveEmpty = (
+  doc: Parameters<typeof emptyPath>[0],
+  cfg: Parameters<typeof emptyPath>[1],
+  exclude: Parameters<typeof emptyPath>[2],
+  store: Parameters<typeof drive>[1],
+) => drive(emptyPath(doc, cfg, exclude), store)
 
 const seed = Number(process.env.FC_SEED ?? Date.now() % 2 ** 31)
 const numRuns = Number(process.env.FC_RUNS ?? 1000)
@@ -97,20 +104,36 @@ describe('opaque and empty IDs: I1 to I10', () => {
         (c, canonical, takenFirst, count, excludeKs) => {
           const cfg = resolveConfig(c)
           const doc = { canonical, empty: true }
-          // take the first `takenFirst` IDs of the tier A walk
+          // take the first `takenFirst` IDs of the tier A walk; a walk that exhausts the small tail space
+          // of strict + max mode (tier A limit, SPEC 13.3, 19.4) makes the case invalid, so it is skipped
           const taken = new Set<string>()
-          for (let i = 0; i < takenFirst; i++) {
-            const r = driveSync(emptyPath(doc, cfg, new Set()), taken).out
-            taken.add(r.id)
+          let exclude: Set<string>
+          try {
+            for (let i = 0; i < takenFirst; i++) {
+              const r = driveSync(emptyPath(doc, cfg, new Set()), taken).out
+              taken.add(r.id)
+            }
+            exclude = new Set(
+              excludeKs.map((k) => driveSync(emptyPath(doc, cfg, new Set()), taken).out.id + (k % 2 ? '' : 'x')),
+            )
+          } catch (e) {
+            if (isSluggerError(e, 'E_EXHAUSTED')) return
+            throw e
           }
-          const exclude = new Set(
-            excludeKs.map((k) => driveSync(emptyPath(doc, cfg, new Set()), taken).out.id + (k % 2 ? '' : 'x')),
-          )
           const body = cfg.leak === 'opaque' ? '' : cfg.fallbackWord
           // a consistent counting store has at least one row per taken ID on this body
           const n = count === null ? null : takenFirst + count
           const store = n === null ? { taken } : { taken, counts: new Map([[body, n]]) }
-          const { out } = drive(emptyPath(doc, cfg, exclude), store)
+          let res: ReturnType<typeof driveEmpty>
+          try {
+            res = driveEmpty(doc, cfg, exclude, store)
+          } catch (e) {
+            // tier A walks at most maxScan indexes from 0: with a small tail space (strict, max mode)
+            // many taken IDs can exhaust it, which is the documented tier A limit (SPEC 13.3, 19.4)
+            if (n === null && isSluggerError(e, 'E_EXHAUSTED')) return
+            throw e
+          }
+          const { out } = res
           checkId(out.id, out.body, out.tail, cfg)
           expect(taken.has(out.id)).toBe(false)
           expect(exclude.has(out.id)).toBe(false)

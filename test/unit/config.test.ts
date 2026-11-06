@@ -114,7 +114,7 @@ describe('ConfigError reasons', () => {
     ['unknown-key', { blocklist: { medium: { add: [] } } }],
     ['invalid-list-entry', { stopWords: { add: ['two words'] } }],
     ['invalid-list-entry', { reserved: { add: ['a-b'] } }],
-    ['invalid-list-entry', { denyTokens: ['Müller GmbH'] }],
+    ['invalid-list-entry', { denyTokens: ['Müller-GmbH'] }],
     ['invalid-list', { denyTokens: 'x' }],
     ['not-string', { secret: 1234567890 }],
     ['secret-too-short', { secret: 'short' }],
@@ -247,7 +247,10 @@ describe('valid configs', () => {
       algorithm: 1,
     })
     expect(cfg.languages).toEqual(['en', 'de'])
-    expect(cfg.stopWords).toEqual(['foo', 'ueber'])
+    expect(cfg.stopWords).toContain('foo')
+    expect(cfg.stopWords).toContain('ueber')
+    expect(cfg.stopWords).toContain('the') // built-in function words stay (SPEC 6.3)
+    expect([...cfg.stopWords].sort()).toEqual(cfg.stopWords)
     expect(cfg.reserved).not.toContain('admin')
     expect(cfg.reserved).toContain('admin2')
     expect(cfg.blocklist.hard).toContain('badword') // normalized and leet-folded

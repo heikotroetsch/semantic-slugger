@@ -2,9 +2,22 @@
  * Config types, DEFAULTS, validation, resolved config and fingerprint (SPEC 16.2, 14.2).
  */
 
-import { normalizeListEntry } from './core/normalize.ts'
+import { RE_DIGIT_CHAR, RE_FALLBACK_WORD, RE_LIST_ENTRY } from './core/regexes.ts'
 import { fold, hardHitIn, segmentBlocked } from './core/safety.ts'
 import { keyFor } from './core/tail.ts'
+import {
+  bool,
+  fail,
+  fnOpt,
+  intIn,
+  isPlainObject,
+  LEXICON_CLASSES,
+  normEntries,
+  oneOf,
+  own,
+  stringArray,
+  validateLexiconEntry,
+} from './core/validate.ts'
 import { BLOCK_HARD, BLOCK_SOFT } from './data/v1/blocklist.ts'
 import {
   CUSTOM_ALPHABET_MIN,
@@ -14,11 +27,15 @@ import {
   TAIL_ALPHABETS,
   TAIL_FORBIDDEN_CHARS,
 } from './data/v1/constants.ts'
+import { NOISE_SHARED } from './data/v1/noise.ts'
 import { RESERVED } from './data/v1/reserved.ts'
-import { ConfigError } from './errors.ts'
 import { utf8 } from './hash/encode.ts'
 import { siphash, u64hex } from './hash/siphash.ts'
-import type { LanguagePack } from './lang/pack.ts'
+import { dePack } from './lang/de.ts'
+import { enPack } from './lang/en.ts'
+import { type LanguagePack, validatePacks } from './lang/pack.ts'
+
+export { LEXICON_CLASSES }
 
 /** Built-in codes; more through `languagePacks` (SPEC 6.7, 16.2). */
 export type Lang = 'de' | 'en' | (string & {})
@@ -56,8 +73,11 @@ export type LexiconClass = 'topic' | 'name' | 'qualifier' | 'place' | 'direction
 /** Lexicon entry (SPEC 15.1). */
 export interface LexiconEntry {
   key: string
-  /** User entries default to '*'. Must be '*' or an enabled language code. */
-  lang: Lang | '*'
+  /**
+   * '*' or an enabled language code. Built-in entries always set it (SPEC 6.1); user entries default
+   * to '*', pack entries to the pack code. Validated entries always have it.
+   */
+  lang?: Lang | '*'
   phrase?: readonly string[]
   forms?: readonly string[]
   /** Display rungs. For cls 'marker', abbr[0] is the marker prefix (SPEC 5.3). */
@@ -201,14 +221,30 @@ export const DEFAULTS: DefaultConfig = Object.freeze({
   algorithm: 1,
 })
 
-/**
- * Built-in defaults for the list options that come with the language data (SPEC 6.3: the
- * function and noise tiers). The lists are filled in M2; until then they are empty.
- */
-const LIST_DEFAULTS: { readonly stopWords: readonly string[] } = { stopWords: [] }
-
 /** Built-in language codes (SPEC 6.7). */
-const BUILTIN_LANGS: readonly string[] = ['de', 'en']
+export const BUILTIN_LANGS: readonly string[] = ['de', 'en']
+
+/** The built-in pack for a code, or undefined. */
+export function builtinPack(code: string): LanguagePack | undefined {
+  return code === 'de' ? dePack() : code === 'en' ? enPack() : undefined
+}
+
+/**
+ * Default `stopWords` list (SPEC 6.3, 16.2): the function words of all enabled packs, then the noise
+ * words (shared tier plus each enabled pack's `noiseWords`). Sorted and unique after normalization.
+ */
+export function defaultStopWords(packs: readonly LanguagePack[]): readonly string[] {
+  const out: string[] = []
+  for (const p of packs) out.push(...p.stopWords)
+  out.push(...NOISE_SHARED)
+  for (const p of packs) out.push(...(p.noiseWords ?? []))
+  return out
+}
+
+/** The enabled packs in `languages` order. */
+export function enabledPacks(languages: readonly string[], userPacks: readonly LanguagePack[]): LanguagePack[] {
+  return languages.map((l) => builtinPack(l) ?? (userPacks.find((p) => p.code === l) as LanguagePack))
+}
 
 const KNOWN_KEYS: ReadonlySet<string> = new Set([
   'length',
@@ -242,81 +278,14 @@ const KNOWN_KEYS: ReadonlySet<string> = new Set([
   'algorithm',
 ])
 
-/** The LexiconClass set: the classes allowed for lexicon `cls` (SPEC 15.1). */
-export const LEXICON_CLASSES: ReadonlySet<string> = new Set<LexiconClass>([
-  'topic',
-  'name',
-  'qualifier',
-  'place',
-  'direction',
-  'region',
-  'marker',
-])
-
-/** Marker prefix rule (SPEC 5.3): up to 6 letters, the last one not `l`, `i` or `o`. */
-const MARKER_PREFIX = /^[a-z]{0,5}[a-hj-km-np-z]$/
-
 export const SECRET_MIN_LENGTH = 16
 
-function fail(field: string, value: unknown, reason: string, message?: string): never {
-  throw new ConfigError(message ?? `invalid config "${field}": ${reason}`, { field, value, reason })
-}
-
-/** Any non-array object. Only own enumerable keys are read from it (see `own`). */
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-}
-
-/** Own enumerable keys only. Inherited keys are ignored (no prototype pollution). */
-function own(obj: Record<string, unknown>, key: string): unknown {
-  return Object.hasOwn(obj, key) && Object.prototype.propertyIsEnumerable.call(obj, key) ? obj[key] : undefined
-}
-
-function intIn(field: string, v: unknown, def: number, min: number, max: number): number {
-  if (v === undefined) return def
-  if (typeof v !== 'number' || !Number.isInteger(v)) fail(field, v, 'not-integer')
-  if (v < min || v > max) fail(field, v, 'out-of-range', `invalid config "${field}": must be ${min} to ${max}`)
-  return v
-}
-
-function oneOf<T extends string>(field: string, v: unknown, def: T, values: readonly T[]): T {
-  if (v === undefined) return def
-  if (typeof v !== 'string' || !(values as readonly string[]).includes(v)) fail(field, v, 'invalid-enum')
-  return v as T
-}
-
-function bool(field: string, v: unknown, def: boolean): boolean {
-  if (v === undefined) return def
-  if (typeof v !== 'boolean') fail(field, v, 'not-boolean')
-  return v
-}
-
-function fnOpt<F>(field: string, v: unknown): F | undefined {
-  if (v === undefined) return undefined
-  if (typeof v !== 'function') fail(field, v, 'not-function')
-  return v as F
-}
-
-function stringArray(field: string, v: unknown): readonly string[] {
-  if (!Array.isArray(v) || v.some((x) => typeof x !== 'string')) fail(field, v, 'invalid-list')
-  return v as readonly string[]
-}
-
-function normEntries(field: string, list: readonly string[], leet: boolean): string[] {
-  const out = new Set<string>()
-  for (const raw of list) {
-    const n = normalizeListEntry(raw)
-    if (!/^[a-z0-9]+$/.test(n)) fail(field, raw, 'invalid-list-entry')
-    out.add(leet ? fold(n) : n)
-  }
-  return [...out].sort()
-}
-
 function resolveList(field: string, opt: unknown, defaults: readonly string[], leet = false): readonly string[] {
-  if (opt === undefined) return normEntries(field, defaults, leet)
+  const map = leet ? fold : undefined
+  if (opt === undefined) return normEntries(field, defaults, map)
   if (typeof opt === 'function') {
-    const r: unknown = (opt as (d: readonly string[]) => unknown)(Object.freeze([...defaults]))
-    return normEntries(field, stringArray(field, r), leet)
+    const r: unknown = (opt as (d: readonly string[]) => unknown)(Object.freeze(normEntries(field, defaults)))
+    return normEntries(field, stringArray(field, r), map)
   }
   if (!isPlainObject(opt)) fail(field, opt, 'invalid-list')
   for (const k of Object.keys(opt)) if (k !== 'add' && k !== 'remove') fail(`${field}.${k}`, opt[k], 'unknown-key')
@@ -324,9 +293,9 @@ function resolveList(field: string, opt: unknown, defaults: readonly string[], l
   const remove = own(opt, 'remove')
   const a = add === undefined ? [] : stringArray(`${field}.add`, add)
   const r = remove === undefined ? [] : stringArray(`${field}.remove`, remove)
-  const drop = new Set(normEntries(`${field}.remove`, r, leet))
-  const base = normEntries(field, defaults, leet).filter((x) => !drop.has(x))
-  return normEntries(field, [...base, ...a], leet)
+  const drop = new Set(normEntries(`${field}.remove`, r, map))
+  const base = normEntries(field, defaults, map).filter((x) => !drop.has(x))
+  return normEntries(field, [...base, ...a], map)
 }
 
 function resolveAlphabet(v: unknown): { name: 'safe' | 'strict' | 'custom'; first: string; rest: string } {
@@ -334,53 +303,12 @@ function resolveAlphabet(v: unknown): { name: 'safe' | 'strict' | 'custom'; firs
   if (v === 'strict') return { name: 'strict', ...TAIL_ALPHABETS.strict }
   if (typeof v !== 'string') fail('tailAlphabet', v, 'not-string')
   if (new Set(v).size !== v.length) fail('tailAlphabet', v, 'alphabet-duplicate-char')
-  if (!/^[a-z0-9]+$/.test(v)) fail('tailAlphabet', v, 'alphabet-invalid-char')
+  if (!RE_LIST_ENTRY.test(v)) fail('tailAlphabet', v, 'alphabet-invalid-char')
   for (const c of TAIL_FORBIDDEN_CHARS) if (v.includes(c)) fail('tailAlphabet', v, 'alphabet-forbidden-char')
   if (v.length < CUSTOM_ALPHABET_MIN) fail('tailAlphabet', v, 'alphabet-too-short')
-  const letters = v.replace(/[0-9]/g, '')
+  const letters = v.replace(RE_DIGIT_CHAR, '')
   if (letters.length < CUSTOM_ALPHABET_MIN_LETTERS) fail('tailAlphabet', v, 'alphabet-too-few-letters')
   return { name: 'custom', first: letters, rest: v }
-}
-
-/**
- * Copy pack data: arrays and plain objects are copied (own enumerable keys only), functions and
- * primitives are kept. The copy is frozen later, so the caller's objects are never frozen.
- */
-function copyData(v: unknown): unknown {
-  if (Array.isArray(v)) return v.map(copyData)
-  if (isPlainObject(v)) {
-    const out: Record<string, unknown> = {}
-    for (const k of Object.keys(v)) if (own(v, k) !== undefined) out[k] = copyData(v[k])
-    return out
-  }
-  return v
-}
-
-/**
- * Minimal language pack validation (SPEC 6.7, 23 #5). Full validation of every pack field follows
- * in M2 (src/lang/pack.ts).
- */
-function resolvePacks(v: unknown): readonly LanguagePack[] {
-  if (v === undefined) return []
-  if (!Array.isArray(v)) fail('languagePacks', v, 'invalid-language-pack')
-  const seen = new Set<string>()
-  return v.map((p: unknown, i: number): LanguagePack => {
-    const field = `languagePacks[${i}]`
-    if (!isPlainObject(p)) fail(field, p, 'invalid-language-pack')
-    const code = own(p, 'code')
-    if (typeof code !== 'string' || !/^[a-z]{2,3}$/.test(code) || code === 'und')
-      fail(`${field}.code`, code, 'invalid-language-pack')
-    if (BUILTIN_LANGS.includes(code)) fail(`${field}.code`, code, 'builtin-pack')
-    if (seen.has(code)) fail(`${field}.code`, code, 'invalid-language-pack')
-    seen.add(code)
-    const id = own(p, 'id')
-    if (typeof id !== 'string' || id === '') fail(`${field}.id`, id, 'invalid-language-pack')
-    const sw = own(p, 'stopWords')
-    if (!Array.isArray(sw) || sw.some((x) => typeof x !== 'string'))
-      fail(`${field}.stopWords`, sw, 'invalid-language-pack')
-    if (typeof own(p, 'stem') !== 'function') fail(`${field}.stem`, own(p, 'stem'), 'invalid-language-pack')
-    return copyData(p) as LanguagePack
-  })
 }
 
 /** Enabled language codes in the given priority order, without duplicates (SPEC 6.7). */
@@ -400,51 +328,13 @@ function resolveLanguages(v: unknown, packs: readonly LanguagePack[]): readonly 
 function resolveLexicon(v: unknown, languages: readonly Lang[]): readonly LexiconEntry[] {
   if (v === undefined) return []
   if (!Array.isArray(v)) fail('lexicon', v, 'invalid-lexicon')
-  return v.map((e: unknown, i: number): LexiconEntry => {
-    const field = `lexicon[${i}]`
-    if (!isPlainObject(e)) fail(field, e, 'invalid-lexicon')
-    const key = own(e, 'key')
-    const cls = own(e, 'cls')
-    const lang = own(e, 'lang') ?? '*'
-    if (typeof key !== 'string' || !/^[a-z0-9]+( [a-z0-9]+)*$/.test(key)) fail(`${field}.key`, key, 'invalid-lexicon')
-    if (typeof cls !== 'string' || !LEXICON_CLASSES.has(cls)) fail(`${field}.cls`, cls, 'invalid-lexicon')
-    if (typeof lang !== 'string') fail(`${field}.lang`, lang, 'invalid-lexicon')
-    if (lang !== '*' && !languages.includes(lang)) fail(`${field}.lang`, lang, 'unknown-language')
-    const out: Record<string, unknown> = { key, cls, lang }
-    for (const k of ['phrase', 'forms', 'abbr', 'known'] as const) {
-      const a = own(e, k)
-      if (a !== undefined) out[k] = Object.freeze([...stringArray(`${field}.${k}`, a)])
-    }
-    for (const k of ['weak', 'upperOnly', 'lowerOnly', 'part', 'partOnly'] as const) {
-      const b = own(e, k)
-      if (b !== undefined) out[k] = bool(`${field}.${k}`, b, false)
-    }
-    if (out.upperOnly === true && out.lowerOnly === true)
-      fail(`${field}.lowerOnly`, true, 'invalid-lexicon', `invalid config "${field}": upperOnly and lowerOnly both set`)
-    if (cls === 'marker') {
-      const prefix = (out.abbr as readonly string[] | undefined)?.[0]
-      if (prefix === undefined || !MARKER_PREFIX.test(prefix))
-        fail(
-          `${field}.abbr`,
-          prefix,
-          'invalid-marker-prefix',
-          `invalid config "${field}.abbr": a marker needs abbr[0] matching ${MARKER_PREFIX.source} (SPEC 5.3)`,
-        )
-    }
-    const weight = own(e, 'weight')
-    if (weight !== undefined) out.weight = intIn(`${field}.weight`, weight, 0, -100, 100)
-    const prior = own(e, 'prior')
-    if (prior !== undefined) out.prior = oneOf(`${field}.prior`, prior, 'medium', ['common', 'medium', 'rare'])
-    for (const k of ['group', 'pair'] as const) {
-      const g = own(e, k)
-      if (g === undefined) continue
-      if (typeof g !== 'string') fail(`${field}.${k}`, g, 'invalid-lexicon')
-      out[k] = g
-    }
-    for (const k of Object.keys(e))
-      if (!Object.hasOwn(out, k) && own(e, k) !== undefined) fail(`${field}.${k}`, e[k], 'unknown-key')
-    return Object.freeze(out) as unknown as LexiconEntry
-  })
+  return v.map((e: unknown, i: number) => validateLexiconEntry(e, `lexicon[${i}]`, languages, '*'))
+}
+
+/** Deny tokens (SPEC 6.6): single words or multi-word entries (`anna weber`), normalized like titles. */
+function resolveDeny(v: unknown): readonly string[] {
+  if (v === undefined) return []
+  return normEntries('denyTokens', stringArray('denyTokens', v), undefined, true)
 }
 
 /** Throws ConfigError 'runtime-no-normalize' when String.prototype.normalize is missing or broken (SPEC 4.1). */
@@ -480,7 +370,7 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
   const tailMin = intIn('tailMin', g('tailMin'), DEFAULTS.tailMin, 1, length - 3)
   const alpha = resolveAlphabet(g('tailAlphabet'))
   const consistentRungs = bool('consistentRungs', g('consistentRungs'), DEFAULTS.consistentRungs)
-  const languagePacks = resolvePacks(g('languagePacks'))
+  const languagePacks = validatePacks(g('languagePacks'), BUILTIN_LANGS)
   const languages = resolveLanguages(g('languages'), languagePacks)
   const defaultLang = g('defaultLang') ?? DEFAULTS.defaultLang
   if (typeof defaultLang !== 'string') fail('defaultLang', defaultLang, 'not-string')
@@ -489,7 +379,7 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
   if (!languages.includes(defaultLang)) fail('defaultLang', defaultLang, 'default-lang-not-enabled')
   const detectLanguage = fnOpt<ResolvedConfig['detectLanguage']>('detectLanguage', g('detectLanguage'))
   const transliterate = fnOpt<ResolvedConfig['transliterate']>('transliterate', g('transliterate'))
-  const stopWords = resolveList('stopWords', g('stopWords'), LIST_DEFAULTS.stopWords)
+  const stopWords = resolveList('stopWords', g('stopWords'), defaultStopWords(enabledPacks(languages, languagePacks)))
   const reserved = resolveList('reserved', g('reserved'), RESERVED)
   const bl = g('blocklist')
   if (bl !== undefined && !isPlainObject(bl)) fail('blocklist', bl, 'invalid-list')
@@ -500,8 +390,7 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
     soft: resolveList('blocklist.soft', bl ? own(bl, 'soft') : undefined, BLOCK_SOFT, true),
   }
   const lexicon = resolveLexicon(g('lexicon'), languages)
-  const dt = g('denyTokens')
-  const denyTokens = dt === undefined ? [] : normEntries('denyTokens', stringArray('denyTokens', dt), false)
+  const denyTokens = resolveDeny(g('denyTokens'))
   const leak = oneOf('leak', g('leak'), DEFAULTS.leak, ['normal', 'minimal', 'opaque'])
   const secret = g('secret')
   if (secret !== undefined) {
@@ -516,7 +405,7 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
   const rarity = oneOf('rarity', g('rarity'), DEFAULTS.rarity, ['store', 'static'])
   const corpusSize = intIn('corpusSize', g('corpusSize'), DEFAULTS.corpusSize, 1, 1_000_000_000)
   const fw = g('fallbackWord') ?? DEFAULTS.fallbackWord
-  if (typeof fw !== 'string' || !/^[a-z]{2,8}$/.test(fw)) fail('fallbackWord', fw, 'invalid-fallback-word')
+  if (typeof fw !== 'string' || !RE_FALLBACK_WORD.test(fw)) fail('fallbackWord', fw, 'invalid-fallback-word')
   const onEmpty = oneOf('onEmpty', g('onEmpty'), DEFAULTS.onEmpty, ['fallback', 'throw'])
   const maxPlans = intIn('maxPlans', g('maxPlans'), DEFAULTS.maxPlans, 1, 256)
   const maxAttempts = intIn('maxAttempts', g('maxAttempts'), DEFAULTS.maxAttempts, 1, 256)

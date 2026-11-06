@@ -7,6 +7,7 @@
 import type { ResolvedConfig } from '../config.ts'
 import { BLOCK_SHORT_DE, TAIL_BLOCK } from '../data/v1/blocklist.ts'
 import { LEET_FOLD, TAIL_EXTRA_FOLD } from '../data/v1/constants.ts'
+import { RE_LOOKALIKE_PAIR } from './regexes.ts'
 
 /** Leet fold f(s) (SPEC 9.1). */
 export function fold(s: string): string {
@@ -126,5 +127,5 @@ export function tailBlocked(body: string, tail: string, cfg: ResolvedConfig): bo
 
 /** I8: a letter from {l, i, o} next to a digit from {0, 1}, in either order. */
 export function hasLookalikePair(s: string): boolean {
-  return /[lio][01]|[01][lio]/.test(s)
+  return RE_LOOKALIKE_PAIR.test(s)
 }

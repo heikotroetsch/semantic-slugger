@@ -9,7 +9,8 @@
       "!**/node_modules",
       "!SPEC.md",
       "!test/fixtures/titles.json",
-      "!.changeset/*.md"
+      "!.changeset/*.md",
+      "!src/vendor/porter2.ts"
     ]
   },
   "formatter": {
