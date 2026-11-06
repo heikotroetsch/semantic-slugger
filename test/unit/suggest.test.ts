@@ -178,3 +178,73 @@ describe('invariants over generated IDs', () => {
       }
   })
 })
+
+describe('review fixes', () => {
+  it('a fill that starts with a digit never goes first (I2, no InternalError)', () => {
+    for (const t of ['Sprint 14 4K A380', '#4521 4K § 5 Montag März No. 7', '5G AB12CD34 X100', '24h Lauf B12 Bericht'])
+      expect(slug(t)).toMatch(/^[a-z]/)
+    expect(slug('Sprint 14 4K A380')).toBe('a380-4k-sprint14')
+    expect(createSlugger({ length: 9 }).slug('4K ABC123')).toMatch(/^[a-z]/)
+  })
+
+  it('every ID of a taken walk passes isValid (strict and soft words across the tail)', () => {
+    const walk = (t: string, config: Parameters<typeof createSlugger>[0] = {}) => {
+      const s = createSlugger(config)
+      const taken = new Set<string>()
+      for (let i = 0; i < 64; i++) {
+        let r: SlugResult
+        try {
+          r = s.suggest(t, { taken })
+        } catch (e) {
+          if (e instanceof ExhaustedError) return // tier A with a short tail: the walk ends
+          throw e
+        }
+        expect(s.isValid(r.id), `${t} -> ${r.id}`).toBe(true)
+        taken.add(r.id)
+      }
+    }
+    walk('Nsda')
+    walk('Report Nsda')
+    walk('Nsda', { length: 8 })
+    walk('Nsda', { lengthMode: 'max' })
+    walk('Nsda', { separator: '' })
+    walk('Audi', { separator: '' })
+    walk('Elternbrief zum Wandertag', { separator: '' })
+  })
+
+  it('Turkish dotted I and combining marks keep the word whole', () => {
+    expect(slug('İstanbul Reise 2026')).toBe(slug('Istanbul Reise 2026'))
+    expect(slug('İSTANBUL REİSE 2026')).toBe(slug('Istanbul Reise 2026'))
+    expect(slug('Bericht İnnovation')).toBe(slug('Bericht Innovation'))
+    expect(slug('&#304;stanbul Plan')).toBe(slug('Istanbul Plan'))
+    expect(suggest('İstanbul Reise 2026').titleKey).toBe(suggest('Istanbul Reise 2026').titleKey)
+    expect(slug('Ọ̀yọ́ State Report')).toMatch(/^oyo-/)
+    expect(slug('Ekiti Ẹ̀kọ́ Report')).toMatch(/^ekiti-eko/)
+  })
+
+  it('a 1 MB title with a URL, an email and C++ gives an ID (no stack overflow)', () => {
+    const s = createSlugger({ maxInputLength: 1_048_576 })
+    const text = 'Bericht über die Planung der neuen Anlage im Werk Nord '.repeat(19_000)
+    expect(s.slug(`Siehe https://example.com a@b.de C++ ${text}`)).toMatch(s.pattern)
+    expect(s.slug(`C++ ${'a'.repeat(1_000_000)}`)).toMatch(s.pattern)
+  })
+
+  it('the raw key of a non-Latin title uses the cut input only', () => {
+    const a = suggest(`${'東'.repeat(5000)}A`)
+    const b = suggest(`${'東'.repeat(5000)}B`)
+    expect(a.warnings).toContain('truncated')
+    expect(a.titleKey).toBe(b.titleKey)
+    expect(a.id).toBe(b.id)
+    const t0 = performance.now()
+    suggest('東京'.repeat(1_000_000))
+    expect(performance.now() - t0).toBeLessThan(1500)
+  })
+
+  it('a long hyphen chain is not cubic', () => {
+    for (const t of ['a-'.repeat(2048), 'ü-'.repeat(2048), 'ä-ö-'.repeat(1024), 'ab-'.repeat(1365)]) {
+      const t0 = performance.now()
+      expect(slug(t)).toMatch(/^[a-z]/)
+      expect(performance.now() - t0).toBeLessThan(2000)
+    }
+  })
+})

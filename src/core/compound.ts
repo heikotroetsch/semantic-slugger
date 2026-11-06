@@ -260,6 +260,8 @@ export function planCompound(
     for (let j = i + 1; j < raw.length; j++) {
       const p = raw[j] as Part
       acc += p.linker + p.text
+      // no lexicon word is longer: stop (a long hyphen chain would else cost O(n^3))
+      if (acc.length > ctx.lexicon.maxWord) break
       if (ctx.lexicon.hasExact(acc)) {
         text = acc
         end = j

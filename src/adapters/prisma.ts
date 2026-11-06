@@ -21,6 +21,7 @@ import {
   storedStems,
   strings,
   toCount,
+  withDefaults,
 } from './common.ts'
 
 export type { DbSlugStore }
@@ -122,7 +123,7 @@ export function prismaStore(o: PrismaStoreOptions): PrismaStore {
       value: d,
       reason: 'invalid-store',
     })
-  const f: PrismaFields = { ...DEFAULT_FIELDS, ...o.fields }
+  const f: PrismaFields = withDefaults(DEFAULT_FIELDS, o.fields)
   for (const k of ['scope', 'slug', 'body', 'stems', 'titleKey', 'algorithm'] as const)
     if (typeof f[k] !== 'string' || f[k] === '')
       throw new ConfigError(`fields.${k} must be a field name`, {
@@ -130,6 +131,13 @@ export function prismaStore(o: PrismaStoreOptions): PrismaStore {
         value: f[k],
         reason: 'invalid-identifier',
       })
+  if (f.retiredAt !== null && (typeof f.retiredAt !== 'string' || f.retiredAt === ''))
+    throw new ConfigError('fields.retiredAt must be a field name or null', {
+      field: 'fields.retiredAt',
+      value: f.retiredAt,
+      reason: 'invalid-identifier',
+    })
+  const given = withDefaults<Partial<PrismaFields>>({}, o.fields)
   const scopeWhere = o.scopeWhere ?? ((s: string): Where => ({ [f.scope]: s }))
   const live: Where = f.retiredAt === null ? {} : { [f.retiredAt]: null }
 
@@ -137,13 +145,13 @@ export function prismaStore(o: PrismaStoreOptions): PrismaStore {
   const queryRaw = o.queryRaw
   if (queryRaw !== undefined) {
     // The df statement filters on the column `fields.scope`; it cannot see what `scopeWhere` does.
-    if (o.scopeWhere !== undefined && o.fields?.scope === undefined)
+    if (o.scopeWhere !== undefined && given.scope === undefined)
       throw new ConfigError('queryRaw with scopeWhere needs fields.scope: the scope column of the df query', {
         field: 'fields.scope',
         value: undefined,
         reason: 'queryraw-needs-scope-column',
       })
-    const retiredColumn = o.fields?.retiredAt === undefined ? 'retired_at' : f.retiredAt
+    const retiredColumn = given.retiredAt === undefined ? 'retired_at' : f.retiredAt
     const text = dfSql(
       quoteTable(o.table ?? 'slug_entry', 'table'),
       quoteIdent(f.scope, 'fields.scope'),
@@ -199,7 +207,8 @@ export function prismaStore(o: PrismaStoreOptions): PrismaStore {
       })
       return rows.map((r) => ({ id: String(r[f.slug]), stems: strings(r[f.stems]) }))
     },
-    isConflict: (e: unknown) => isPrismaUniqueViolation(e),
+    // only a violation on the slug field (or one that names no field) is a lost race
+    isConflict: (e: unknown) => isPrismaUniqueViolation(e, f.slug),
   }
 
   const createMany = d.createMany

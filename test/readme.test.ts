@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { CONFIG_DOCS, updateReadme } from '../scripts/lib/readme.ts'
-import { createSlugger, DEFAULTS, explain, type LanguagePack, slug, suggest } from '../src/index.ts'
+import { createSlugger, createUnique, DEFAULTS, explain, type LanguagePack, slug, suggest } from '../src/index.ts'
 
 const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8')
 /** The README with table cells trimmed, so the checks do not depend on column alignment. */
@@ -71,6 +71,45 @@ describe('README', () => {
     expect(createSlugger({ languages: ['de', 'en', 'nl'], languagePacks: [nl] }).suggest('De fiets van oma').lang).toBe(
       'nl',
     )
+  })
+
+  it('review fixes: SQL example, short forms, marker, max mode, memory store, fills', async () => {
+    // every sqlStore call passes the required table
+    for (const m of readme.matchAll(/sqlStore\(\{[^}]*\}/g)) expect(m[0], m[0]).toContain('table:')
+    // the short forms listed under "What you see" are segments of the examples table
+    const bullet = /short form that is still easy to guess \(([^)]+)\)/.exec(readme)?.[1] ?? ''
+    const forms = [...bullet.matchAll(/`([a-z0-9]+)`/g)].map((m) => m[1] ?? '')
+    expect(forms.length).toBeGreaterThanOrEqual(3)
+    const table = readme.slice(readme.indexOf('examples-table:start'), readme.indexOf('examples-table:end'))
+    const segs = new Set([...table.matchAll(/\| `([a-z0-9-]+)` \|/g)].flatMap((m) => (m[1] ?? '').split('-')))
+    for (const f of forms) expect(segs, f).toContain(f)
+    // the marker example
+    const marker = createSlugger({ lexicon: [{ key: 'ticket', lang: 'en', cls: 'marker', abbr: ['t'] }] })
+    expect(readme).toContain("{ key: 'ticket', lang: 'en', cls: 'marker', abbr: ['t'] }")
+    expect(readme).toContain(`into \`${marker.slug('Ticket 42: Login broken')}\``)
+    // max mode: tails for empty and reserved titles
+    const max = createSlugger({ lengthMode: 'max' })
+    expect(readme).toContain(`(\`${max.slug('der die das')}\`)`)
+    expect(readme).toContain(`(\`${max.slug('admin')}\`)`)
+    // memory store example
+    const { memoryStore } = await import('../src/adapters/memory.ts')
+    const mem = memoryStore()
+    const calls = [...readme.matchAll(/await createUnique\('([^']+)', \{ store: mem \}\) \/\/ ([a-z0-9-]+)/g)]
+    expect(calls).toHaveLength(2)
+    for (const m of calls) {
+      const { result } = await createUnique(m[1] ?? '', { store: mem })
+      expect(result.id).toBe(m[2])
+    }
+    // fills
+    const fills: [string, string][] = [
+      ['Spring Concert Program', 'spring-prog-conc'],
+      ['Trip report from Lisbon', 'trip-lisbon-repo'],
+      ['Garden Party Plans', 'garden-party-pla'],
+    ]
+    for (const [t, id] of fills) {
+      expect(slug(t)).toBe(id)
+      expect(readme).toContain(`\`${id}\``)
+    }
   })
 
   it('the explain() example is the real output', () => {

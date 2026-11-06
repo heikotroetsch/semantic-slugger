@@ -53,6 +53,13 @@ describe('playground', () => {
     }
   })
 
+  it('a blur does not re-run and close the explain panel; a re-run keeps the open row (review fix)', () => {
+    const app = read('playground/app.js')
+    expect(app).not.toMatch(/el\.addEventListener\('input', later\)\s*el\.addEventListener\('change', later\)/)
+    expect(app).toContain("if (toggle) el.addEventListener('change', later)")
+    expect(app).toContain('if (rows[selected]) show(selected)')
+  })
+
   it('the demo secret is a valid secret', () => {
     expect(() => createSlugger({ leak: 'opaque', secret: DEMO_SECRET })).not.toThrow()
   })

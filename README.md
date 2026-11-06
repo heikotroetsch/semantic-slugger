@@ -44,9 +44,11 @@ What you see:
 
 - Words that matter stay. Filler words (`the`, `für`, `with`), weak words (`Jahresbericht`, `Notes`) and
   noise (`500`, emoji, file endings) go.
-- Long words get a short form that is still easy to guess (`choc`, `effect`, `miet`).
+- Long words get a short form that is still easy to guess (`choc`, `depriv`, `mietvert`, `retrosp`).
 - Years, quarters, months, versions and parts get compact forms (`26`, `26q3`, `26mar`, `firef132`, `sprint14`).
-- When the words do not fill the length, or the ID is taken, a short code ("tail") fills the rest.
+- When the words do not fill the length, the library first uses the room for more of the title: a
+  word that is not in the ID yet, or more letters of a cut word (`garden-party-pla`). Only when that
+  does not work, or when the ID is taken, a short code ("tail") fills the rest (`sommerfest-26-jf`).
   The tail has no vowels, so it never spells a word.
 - Other scripts are transliterated (`Москва` -> `moskva`).
 
@@ -57,7 +59,9 @@ npm install semantic-slugger
 # or: pnpm add semantic-slugger / yarn add semantic-slugger
 ```
 
-ESM and CommonJS, with types. Node 22+, all modern browsers, Deno and Bun.
+ESM and CommonJS, with types. Node 22+, all modern browsers, Deno and Bun. No dependencies and no
+peer dependencies: the Prisma adapter imports nothing from `@prisma/client` and works with Prisma 5
+and later (Prisma 7 driver adapters included).
 
 ## Quick start
 
@@ -91,9 +95,21 @@ For a list of titles, `slugMany(titles)` makes IDs that are unique within the li
 import { generate } from 'semantic-slugger'
 import { sqlStore } from 'semantic-slugger/adapters/sql'
 
-const store = sqlStore({ query: (text, values) => pool.query(text, values) }) // pg, PGlite, postgres.js, ...
+// pg, PGlite, postgres.js, ...; `table` is required (`sqlSchema()` gives the DDL)
+const store = sqlStore({ query: (text, values) => pool.query(text, values), table: 'slug_entry' })
 const result = await generate('Sommerfest 2026', { store, scope: 'tenant-42' })
 result.id // checked against the database
+```
+
+For tests, scripts and single-process apps, the memory store needs no database:
+
+```ts
+import { createUnique } from 'semantic-slugger'
+import { memoryStore } from 'semantic-slugger/adapters/memory'
+
+const mem = memoryStore()
+await createUnique('Chocolate Cake Recipe', { store: mem }) // choc-cake-recipe
+await createUnique('Chocolate Cake Recipe', { store: mem }) // choc-cake-rec-fs
 ```
 
 **3. Insert and retry (recommended).** Two requests can pick the same free ID at the same time.
@@ -136,6 +152,11 @@ model SlugEntry {
 You can also keep the slug as columns on your own table (`fields` and `scopeWhere`). Both layouts,
 the SQL table (`sqlSchema()`) and a transaction recipe are in [`examples/`](./examples).
 
+**Insert callback.** With `createUnique(title, { store, insert })` you insert the row yourself. A
+unique violation counts as a lost race only when the ID is now taken in the store. A violation on
+another unique column (a title, an external key) rejects with `StoreError` (`details.reason`
+`insert-blocked`, the database error in `cause`), so the real error is not hidden behind retries.
+
 **Transactions.** In Postgres, a failed insert aborts the transaction. Run `createUnique` outside
 your transaction, or use `generate()` inside it and retry the whole transaction on a unique
 violation (`isUniqueViolation(error, 'slug')`), as in
@@ -177,7 +198,7 @@ something is wrong. Unknown keys are errors too.
 | `leak` | 'normal' \| 'minimal' \| 'opaque' | `'normal'` | How much of the title the ID shows. `opaque` needs `secret` |
 | `secret` | string (16+ chars) | none | Keys the tail hash, `titleKey` and hashed stems. Use one per tenant |
 | `storeStems` | 'plain' \| 'hashed' | `'plain'` | Stems to store. `hashed` needs `secret` |
-| `rarity` | 'store' \| 'static' | `'store'` | `store`: rare words in your data rank higher. `static`: fully reproducible IDs |
+| `rarity` | 'store' \| 'static' | `'store'` | `store`: rare words in your data rank higher. `static`: fully reproducible IDs; use it when a browser preview must match the server |
 | `corpusSize` | number | `1000` | Row count to use when the store has no `total()` |
 | `fallbackWord` | string | `'doc'` | Body for titles with no usable words |
 | `onEmpty` | 'fallback' \| 'throw' | `'fallback'` | What to do with an empty title |
@@ -189,7 +210,8 @@ something is wrong. Unknown keys are errors too.
 
 <!-- config-table:end -->
 
-`lengthMode: 'max'` is the "readable" preset: IDs only get a tail when they collide.
+`lengthMode: 'max'` is the "readable" preset: IDs only get a tail when they collide, when the title
+has no usable words (`doc-v6`), or when the body alone would be a reserved word (`admin-tz`).
 
 ## Teach it your field
 
@@ -210,11 +232,15 @@ You add what your field needs with five options:
 | a word that says which kind (`intern`, `premium`)              | `lexicon` entry with `cls: 'qualifier'`         |
 | a word that names the kind of text (`Datasheet`, `Merkblatt`)  | `lexicon` entry with `weight: -60`              |
 | a word that only counts in lower or upper case                 | `lexicon` entry with `lowerOnly` or `upperOnly` |
-| a numbered part (`Lot 2`, `Ticket 42`)                         | `lexicon` entry with `cls: 'marker'`            |
+| a numbered part (`Lot 2`, `Ticket 42`)                         | `lexicon` entry with `cls: 'marker'` and `abbr` |
 | words to drop                                                  | `stopWords: { add: [...] }`                     |
 | words that must never show (person names, code names)          | `denyTokens`                                    |
 | words that must never be an ID                                 | `reserved`                                      |
 | another language                                               | `languagePacks` (experimental)                  |
+
+A marker needs `abbr[0]`: the prefix in the ID, 1 to 6 lower-case letters that do not end in `i`,
+`l` or `o`. For example `{ key: 'ticket', lang: 'en', cls: 'marker', abbr: ['t'] }` turns
+`Ticket 42: Login broken` into `login-broken-t42`.
 
 Three examples from different fields. They are not part of the package; copy what you need. Each
 one is tested ([`test/recipes.test.ts`](./test/recipes.test.ts)).
@@ -282,10 +308,18 @@ title
 - **Slot order.** The body always has the same shape: topic words first, then qualifiers (directions,
   places), then numbers and time. Inside a slot, words keep their title order. So related IDs sort
   next to each other: `vertrieb-nord-26`, `vertrieb-sued-26`.
+- **Fills.** In exact mode, a body that is a few chars short does not get a padding tail. The room
+  goes to a word of the title that is not in the body yet (a "fill"), cut to fit, or to more letters
+  of a cut word. A fill is part of the body (`tail` stays empty). It goes before the numbers, or at
+  the end, so it can break the title order: `Spring Concert Program` gives `spring-prog-conc`, and
+  `Trip report from Lisbon` gives `trip-lisbon-repo`. No fills in `max` mode or with `leak`
+  `minimal` or `opaque`.
 - **Fit.** A small search tries the best concepts and their short forms and picks the cheapest body.
   Full words are cheap, cut words cost more, a tail costs most.
-- **Collisions.** Same content (the same title again): same body plus a new tail
-  (`choc-cake-recipe`, then `choc-cake-rec-fs`). Different content with the same body: the library
+- **Collisions.** Same content (the same title again): the same words plus a tail. In exact mode the
+  body often gets shorter so the tail fits (`choc-cake-recipe`, then `choc-cake-rec-fs`, warning
+  `tail-grown`), and it can use other short forms than the first ID. Group copies by `titleKey`, not
+  by `body`. Different content with the same body: the library
   looks at the stored rows and re-picks a body that shows the difference, when the store can tell
   (tier C below). Only when that fails does it add a tail.
 
@@ -328,7 +362,7 @@ result      vertrieb-nord-26  reason base  lang de  tail none
 secret is hidden). With a store, use `generate(title, { store, trace: true })`: the result then has
 a `trace`. `slugger.candidates(title)` lists the best bodies the fit found.
 
-### CLI
+## CLI
 
 ```sh
 npx semantic-slugger "Jahresbericht Vertrieb Nord 2026"         # vertrieb-nord-26
@@ -340,6 +374,61 @@ npx semantic-slugger --deny ./names.txt "..."                    # one word per 
 
 Flags: `--length --mode --sep --leak --lang --explain --json --unique --secret-env <VAR> --lexicon <file>
 --deny <file> --check <id>`. Run `npx semantic-slugger --help` for details.
+
+With titles from stdin, a blank line gives an empty output line, so the plain output lines up with
+the input (for example a spreadsheet column). `--json` skips blank lines; each JSON line has the
+`title`.
+
+## API
+
+Everything is exported from `semantic-slugger`. A slugger from `createSlugger(config)` has the same
+functions as methods (plus `config`, `pattern` and `isValid(id)`); the top-level functions use the
+default config.
+
+| Function                                | What it does                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------------- |
+| `slug(title)`                           | the ID as a string, no store                                                       |
+| `suggest(title, { taken?, exclude? })`  | the full result, sync; `taken` is a `Set` or a function                            |
+| `slugMany(titles, opts?)`               | results that are unique within the list                                            |
+| `generate(title, { store, scope? })`    | the full result, checked against a store (async)                                   |
+| `createUnique(title, { store, ... })`   | generate, insert, retry on a lost race (async); options `insert`, `retryKey`, ...  |
+| `explain(title, opts?)`                 | every step of the pipeline (see above)                                             |
+| `analyze(title)`                        | tokens, concepts and ranks, without an ID                                          |
+| `slugger.candidates(title)`             | the best bodies of the fit search                                                  |
+| `isValidSlug(id, config?)`              | true when `id` could come from this config (pattern, length, bad words)            |
+| `isUniqueViolation(error, field?)`      | true for a Prisma or Postgres unique violation (optionally on `field`)             |
+
+Store calls also take `signal` (an `AbortSignal`). Errors: `ConfigError`, `InputError`,
+`ExhaustedError` (no free tail left), `ConflictError` (`createUnique` lost every retry;
+`details.tried`, the last database error in `cause`), `StoreError` and `InternalError` (a bug). All
+extend `SluggerError` with a `code`; `isSluggerError(e, code?)` works across ESM and CJS copies.
+
+The result (`SlugResult`):
+
+| Field               | Meaning                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `id`                | the ID: `body`, the separator and `tail`                                                      |
+| `body`, `tail`      | the words part and the code part (`tail` is `''` when there is none)                          |
+| `segments`          | the body segments, each with its source word and short-form kind                             |
+| `reason`            | `base` (first choice), `repick` (other words after a collision), `shared-body` (tail after a collision), `empty` (no usable words), `opaque` |
+| `warnings`          | `truncated`, `script-dropped`, `empty`, `stopwords-relaxed`, `tail-grown`                     |
+| `lang`              | `de`, `en`, a pack code, or `und` when the title gives no clear signal                        |
+| `stems`, `titleKey` | store these with the ID (rarity, re-pick, grouping of copies)                                 |
+| `storeTier`         | `none`, `A`, `B` or `C` (see the tier table)                                                  |
+| `checked`           | false when no store or `taken` was asked                                                      |
+| `tailIndex`, `algorithm`, `configFingerprint` | how the ID was made                                                 |
+
+Lexicon entry fields (`LexiconEntry`): `key` (the word, lower case), `cls`, `lang` (`'*'` by
+default), `forms` (other spellings and inflected forms that match the same entry), `phrase` (a
+multi-word form), `abbr` (short forms the ID may use), `known` (short forms that also appear in
+titles and mean this word), `weight`, `weak`, `group` (synonyms share one), `lowerOnly` /
+`upperOnly`, `prior` (`common`, `medium` or `rare`: how often the word is in normal text), `part` /
+`partOnly` (a compound part; `partOnly` only inside compounds), `pair` (the same word in the other
+built-in language).
+
+Subpaths: `semantic-slugger/adapters/memory`, `semantic-slugger/adapters/sql`,
+`semantic-slugger/adapters/prisma`, and `semantic-slugger/data` (the built-in word lists, for
+reading).
 
 ## Collisions and races
 
@@ -398,7 +487,9 @@ The core has no Node imports and runs in every modern browser.
 </script>
 ```
 
-A client-side preview gives the same ID as the server when the server store has no collision.
+A client-side preview gives the same ID as the server only when the server slugger uses
+`rarity: 'static'` (set it in `createSlugger`) and the store has no collision. With the default
+`rarity: 'store'`, word counts in your data can change which words the ID shows.
 [Playground](https://heikotroetsch.github.io/semantic-slugger/).
 
 ## Write your own store
@@ -483,9 +574,11 @@ or put a copy button next to the ID.
 `strict` is for IDs that people read on the phone or type from paper: only letters and digits that
 do not sound alike. Spell IDs with the NATO alphabet anyway.
 
-**Why does a 16-char ID sometimes have a short tail?** In exact mode, a body of 14 or 15 chars
-cannot take a tail (separator plus 2 chars). The library then picks a shorter body plus a tail
-instead of an ugly cut. Use `lengthMode: 'max'` if you prefer shorter IDs without that tail.
+**Why does a 16-char ID sometimes end in a cut word or a short tail?** In exact mode every ID has
+the full length. When the words leave a few chars free, the library first fills them with another
+title word or more letters of a cut word (`garden-party-pla`). A body of 14 or 15 chars cannot take a
+tail (separator plus 2 chars), so when no fill fits, it picks a shorter body plus a tail. Use
+`lengthMode: 'max'` if you prefer shorter IDs without fills or that tail.
 
 ## Limits
 

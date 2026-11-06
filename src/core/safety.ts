@@ -36,8 +36,11 @@ interface Compiled {
   readonly three: ReadonlySet<string>
   /** B5: entries of length 3+ from every list, plus the 2-char TAIL_BLOCK entries (also in tail-fold form). */
   readonly tail: readonly string[]
-  /** B7: hard entries, also in tail-fold form. */
-  readonly hardTail: readonly string[]
+  /**
+   * B7: hard entries and list words of 4+ chars from every list (soft, BLOCK_SHORT_DE, TAIL_BLOCK),
+   * also in tail-fold form. A tail is never verbatim, so no list word may reach into it (docs/DEVIATIONS.md).
+   */
+  readonly joinTail: readonly string[]
 }
 
 const cache = new WeakMap<object, Compiled>()
@@ -69,7 +72,7 @@ function compiled(cfg: ResolvedConfig): Compiled {
       strict: rungLists.filter((w) => w.length >= 4 && !soft.includes(w)).sort(),
       three: new Set(rungLists.filter((w) => w.length === 3)),
       tail: withTailForms(tail),
-      hardTail: withTailForms(hard),
+      joinTail: withTailForms([...hard, ...rungLists.filter((w) => w.length >= 4)]),
     }
     cache.set(cfg.blocklist, c)
   }
@@ -149,7 +152,9 @@ export function bodyBlocked(segments: readonly SafetySegment[], cfg: ResolvedCon
 /**
  * B5 and B7 for a tail (SPEC 9.2). `body` is the rendered body with separators ('' for opaque).
  * B5: f(lastBodyChar) + fT(tail) has no list entry of 3+ chars and no 2-char TAIL_BLOCK entry.
- * B7: f(body without separators) + fT(tail) has no hard entry that reaches into the tail.
+ * B7: f(body without separators) + fT(tail) has no list word of 4+ chars (hard, soft or strict) that
+ * reaches into the tail. SPEC 9.2 names only hard words; soft and strict words across the boundary
+ * are blocked too, so that every generated ID passes `isValidSlug` (docs/DEVIATIONS.md).
  */
 export function tailBlocked(body: string, tail: string, cfg: ResolvedConfig): boolean {
   const c = compiled(cfg)
@@ -159,7 +164,7 @@ export function tailBlocked(body: string, tail: string, cfg: ResolvedConfig): bo
   for (const w of c.tail) if (y.includes(w)) return true
   const fb = cfg.separator === '' ? fold(body) : fold(body.split(cfg.separator).join(''))
   const x = fb + ft
-  for (const w of c.hardTail) {
+  for (const w of c.joinTail) {
     if (x.indexOf(w, Math.max(0, fb.length - w.length + 1)) !== -1) return true
   }
   return false

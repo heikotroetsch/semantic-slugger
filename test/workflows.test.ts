@@ -63,8 +63,14 @@ describe('workflows', () => {
     expect(pkg.repository).toEqual({ type: 'git', url: 'git+https://github.com/heikotroetsch/semantic-slugger.git' })
     expect(pkg.homepage).toBe('https://heikotroetsch.github.io/semantic-slugger/')
     expect(pkg.bugs).toBe('https://github.com/heikotroetsch/semantic-slugger/issues')
-    expect(pkg.publishConfig).toEqual({ access: 'public', provenance: true })
+    // provenance comes from CI only (NPM_CONFIG_PROVENANCE): a hand publish has no OIDC provider
+    expect(pkg.publishConfig).toEqual({ access: 'public' })
+    expect(wf('release.yml')).toContain('NPM_CONFIG_PROVENANCE: "true"')
     expect(pkg.keywords).not.toContain('procurement')
     expect(pkg.dependencies).toEqual({})
+    // no peer: the Prisma adapter imports nothing from @prisma/client
+    expect(pkg.peerDependencies).toBeUndefined()
+    // any pack or publish builds a fresh dist
+    expect((pkg.scripts as Record<string, string>).prepack).toBe('pnpm build')
   })
 })

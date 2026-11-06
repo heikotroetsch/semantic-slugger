@@ -139,6 +139,13 @@ describe('B5 and B7 tails', () => {
     expect(tailBlocked('cu', 'nt', resolveConfig({ separator: '' }))).toBe(true)
   })
 
+  it('B7: soft and strict words of 4+ chars across body and tail are caught too (review fix)', () => {
+    expect(tailBlocked('nsda', 'pv8', cfg)).toBe(true) // nsdap (strict)
+    expect(tailBlocked('report-audi', 'ckdm', cfg)).toBe(true) // dick (soft)
+    expect(tailBlocked('elternbriefwan', 'kp', resolveConfig({ separator: '' }))).toBe(true) // wank
+    expect(tailBlocked('report-audi', 'mx', cfg)).toBe(false)
+  })
+
   it('B7 ignores hard hits fully inside the body (those are B3)', () => {
     expect(tailBlocked('fick-ab', 'k3', cfg)).toBe(false)
   })

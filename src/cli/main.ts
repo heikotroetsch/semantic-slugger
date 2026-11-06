@@ -22,7 +22,8 @@ export interface CliIo {
 export const USAGE = `Usage: semantic-slugger [options] [title ...]
 
 Makes a short, readable, unique ID from each title. Titles come from the arguments,
-or one per line from stdin when there are no arguments.
+or one per line from stdin when there are no arguments. A blank stdin line gives an
+empty output line, so the IDs line up with the input; --json skips blank lines.
 
 Options:
   --length <n>        ID length, 8 to 64 (default 16)
@@ -95,10 +96,14 @@ function readDeny(io: CliIo, path: string): string[] {
 
 /** Non-empty trimmed lines (`\n` or `\r\n`). */
 function splitLines(text: string): string[] {
-  return text
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l !== '')
+  return allLines(text).filter((l) => l !== '')
+}
+
+/** Trimmed lines, blank lines kept, without the blank lines at the end. */
+function allLines(text: string): string[] {
+  const lines = text.split('\n').map((l) => l.trim())
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
+  return lines
 }
 
 /** Run the CLI. Returns the exit code: 0 ok, 1 `--check` failed, 2 usage or config error. */
@@ -186,13 +191,16 @@ export async function main(io: CliIo): Promise<number> {
   }
 
   let titles = positionals
+  /** Stdin lines with blank lines kept: plain output prints an empty line for each blank one. */
+  let rows: string[] | undefined
   if (titles.length === 0) {
     const input = await io.readStdin()
     if (input === null) {
       io.err(USAGE)
       return 2
     }
-    titles = splitLines(input)
+    rows = allLines(input)
+    titles = rows.filter((l) => l !== '')
   }
   if (values.unique === true && values.explain === true) {
     io.err('--unique and --explain cannot be used together\n')
@@ -212,7 +220,12 @@ export async function main(io: CliIo): Promise<number> {
     }
     const results =
       values.unique === true ? slugger.slugMany(titles, opts) : titles.map((t) => slugger.suggest(t, opts))
-    const lines = results.map((r, i) => (json ? JSON.stringify({ title: titles[i], ...r }) : r.id))
+    let lines = results.map((r, i) => (json ? JSON.stringify({ title: titles[i], ...r }) : r.id))
+    // plain output keeps one line per input line, so it lines up with the input (a spreadsheet column)
+    if (!json && rows !== undefined) {
+      let next = 0
+      lines = rows.map((l) => (l === '' ? '' : (lines[next++] as string)))
+    }
     if (lines.length > 0) io.out(`${lines.join('\n')}\n`)
     return 0
   } catch (e) {

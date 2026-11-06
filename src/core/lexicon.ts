@@ -55,6 +55,8 @@ export interface Lexicon {
   readonly entries: readonly LexiconEntry[]
   /** Longest phrase in tokens. */
   readonly maxPhrase: number
+  /** Longest single key or form in chars (bounds joins that look up `hasExact`). */
+  readonly maxWord: number
   hasExact(ascii: string): boolean
   /** Entries whose key or form equals `ascii`, in data order (no case check). */
   exactAll(ascii: string): readonly LexiconEntry[]
@@ -176,10 +178,12 @@ export function buildLexicon(src: LexiconSource): Lexicon {
   const phrases = new Map<string, LexiconEntry>()
   const known = new Map<string, LexiconEntry[]>()
   let maxPhrase = 1
+  let maxWord = 0
   for (const e of entries) {
     if (e.cls === 'marker') continue // marker words are handled by the tokenizer (SPEC 5.3)
     const w = words(e)
     for (const s of w.single) {
+      if (s.length > maxWord) maxWord = s.length
       const l = exact.get(s)
       if (l === undefined) exact.set(s, [e])
       else if (!l.includes(e)) l.push(e)
@@ -232,6 +236,7 @@ export function buildLexicon(src: LexiconSource): Lexicon {
   return {
     entries,
     maxPhrase,
+    maxWord,
     hasExact: (a) => exact.has(a),
     exactAll: (a) => exact.get(a) ?? [],
     phrase: (toks) => phrases.get(toks.join(' ')),

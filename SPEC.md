@@ -883,7 +883,7 @@ Merge rule: concepts with the same `key` merge (tf adds up, pos = min). Lexicon 
 | B4 | source tokens | a token whose ascii equals a list word (any list) is dropped before concepts | token dropped |
 | B5 | tail | `Y = f(lastBodyChar) + fT(tail)` contains no entry of length 3+ from any list (`BLOCK_HARD ∪ BLOCK_SOFT ∪ BLOCK_SHORT_DE ∪ TAIL_BLOCK`) and no 2-char entry of `TAIL_BLOCK` as substring. Soft words count here, because a tail is never verbatim (`s3x`, `f4g`, `4ss`, `k4ck3` are caught) | redraw (draw + 1, max 4, then k + 1) |
 | B6 | years | if the 2-digit form is blocked (`18`, `88`), only the 4-digit rung exists | rung removed |
-| B7 | whole ID | `X = f(body.replaceAll(sep, '')) + fT(tail)` contains no `BLOCK_HARD` entry as substring, verbatim or not (body `...fo` + tail `tz3` is caught) | body: candidate rejected; tail: redraw as in B5 |
+| B7 | whole ID | `X = f(body.replaceAll(sep, '')) + fT(tail)` contains no `BLOCK_HARD` entry and no list word of 4+ chars (soft, `BLOCK_SHORT_DE`, `TAIL_BLOCK`) that reaches into the tail, verbatim or not (body `...fo` + tail `tz3`, body `nsda` + tail `p..`, body `audi` + tail `ck..` are caught; docs/DEVIATIONS.md) | body: candidate rejected; tail: redraw as in B5 |
 | I8 | each body segment; with separator `''` the joined body | no `[lio][01]` or `[01][lio]` pair | rung removed (with `''`: candidate rejected) |
 
 B5 and B7 are the only tail checks. `lastBodyChar` is `''` when there is no body (opaque). A unit test enumerates all 2- and 3-char tails of the `safe` alphabet against B5 and B7 and checks the rejected set against a committed list.
@@ -2317,7 +2317,7 @@ export default defineConfig([
 
 Legal comments (`/*! ... */`) of vendored files are kept in `dist`.
 
-`.size-limit.json`: `dist/index.js` (import `{ slug }`) <= 30 KB min+gz including data and the `de`/`en` packs (M4 decision: 30 KB is not reachable; measured 43.5 KB = v1 data tables about 16 KB, vendored Porter2 + CISTEM about 5.5 KB, pipeline code about 22 KB. Limit 48 KB at M4, 52 KB for 1.0, see docs/DEVIATIONS.md); `dist/adapters/memory.js` <= 1 KB; `prisma.js` <= 1.5 KB; `sql.js` <= 1.5 KB.
+`.size-limit.json`: `dist/index.js` (import `{ slug }`) <= 30 KB min+gz including data and the `de`/`en` packs (M4 decision: 30 KB is not reachable; measured 43.5 KB = v1 data tables about 16 KB, vendored Porter2 + CISTEM about 5.5 KB, pipeline code about 22 KB. Limit 48 KB at M4, 52 KB for 1.0, 55 KB after the review fixes, see docs/DEVIATIONS.md); `dist/adapters/memory.js` <= 1 KB (1.2 KB, see docs/DEVIATIONS.md); `prisma.js` <= 1.5 KB; `sql.js` <= 1.5 KB (both 3 KB, see docs/DEVIATIONS.md).
 
 ### 18.4 CI (`.github/workflows/ci.yml`)
 
@@ -2400,7 +2400,7 @@ jobs:
 ```
 
 One-time setup, in order:
-1. Publish `0.0.1` by hand with 2FA (`npm publish --access public`) to create the name.
+1. Publish `0.0.1` by hand with 2FA (`pnpm publish --access public`; `prepack` builds `dist/`, `devEngines` blocks npm inside the repo, and provenance is set only in CI) to create the name.
 2. On npmjs.com add a trusted publisher: repo `heikotroetsch/semantic-slugger`, workflow `release.yml`, environment `npm`. Enable direct `npm publish` (new configs default to staged publish).
 3. Merge the first changeset within 2 days.
 4. Set "Require 2FA and disallow tokens".

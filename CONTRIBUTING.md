@@ -2,7 +2,8 @@
 
 - Use only synthetic titles and invented names. Never paste real customer, patient, employee or other
   confidential data, or real names.
-- Run `pnpm build && pnpm test && pnpm lint && pnpm typecheck` before you open a pull request.
+- Run `pnpm build && pnpm test && pnpm lint && pnpm typecheck && pnpm size` before you open a pull
+  request. CI fails when a size budget is exceeded, and then no release runs.
 - Add a changeset (`pnpm changeset`). If generated IDs change, write "ID output changed" in it.
 - The core is generic. A new built-in lexicon entry must pass the cross-domain test (SPEC 15.2): general
   language, or an abbreviation used without explanation in at least three unrelated fields. Words of one
@@ -28,7 +29,10 @@
 Releases run in GitHub Actions only (`.github/workflows/release.yml`), after `ci` passed on a push to
 `main`, with npm trusted publishing (OIDC) and provenance. One-time setup:
 
-1. Publish a first version by hand with 2FA to create the package name.
+1. Publish a first version by hand with 2FA to create the package name: `pnpm publish --access public`
+   from a clean clone. `prepack` builds `dist/` first. Use pnpm, not npm: `devEngines` makes npm fail
+   inside the repo. Provenance is not set for this step (it needs the CI OIDC provider); CI sets
+   `NPM_CONFIG_PROVENANCE=true` for every later release.
 2. On npmjs.com, add a trusted publisher: repo `heikotroetsch/semantic-slugger`, workflow
    `release.yml`, environment `npm`.
 3. Set "Require 2FA and disallow tokens" on the package.

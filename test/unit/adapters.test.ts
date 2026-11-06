@@ -70,6 +70,9 @@ describe('prismaStore without a database', () => {
     })
     expect(s.isConflict({ code: 'P2002' })).toBe(true)
     expect(s.isConflict(new Error('x'))).toBe(false)
+    // only the slug field is a lost race (review fix)
+    expect(s.isConflict({ code: 'P2002', meta: { target: ['scope', 'slug'] } })).toBe(true)
+    expect(s.isConflict({ code: 'P2002', meta: { target: ['title'] } })).toBe(false)
     expect(await s.countBodies(['a', 'b'], ctx)).toEqual(
       new Map([
         ['a', 0],
@@ -125,5 +128,64 @@ describe('prismaStore without a database', () => {
     expect(await s.countStems(['b'], ctx)).toEqual(new Map([['b', 3]]))
     expect(sent[0]).toContain('"tenantId"')
     expect(sent[0]).not.toContain('"scope"')
+  })
+
+  it('an undefined field keeps its default; a bad retiredAt is a ConfigError at once (review fix)', async () => {
+    const wheres: unknown[] = []
+    const delegate = {
+      count: async (a: { where: unknown }) => {
+        wheres.push(a.where)
+        return 0
+      },
+      findMany: async () => [],
+    }
+    const s = prismaStore({ delegate, fields: { retiredAt: undefined, slug: undefined } as never })
+    await s.total(ctx)
+    expect(wheres[0]).toEqual({ scope: 's1', retiredAt: null })
+    await s.exists('a-b', ctx)
+    expect(wheres[1]).toEqual({ scope: 's1', slug: 'a-b' })
+    for (const bad of ['', 5]) {
+      let err: unknown
+      try {
+        prismaStore({ delegate, fields: { retiredAt: bad } as never })
+      } catch (e) {
+        err = e
+      }
+      expect(err).toBeInstanceOf(ConfigError)
+      expect((err as ConfigError).details?.field).toBe('fields.retiredAt')
+    }
+    // the raw df path uses the same default column
+    const sent: string[] = []
+    const r = prismaStore({
+      delegate,
+      fields: { retiredAt: undefined } as never,
+      queryRaw: async (sql) => {
+        sent.push(sql)
+        return []
+      },
+    })
+    await r.countStems(['a'], ctx)
+    expect(sent[0]).toContain('"retired_at" is null')
+  })
+})
+
+describe('sqlStore defaults and isConflict', () => {
+  it('an undefined column keeps its default; isConflict only accepts the slug column', async () => {
+    const sent: string[] = []
+    const s = sqlStore({
+      query: async (text) => {
+        sent.push(text)
+        return { rows: [] }
+      },
+      table: 'slug_entry',
+      columns: { slug: undefined, retiredAt: undefined } as never,
+    })
+    await s.total(ctx)
+    expect(sent[0]).toContain('"retired_at" is null')
+    await s.exists('a-b', ctx)
+    expect(sent[1]).toContain('"slug" = $2')
+    expect(s.isConflict({ code: '23505', constraint: 'slug_entry_scope_slug_uq' })).toBe(true)
+    expect(s.isConflict({ code: '23505', constraint: 'document_tenant_id_title_key' })).toBe(false)
+    expect(s.isConflict({ code: '23505' })).toBe(true)
   })
 })

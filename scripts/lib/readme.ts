@@ -120,7 +120,8 @@ export const CONFIG_DOCS: readonly { key: Key; type: string; effect: string; def
   {
     key: 'rarity',
     type: "'store' \\| 'static'",
-    effect: '`store`: rare words in your data rank higher. `static`: fully reproducible IDs',
+    effect:
+      '`store`: rare words in your data rank higher. `static`: fully reproducible IDs; use it when a browser preview must match the server',
   },
   { key: 'corpusSize', type: 'number', effect: 'Row count to use when the store has no `total()`' },
   { key: 'fallbackWord', type: 'string', effect: 'Body for titles with no usable words' },

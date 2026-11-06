@@ -75,8 +75,14 @@ export class ExhaustedError extends SluggerError {
 
 export class ConflictError extends SluggerError {
   declare readonly details: ConflictErrorDetails
-  constructor(details: ConflictErrorDetails) {
-    super('E_CONFLICT', `insert lost ${details.tried.length} races; tried: ${details.tried.join(', ')}`, details)
+  /** `cause`: the last unique-violation error of an insert callback, when there was one. */
+  constructor(details: ConflictErrorDetails, opts: { readonly cause?: unknown } = {}) {
+    super(
+      'E_CONFLICT',
+      `insert lost ${details.tried.length} races; tried: ${details.tried.join(', ')}`,
+      details,
+      'cause' in opts ? { cause: opts.cause } : undefined,
+    )
     this.name = 'ConflictError'
   }
 }

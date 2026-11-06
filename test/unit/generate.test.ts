@@ -221,7 +221,8 @@ describe('createUnique() (SPEC 13.5)', () => {
     const m = memoryStore()
     const seen: string[] = []
     const out = await createUnique(T, {
-      store: { exists: (id, ctx) => m.exists(id, ctx) }, // no store.isConflict: isUniqueViolation decides
+      // no store.isConflict: isUniqueViolation decides; a lost race leaves the ID taken
+      store: { exists: (id, ctx) => seen.slice(0, 2).includes(id) || m.exists(id, ctx) },
       insert: async (r: SlugResult) => {
         seen.push(r.id)
         if (seen.length < 3) throw Object.assign(new Error('unique'), { code: 'P2002', meta: { target: ['slug'] } })
@@ -250,16 +251,76 @@ describe('createUnique() (SPEC 13.5)', () => {
   })
 
   it('ConflictError after maxInsertRetries lost races, with the tried IDs', async () => {
+    const won = new Set<string>()
+    const dup = Object.assign(new Error('dup'), { code: '23505' })
     const e = await rejection(
       createUnique(T, {
-        store: { exists: () => false },
+        store: { exists: (id) => won.has(id) },
         maxInsertRetries: 3,
-        insert: () => Promise.reject(Object.assign(new Error('dup'), { code: '23505' })),
+        insert: (r) => {
+          won.add(r.id) // another caller won the race
+          return Promise.reject(dup)
+        },
       }),
     )
     expect(e).toBeInstanceOf(ConflictError)
     expect((e as ConflictError).details.tried).toHaveLength(3)
     expect(new Set((e as ConflictError).details.tried).size).toBe(3)
+    expect((e as ConflictError).cause).toBe(dup)
+  })
+
+  it('ConflictError counts only the IDs it tried, not the exclude list', async () => {
+    let inserts = 0
+    const e = await rejection(
+      createUnique('Budget review quarterly', {
+        store: {
+          exists: () => false,
+          insert: () => {
+            inserts++
+            return 'conflict'
+          },
+        },
+        maxInsertRetries: 1,
+        exclude: ['a-b', 'c-d', 'e-f'],
+      }),
+    )
+    expect(inserts).toBe(1)
+    expect(e).toBeInstanceOf(ConflictError)
+    expect((e as ConflictError).details.tried).toHaveLength(1)
+    expect((e as ConflictError).details.tried).not.toContain('a-b')
+    expect((e as ConflictError).message).toMatch(/^insert lost 1 races; tried: [a-z]/)
+  })
+
+  it('insert callback: a unique violation on another column is a StoreError (insert-blocked), not a race', async () => {
+    const titleDup = Object.assign(new Error('dup title'), {
+      code: '23505',
+      constraint: 'document_tenant_id_title_key',
+      detail: 'Key (tenant_id, title)=(t1, Annual Safety Training) already exists.',
+    })
+    let calls = 0
+    const e = await rejection(
+      createUnique('Annual Safety Training', {
+        store: { exists: () => false },
+        insert: () => {
+          calls++
+          return Promise.reject(titleDup)
+        },
+      }),
+    )
+    expect(calls).toBe(1)
+    expect(e).toBeInstanceOf(StoreError)
+    expect((e as StoreError).details?.reason).toBe('insert-blocked')
+    expect((e as StoreError).cause).toBe(titleDup)
+    // a custom isConflict is trusted as is
+    const e2 = await rejection(
+      createUnique('Annual Safety Training', {
+        store: { exists: () => false },
+        maxInsertRetries: 2,
+        isConflict: () => true,
+        insert: () => Promise.reject(titleDup),
+      }),
+    )
+    expect(e2).toBeInstanceOf(ConflictError)
   })
 
   it('a stale read (exists says free, insert says conflict) retries with another ID', async () => {
@@ -297,9 +358,11 @@ describe('createUnique() (SPEC 13.5)', () => {
   it('store.isConflict is used before isUniqueViolation', async () => {
     const err = new Error('custom')
     let n = 0
+    let lost = ''
     const out = await createUnique(T, {
-      store: { exists: () => false, isConflict: (e) => e === err },
-      insert: async () => {
+      store: { exists: (id) => id === lost, isConflict: (e) => e === err },
+      insert: async (r) => {
+        lost = r.id
         if (n++ === 0) throw err
         return 'ok'
       },
@@ -390,6 +453,47 @@ describe('isUniqueViolation (SPEC 13.5)', () => {
     expect(isUniqueViolation({ code: '23505', constraint: 'user_email_key' }, 'slug')).toBe(false)
     expect(isUniqueViolation({ code: '23505', detail: 'Key (scope, slug)=(a, b) already exists.' }, 'slug')).toBe(true)
     expect(isUniqueViolation(new Error('wrap', { cause: { code: '23505' } }))).toBe(true)
+  })
+
+  it('Prisma 7 + adapter-pg: P2002 names only the index; P2010 raw errors carry 23505 (review fix)', () => {
+    // the real shape of @prisma/adapter-pg 7.x: no meta.target, no constraint.fields
+    const p7 = (index: string) =>
+      Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: {
+          driverAdapterError: {
+            cause: { originalCode: '23505', kind: 'UniqueConstraintViolation', constraint: { index } },
+          },
+          modelName: 'Document',
+        },
+      })
+    expect(isUniqueViolation(p7('Document_tenantId_slug_key'), 'slug')).toBe(true)
+    expect(isUniqueViolation(p7('doc_title_uq'), 'slug')).toBe(false)
+    expect(isUniqueViolation(p7('doc_title_uq'))).toBe(true)
+    const raw7 = Object.assign(new Error('raw'), {
+      code: 'P2010',
+      meta: {
+        driverAdapterError: {
+          cause: {
+            originalCode: '23505',
+            kind: 'UniqueConstraintViolation',
+            constraint: { index: 'slug_entry_scope_slug_uq' },
+          },
+        },
+      },
+    })
+    expect(isUniqueViolation(raw7)).toBe(true)
+    expect(isUniqueViolation(raw7, 'slug')).toBe(true)
+    expect(isUniqueViolation(raw7, 'title')).toBe(false)
+    const raw6 = Object.assign(new Error('raw'), {
+      code: 'P2010',
+      meta: { code: '23505', message: 'duplicate key value violates unique constraint "user_email_key"' },
+    })
+    expect(isUniqueViolation(raw6)).toBe(true)
+    expect(isUniqueViolation(raw6, 'email')).toBe(true)
+    expect(isUniqueViolation(raw6, 'slug')).toBe(false)
+    // another raw query error is no violation
+    expect(isUniqueViolation({ code: 'P2010', meta: { code: '23503' } })).toBe(false)
   })
 
   it('other errors are not violations', () => {

@@ -86,6 +86,7 @@ describe('suggest(): properties', () => {
             throw e
           }
           expect(taken.has(r.id)).toBe(false)
+          expect(s.isValid(r.id), r.id).toBe(true)
           taken.add(r.id)
         }
         expect(taken.size).toBe(n)

@@ -44,6 +44,8 @@ export const RE_SOFT_HYPHEN: RegExp = /­/g
 export const RE_ZERO_WIDTH: RegExp = /[​-‍⁠﻿]/g
 export const RE_EMOJI: RegExp = /\p{Extended_Pictographic}|️|⃣/gu
 export const RE_CAPITAL_SHARP_S: RegExp = /ẞ/g
+/** Turkish capital dotted I (U+0130). */
+export const RE_CAPITAL_DOTTED_I: RegExp = /\u0130/g
 export const RE_CPP: RegExp = /c\+\+/g
 export const RE_CSHARP: RegExp = /c#/g
 export const RE_DOTNET: RegExp = /(^|\s)\.net(?![\p{L}\p{N}])/gu
@@ -135,4 +137,6 @@ export const RE_DOT: RegExp = /\./g
 // ---- SQL identifiers of the DB adapters (SPEC 17.3) ----
 
 export const RE_SQL_TABLE: RegExp = /^[A-Za-z_][A-Za-z0-9_]{0,62}(?:\.[A-Za-z_][A-Za-z0-9_]{0,62})?$/
+/** Constraint name in a Postgres unique-violation message (Prisma 6 raw query errors). */
+export const RE_PG_CONSTRAINT: RegExp = /unique constraint "([^"]{1,128})"/
 export const RE_SQL_IDENT: RegExp = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/

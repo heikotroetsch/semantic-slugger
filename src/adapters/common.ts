@@ -45,6 +45,17 @@ export function quoteIdent(name: unknown, field: string): string {
   return `"${name}"`
 }
 
+/**
+ * Defaults merged with the user's names. An `undefined` entry keeps the default (a plain JS caller or a
+ * TS project without `exactOptionalPropertyTypes` can pass one).
+ */
+export function withDefaults<T extends object>(defaults: T, given: Partial<T> | undefined): T {
+  const out = { ...defaults }
+  if (typeof given === 'object' && given !== null)
+    for (const [k, v] of Object.entries(given)) if (v !== undefined) (out as Record<string, unknown>)[k] = v
+  return out
+}
+
 /** `{ rows }` (pg, PGlite) or a plain array (postgres.js, Prisma `$queryRawUnsafe`). */
 export function rowsOf(r: unknown): Row[] {
   const rows = Array.isArray(r) ? r : (r as { rows?: unknown } | null)?.rows

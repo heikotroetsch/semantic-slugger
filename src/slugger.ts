@@ -84,7 +84,11 @@ export interface BodyCandidate {
 export interface CreateUniqueOptions<T> extends GenerateOptions {
   /** Insert the row yourself; a unique violation (see `isConflict`) makes `createUnique` try again. */
   readonly insert?: (result: SlugResult) => Promise<T>
-  /** Default: `store.isConflict`, else `isUniqueViolation`. */
+  /**
+   * Default: `store.isConflict`, else `isUniqueViolation`. With the default, a unique violation while
+   * the ID is still free in the store (another unique column) rejects with StoreError reason
+   * `insert-blocked`. A custom `isConflict` is trusted as is.
+   */
   readonly isConflict?: (error: unknown) => boolean
   /**
    * Default 5. Without `retryKey`, n parallel calls for the same title can need up to n rounds: they all
@@ -318,15 +322,25 @@ export async function createUniqueWith<T>(
   const isConflict =
     o.isConflict ??
     (typeof storeConflict === 'function' ? (e: unknown) => storeConflict.call(o.store, e) : isUniqueViolation)
-  const tried = new Set<string>(o.exclude ?? [])
+  // `skip` feeds generate(); `tried` lists only the IDs whose insert lost (for ConflictError)
+  const skip = new Set<string>(o.exclude ?? [])
+  const tried: string[] = []
+  let lastError: unknown
   for (let r = 0; r < max; r++) {
     const spread = r > 0 && retryKey !== undefined ? retryStart(cfg, retryKey, r) : 0
-    const { result } = await generateTrace(cfg, fp, title, { ...o, exclude: tried }, spread)
+    const { result } = await generateTrace(cfg, fp, title, { ...o, exclude: skip }, spread)
     if (insert !== undefined) {
       try {
         return { result, record: await insert(result) }
       } catch (e) {
         if (!isConflict(e)) throw e
+        // With the default check, a unique violation while the slug is still free comes from another
+        // unique constraint (title, external key, ...): never report that as a slug race (SPEC 17.2).
+        if (o.isConflict === undefined && !(await stillTaken(o.store, result.id, ctx)))
+          throw new StoreError(e, `insert of "${result.id}" failed on a unique constraint other than the slug`, {
+            reason: 'insert-blocked',
+          })
+        lastError = e
       }
     } else {
       let got: 'inserted' | 'conflict'
@@ -339,9 +353,24 @@ export async function createUniqueWith<T>(
       if (got === 'inserted') return { result, record: undefined }
       if (got !== 'conflict') throw new StoreError(got, 'store.insert must return "inserted" or "conflict"')
     }
-    tried.add(result.id) // stale read or lost race
+    // stale read or lost race
+    skip.add(result.id)
+    tried.push(result.id)
   }
-  throw new ConflictError({ tried: [...tried] })
+  throw new ConflictError({ tried }, lastError === undefined ? {} : { cause: lastError })
+}
+
+/**
+ * True when `id` is taken in the store after a unique violation. A failing check (for example in an
+ * aborted transaction) counts as taken, so the old retry behavior stays.
+ */
+async function stillTaken(store: SlugStore, id: string, ctx: StoreContext): Promise<boolean> {
+  try {
+    return (await store.exists(id, ctx)) === true
+  } catch {
+    if (ctx.signal?.aborted === true) throw ctx.signal.reason
+    return true
+  }
 }
 
 /** Sync batch (SPEC 16.1): unique within the batch through an internal memory store, and against `taken`. */

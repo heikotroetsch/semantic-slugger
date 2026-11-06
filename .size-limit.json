@@ -4,9 +4,9 @@
     "path": "dist/index.js",
     "import": "{ slug }",
     "gzip": true,
-    "limit": "52 KB"
+    "limit": "55 KB"
   },
-  { "name": "adapters/memory", "path": "dist/adapters/memory.js", "gzip": true, "limit": "1 KB" },
-  { "name": "adapters/prisma", "path": "dist/adapters/prisma.js", "gzip": true, "limit": "2.5 KB" },
-  { "name": "adapters/sql", "path": "dist/adapters/sql.js", "gzip": true, "limit": "2.5 KB" }
+  { "name": "adapters/memory", "path": "dist/adapters/memory.js", "gzip": true, "limit": "1.2 KB" },
+  { "name": "adapters/prisma", "path": "dist/adapters/prisma.js", "gzip": true, "limit": "3 KB" },
+  { "name": "adapters/sql", "path": "dist/adapters/sql.js", "gzip": true, "limit": "3 KB" }
 ]

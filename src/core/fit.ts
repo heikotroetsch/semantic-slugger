@@ -9,6 +9,7 @@ import { DECOYS } from '../data/v1/decoys.ts'
 import { WEAK_NO_SHOW } from '../data/v1/weak.ts'
 import type { Laddered, Rung } from './ladder.ts'
 import { rankOrder } from './rank.ts'
+import { RE_FIRST_LETTER } from './regexes.ts'
 import { bodyBlocked, fold, hardHitIn, hasLookalikePair, rungBlocked, segmentBlocked } from './safety.ts'
 
 /** Fit costs (SPEC 11.1, 12). */
@@ -319,9 +320,11 @@ function withFill(segs: readonly FitSeg[], f: FitSeg): FitSeg[] {
   if (u === undefined || (f.cryptic && f.text.length < FILL_WHOLE)) return [...segs, f]
   // a fill that shows its word takes its title place in its slot (docs/DEVIATIONS.md, quality round 3)
   const shows = showsWord(f) && segs[0]?.kind !== 'fallback' && !WEAK_NO_SHOW.has(u.lex?.key ?? '')
+  // a fill that starts with a digit never goes first: the body must start with a letter (I2, I3)
+  const front = shows && RE_FIRST_LETTER.test(f.text)
   const at = segs.findIndex((x, i) => {
     const c = x.concepts[0]
-    if (c === undefined || (i === 0 && !shows)) return false
+    if (c === undefined || (i === 0 && !front)) return false
     return SLOT[c.cls] > SLOT[u.cls] || (shows && SLOT[c.cls] === SLOT[u.cls] && c.pos > u.pos)
   })
   return at < 0 ? [...segs, f] : [...segs.slice(0, at), f, ...segs.slice(at)]
@@ -573,6 +576,8 @@ function insertSorted(best: Candidate[], c: Candidate, rank: ReadonlyMap<string,
 
 /** True when the body passes B3, B7 (body part), joined I8 and the reserved rule (SPEC 9.2, 9.3). */
 function safeBody(segs: readonly FitSeg[], body: string, tailLen: number, cfg: ResolvedConfig): boolean {
+  // the body starts with a letter (I3); no fill or grown segment may break this
+  if (!RE_FIRST_LETTER.test(body)) return false
   if (bodyBlocked(segs, cfg)) return false
   if (hardHitIn(fold(segs.map((s) => s.text).join('')), cfg)) return false
   if (cfg.separator === '' && hasLookalikePair(body)) return false

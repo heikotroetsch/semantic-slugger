@@ -41,6 +41,16 @@ export const word = fc.constantFrom(
   'Rains',
   'Dapper',
   '1488',
+  // review fixes: digit-led codes, strict and soft words that reach into a tail, dotted I
+  '4K',
+  '5G',
+  '24h',
+  'A380',
+  'AB12CD34',
+  'X100',
+  'Nsda',
+  'Audi',
+  'İstanbul',
 )
 export const title = fc.oneof(
   fc.string({ unit: 'grapheme', maxLength: 300 }),

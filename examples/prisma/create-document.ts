@@ -1,6 +1,6 @@
 /**
  * semantic-slugger with Prisma (SPEC 13.5, 17.2). Two ways to store a new ID.
- * Not part of the package; `@prisma/client` is an optional peer dependency.
+ * Not part of the package. The adapter imports nothing from `@prisma/client` (Prisma 5 and later).
  */
 import { PrismaClient } from '@prisma/client'
 import { createSlugger, isUniqueViolation } from 'semantic-slugger'

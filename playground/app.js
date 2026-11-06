@@ -143,6 +143,8 @@ function configFromUi() {
 
 /** @type {{ title: string, result: SlugResult, trace: Explanation }[]} */
 let rows = []
+/** Index of the row whose explain panel is open, or -1. */
+let selected = -1
 let runId = 0
 
 async function run() {
@@ -200,13 +202,19 @@ function render() {
     })
     ui.body.append(tr)
   })
-  ui.detail.hidden = true
+  // keep the open row after a re-run (a blur or an edit must not close the explain panel)
+  if (rows[selected]) show(selected)
+  else {
+    selected = -1
+    ui.detail.hidden = true
+  }
 }
 
 /** @param {number} i */
 function show(i) {
   const r = rows[i]
   if (!r) return
+  selected = i
   for (const tr of ui.body.querySelectorAll('tr'))
     tr.setAttribute('aria-selected', String(tr.dataset.index === String(i)))
   ui.detail.hidden = false
@@ -290,7 +298,10 @@ function setup() {
   }
   for (const el of document.querySelectorAll('textarea, input, select')) {
     el.addEventListener('input', later)
-    el.addEventListener('change', later)
+    // text fields: 'input' is enough; a 'change' on blur would re-run for nothing
+    const toggle =
+      el instanceof HTMLSelectElement || (el instanceof HTMLInputElement && /^(checkbox|radio)$/.test(el.type))
+    if (toggle) el.addEventListener('change', later)
   }
   ui.share.addEventListener('click', async () => {
     writeHash()

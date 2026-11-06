@@ -47,8 +47,7 @@
     "NOTICE"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "bin": {
     "semantic-slugger": "./dist/cli.js"
@@ -57,6 +56,7 @@
     "clean": "node scripts/clean.ts",
     "prebuild": "node scripts/clean.ts",
     "build": "tsdown",
+    "prepack": "pnpm build",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "lint": "biome check .",
@@ -76,14 +76,6 @@
     "release": "pnpm build && changeset publish"
   },
   "dependencies": {},
-  "peerDependencies": {
-    "@prisma/client": ">=5"
-  },
-  "peerDependenciesMeta": {
-    "@prisma/client": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@arethetypeswrong/core": "0.18.5",
@@ -105,6 +97,22 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.cts",
+  "typesVersions": {
+    "*": {
+      "adapters/memory": [
+        "./dist/adapters/memory.d.cts"
+      ],
+      "adapters/prisma": [
+        "./dist/adapters/prisma.d.cts"
+      ],
+      "adapters/sql": [
+        "./dist/adapters/sql.d.cts"
+      ],
+      "data": [
+        "./dist/data.d.cts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",

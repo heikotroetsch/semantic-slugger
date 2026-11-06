@@ -13,6 +13,7 @@ import { hexBytes, utf8 } from '../hash/encode.ts'
 import type { SlugWarning } from '../result.ts'
 import {
   RE_ASCII_DIGIT,
+  RE_CAPITAL_DOTTED_I,
   RE_CAPITAL_SHARP_S,
   RE_CPP,
   RE_CSHARP,
@@ -114,6 +115,16 @@ export interface Normalized {
   readonly warnings: readonly SlugWarning[]
 }
 
+/** Push `src[a..b)` onto `dst` with a loop: a spread of a long slice overflows the call stack. */
+function pushRange(dst: boolean[], src: readonly boolean[], a: number, b: number): void {
+  for (let k = a; k < b; k++) dst.push(src[k] as boolean)
+}
+
+/** Push `n` times `v` onto `dst`. */
+function pushFill(dst: boolean[], n: number, v: boolean): void {
+  for (let k = 0; k < n; k++) dst.push(v)
+}
+
 /** Replace every match; the replacement chars get `up = false` and `tr = false`. */
 function edit(t: Masked, re: RegExp, fn: (m: RegExpExecArray) => string | null): Masked {
   re.lastIndex = 0
@@ -131,14 +142,18 @@ function edit(t: Masked, re: RegExp, fn: (m: RegExpExecArray) => string | null):
     if (rep === null) continue
     changed = true
     s += t.s.slice(last, m.index) + rep
-    if (up && t.up) up.push(...t.up.slice(last, m.index), ...Array<boolean>(rep.length).fill(false))
-    tr.push(...t.tr.slice(last, m.index), ...Array<boolean>(rep.length).fill(false))
+    if (up && t.up) {
+      pushRange(up, t.up, last, m.index)
+      pushFill(up, rep.length, false)
+    }
+    pushRange(tr, t.tr, last, m.index)
+    pushFill(tr, rep.length, false)
     last = m.index + m[0].length
   }
   if (!changed) return t
   s += t.s.slice(last)
-  if (up && t.up) up.push(...t.up.slice(last))
-  tr.push(...t.tr.slice(last))
+  if (up && t.up) pushRange(up, t.up, last, t.up.length)
+  pushRange(tr, t.tr, last, t.tr.length)
   return { s, up, tr }
 }
 
@@ -194,9 +209,13 @@ function prepare(raw: string, cfg: ResolvedConfig, warnings: SlugWarning[]): str
   return s
 }
 
-/** Lowercase with an upper-case mask (SPEC 4.1: `ẞ -> ß`, then lowercase, never toLocale*). */
+/**
+ * Lowercase with an upper-case mask (SPEC 4.1: `ẞ -> ß`, then lowercase, never toLocale*). The Turkish
+ * capital dotted I (U+0130) becomes `I` first: `toLowerCase` maps it to `i` + U+0307, which would change
+ * the length (no case mask) and split the word at the mark (`İstanbul` -> `stanbul`).
+ */
 function lowerMasked(cased: string): Masked {
-  const pre = cased.replace(RE_CAPITAL_SHARP_S, 'ß')
+  const pre = cased.replace(RE_CAPITAL_SHARP_S, 'ß').replace(RE_CAPITAL_DOTTED_I, 'I')
   const s = pre.toLowerCase()
   const tr = Array<boolean>(s.length).fill(false)
   if (s.length !== cased.length) return { s, up: null, tr }
@@ -301,8 +320,8 @@ export function transliterate(t: Masked, ctx: TranslitContext): Masked {
       const out = space ? chunk : String(ctx.hook(chunk)).toLowerCase()
       s += out
       if (out === chunk) {
-        if (up && t.up) up.push(...t.up.slice(i, j))
-        tr.push(...t.tr.slice(i, j))
+        if (up && t.up) pushRange(up, t.up, i, j)
+        pushRange(tr, t.tr, i, j)
       } else {
         const wasUp = t.up?.[i] === true
         if (up) for (let k = 0; k < out.length; k++) up.push(k === 0 && wasUp)
@@ -372,7 +391,12 @@ export function normalize(
   const d = dropScripts(t)
   t = d.t
   if (d.dropped) warnings.push('script-dropped')
+  // combining marks NFKC cannot compose (`Ọ̀`, `Ẹ̀`) would split a word at the mark; the canonical
+  // drops them too (asciiFold), so the titleKey does not change
+  t = edit(t, RE_MARKS, () => '')
   let canonical = toCanonical(t.s)
-  if (canonical === '' && d.dropped) canonical = `raw:${hexBytes(utf8(raw.normalize('NFKC')))}`
+  // the raw key uses the cut input, so maxInputLength bounds the work for every script
+  const cut = raw.length > cfg.maxInputLength ? raw.slice(0, cfg.maxInputLength) : raw
+  if (canonical === '' && d.dropped) canonical = `raw:${hexBytes(utf8(cut.normalize('NFKC')))}`
   return { input: raw, surface: t.s, up: t.up, tr: t.tr, canonical, removed, warnings }
 }

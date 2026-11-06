@@ -53,12 +53,27 @@ describe('cli', () => {
     const stdin = 'Chocolate Cake Recipe\n\nChocolate Cake Recipe\r\nSommerfest 2026\n'
     const r = await run(['--unique'], { stdin })
     const ids = r.out.trim().split('\n')
-    expect(ids).toEqual(
-      slugMany(['Chocolate Cake Recipe', 'Chocolate Cake Recipe', 'Sommerfest 2026']).map((x) => x.id),
-    )
-    expect(new Set(ids).size).toBe(3)
+    const want = slugMany(['Chocolate Cake Recipe', 'Chocolate Cake Recipe', 'Sommerfest 2026']).map((x) => x.id)
+    // the blank line keeps its row: output lines match input lines
+    expect(ids).toEqual([want[0], '', want[1], want[2]])
+    expect(new Set(want).size).toBe(3)
     const plain = await run([], { stdin })
-    expect(new Set(plain.out.trim().split('\n')).size).toBe(2)
+    expect(plain.out.split('\n')).toHaveLength(5)
+    expect(
+      new Set(
+        plain.out
+          .trim()
+          .split('\n')
+          .filter((l) => l !== ''),
+      ).size,
+    ).toBe(2)
+  })
+
+  it('a blank stdin line gives an empty plain line; --json skips it (review fix)', async () => {
+    const r = await run([], { stdin: 'a\n\nb\n' })
+    expect(r.out).toBe(`${slug('a')}\n\n${slug('b')}\n`)
+    const j = await run(['--json'], { stdin: 'a\n\nb\n\n' })
+    expect(j.out.trim().split('\n')).toHaveLength(2)
   })
 
   it('--json prints one result per line', async () => {

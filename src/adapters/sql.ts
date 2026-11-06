@@ -4,11 +4,13 @@
  * (`(t, v) => prisma.$queryRawUnsafe(t, ...v)`). No driver is imported.
  *
  * Values are always `$n` parameters. The table and column names are checked and double-quoted.
- * `sqlSchema()` gives the DDL of the default table layout. The store has no `isConflict`: the default
- * of `createUnique`, `isUniqueViolation`, knows the Postgres code `23505`.
+ * `sqlSchema()` gives the DDL of the default table layout. `isConflict` accepts a Postgres `23505` on
+ * the slug column only (or one that names no column), so an insert callback that hits another unique
+ * column (a title, an external key) does not look like a lost race.
  */
 
 import type { SlugRecord, StoreContext } from '../core/resolve.ts'
+import { isUniqueViolation } from '../core/unique.ts'
 import { ConfigError } from '../errors.ts'
 import {
   countMap,
@@ -20,6 +22,7 @@ import {
   storedStems,
   strings,
   toCount,
+  withDefaults,
 } from './common.ts'
 
 export type { DbSlugStore }
@@ -45,9 +48,11 @@ export interface SqlStoreOptions {
   readonly columns?: Partial<SqlColumns>
 }
 
-/** The store `sqlStore()` returns: every method of tier C plus `insert`. */
+/** The store `sqlStore()` returns: every method of tier C plus `insert` and `isConflict`. */
 export interface SqlStore extends DbSlugStore {
   insert(rec: SlugRecord, ctx: StoreContext): Promise<'inserted' | 'conflict'>
+  /** `isUniqueViolation(error, columns.slug)`: only a violation on the slug column is a lost race. */
+  isConflict(error: unknown): boolean
 }
 
 const DEFAULT_COLUMNS: SqlColumns = {
@@ -70,7 +75,7 @@ export function sqlStore(o: SqlStoreOptions): SqlStore {
     })
   const query = o.query
   const t = quoteTable(o.table, 'table')
-  const c = { ...DEFAULT_COLUMNS, ...o.columns }
+  const c = withDefaults(DEFAULT_COLUMNS, o.columns)
   const scope = quoteIdent(c.scope, 'columns.scope')
   const slug = quoteIdent(c.slug, 'columns.slug')
   const body = quoteIdent(c.body, 'columns.body')
@@ -99,6 +104,7 @@ export function sqlStore(o: SqlStoreOptions): SqlStore {
   }
 
   return {
+    isConflict: (e: unknown) => isUniqueViolation(e, c.slug),
     async exists(id: string, ctx: StoreContext) {
       return (await q(sql.exists, [ctx.scope, id])).length > 0
     },
