@@ -1,29 +1,32 @@
 /**
- * semantic-slugger CLI (SPEC 18.8). Node only. The full CLI follows in M7.
+ * semantic-slugger CLI (SPEC 18.8). Node only; the logic is in `src/cli/main.ts`.
  */
 
-import { parseArgs } from 'node:util'
-import { ALGORITHM_VERSION, isValidSlug } from './index.ts'
+import { readFileSync } from 'node:fs'
+import { main } from './cli/main.ts'
 
-const usage = `Usage: semantic-slugger [--help] [--check <id>]
-
-  --check <id>   exit 0 when <id> is a valid ID for the default config, else 1
-  --help         show this help
-
-ID generation from titles is not available yet in this version.
-Algorithm version: ${ALGORITHM_VERSION}
-`
-
-const { values } = parseArgs({
-  options: { help: { type: 'boolean', short: 'h' }, check: { type: 'string' } },
-  allowPositionals: true,
-})
-
-if (values.check !== undefined) {
-  const ok = isValidSlug(values.check)
-  process.stdout.write(`${ok ? 'valid' : 'invalid'}\n`)
-  process.exitCode = ok ? 0 : 1
-} else {
-  process.stdout.write(usage)
-  process.exitCode = values.help ? 0 : 2
+function packageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version?: string }
+    return pkg.version ?? 'unknown'
+  } catch {
+    return 'unknown'
+  }
 }
+
+async function readStdin(): Promise<string | null> {
+  if (process.stdin.isTTY === true) return null
+  const chunks: Buffer[] = []
+  for await (const c of process.stdin) chunks.push(c as Buffer)
+  return Buffer.concat(chunks).toString('utf8')
+}
+
+process.exitCode = await main({
+  argv: process.argv.slice(2),
+  readStdin,
+  readFile: (p) => readFileSync(p, 'utf8'),
+  env: process.env,
+  out: (t) => process.stdout.write(t),
+  err: (t) => process.stderr.write(t),
+  version: packageVersion(),
+})

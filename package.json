@@ -1,8 +1,9 @@
 {
   "name": "semantic-slugger",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Short, readable, unique IDs from any title. German + English built in. Zero dependencies.",
   "license": "MIT",
+  "author": "heikotroetsch",
   "type": "module",
   "sideEffects": false,
   "repository": {
@@ -13,13 +14,17 @@
   "bugs": "https://github.com/heikotroetsch/semantic-slugger/issues",
   "keywords": [
     "slug",
+    "slugify",
     "id",
     "short-id",
     "readable-id",
-    "german",
-    "english",
+    "unique-id",
+    "human-readable",
+    "title",
     "abbreviation",
-    "unique"
+    "url",
+    "german",
+    "english"
   ],
   "engines": {
     "node": ">=22"
@@ -41,6 +46,10 @@
     "dist",
     "NOTICE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "bin": {
     "semantic-slugger": "./dist/cli.js"
   },
@@ -83,8 +92,10 @@
     "@electric-sql/pglite": "0.5.15",
     "@size-limit/preset-small-lib": "14.3.0",
     "@types/node": "22.20.5",
+    "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-v8": "5.1.0",
     "fast-check": "4.10.2",
+    "playwright": "1.65.0",
     "publint": "0.3.25",
     "size-limit": "14.3.0",
     "tsdown": "0.23.7",

@@ -1,0 +1,5 @@
+{
+  "name": "smoke-cjs-node",
+  "private": true,
+  "type": "commonjs"
+}

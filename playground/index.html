@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>semantic-slugger playground</title>
+    <meta name="description" content="Short, readable, unique IDs from any title. Try semantic-slugger in your browser." />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <h1>semantic-slugger</h1>
+        <p class="tagline">Short, readable, unique IDs from any title.</p>
+      </div>
+      <nav class="links">
+        <a href="https://github.com/heikotroetsch/semantic-slugger">GitHub</a>
+        <a href="https://www.npmjs.com/package/semantic-slugger">npm</a>
+      </nav>
+    </header>
+
+    <p class="banner" role="note">Runs fully in your browser. Do not paste confidential data.</p>
+
+    <main class="layout">
+      <section class="panel input" aria-labelledby="in-h">
+        <h2 id="in-h">Titles</h2>
+        <label class="sr" for="titles">One title per line</label>
+        <textarea id="titles" spellcheck="false" rows="16" placeholder="One title per line"></textarea>
+
+        <fieldset class="controls">
+          <legend>Config</legend>
+          <label>Length <output id="length-out">16</output>
+            <input id="length" type="range" min="8" max="32" value="16" />
+          </label>
+          <label>Length mode
+            <select id="lengthMode"><option>exact</option><option>max</option></select>
+          </label>
+          <label>Separator
+            <select id="separator"><option value="-">- (dash)</option><option value="_">_ (underscore)</option><option value="">none</option></select>
+          </label>
+          <label>Leak
+            <select id="leak"><option>normal</option><option>minimal</option><option>opaque</option></select>
+          </label>
+          <label>Tail alphabet
+            <select id="tailAlphabet"><option>safe</option><option>strict</option></select>
+          </label>
+          <label class="check"><input id="consistentRungs" type="checkbox" /> Consistent spellings</label>
+          <div class="langs">
+            <span>Languages</span>
+            <label class="check"><input id="lang-de" type="checkbox" checked /> de</label>
+            <label class="check"><input id="lang-en" type="checkbox" checked /> en</label>
+          </div>
+          <label class="check"><input id="simulate" type="checkbox" /> Simulate DB (createUnique in order)</label>
+          <p id="secret-note" class="muted small" hidden></p>
+        </fieldset>
+
+        <fieldset class="controls">
+          <legend>Your field</legend>
+          <div class="presets">
+            <span>Recipes</span>
+            <button type="button" data-preset="">none</button>
+          </div>
+          <label>Stop words <span class="muted">(comma separated)</span>
+            <input id="stopWords" type="text" placeholder="draft, final" />
+          </label>
+          <label>Deny tokens <span class="muted">(never shown)</span>
+            <input id="denyTokens" type="text" placeholder="names, code names" />
+          </label>
+          <label>Reserved words <span class="muted">(never a whole ID)</span>
+            <input id="reserved" type="text" placeholder="new, edit" />
+          </label>
+          <label>Lexicon <span class="muted">(JSON array)</span>
+            <textarea id="lexicon" rows="5" spellcheck="false" placeholder='[{ "key": "kubernetes", "cls": "name", "abbr": ["k8s"], "known": ["k8s"] }]'></textarea>
+          </label>
+        </fieldset>
+      </section>
+
+      <section class="panel output" aria-labelledby="out-h">
+        <div class="out-head">
+          <h2 id="out-h">IDs</h2>
+          <button id="share" type="button">Copy link</button>
+        </div>
+        <p id="error" class="error" role="alert" hidden></p>
+        <div class="table-wrap">
+          <table id="results">
+            <thead><tr><th>Title</th><th>ID</th><th>Lang</th><th>Reason</th><th>Tail</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted small">Click a row to see every step.</p>
+        <div id="detail" hidden>
+          <h3>Explain: <code id="detail-id"></code></h3>
+          <div class="table-wrap"><table id="rank"></table></div>
+          <pre id="explain"></pre>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

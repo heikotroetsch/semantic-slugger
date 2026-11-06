@@ -7,13 +7,17 @@ import { fingerprint, type Lang, type ResolvedConfig, resolveConfig, type Slugge
 import { type Analysis, analyzeDoc, analyzeTitle, type Doc } from './core/analyze.ts'
 import { compile } from './core/compile.ts'
 import { driveStore, driveSync, driveWith, storeCaps, syncStoreAnswer, type Taken } from './core/drivers.ts'
+import { buildSteps, makeExplanation, type ReqLog, recorded } from './core/explain.ts'
+import { fitBody } from './core/fit.ts'
 import { isValidSlugResolved, patternFor } from './core/invariants.ts'
 import { memoryStore } from './core/memory.ts'
 import {
   type AbortSignalLike,
   type AnyAnswer,
+  publicSegments,
   type Req,
   type ResolveOut,
+  rankPool,
   resolveDoc,
   type SlugRecord,
   type SlugStore,
@@ -22,7 +26,7 @@ import {
 import { retryStart } from './core/tail.ts'
 import { isUniqueViolation } from './core/unique.ts'
 import { ConfigError, ConflictError, StoreError } from './errors.ts'
-import type { SlugResult, SlugWarning, StoreTier } from './result.ts'
+import type { Explanation, Segment, SlugResult, SlugWarning, StoreTier } from './result.ts'
 
 /** Options of `analyze()`. */
 export interface AnalyzeOptions {
@@ -52,6 +56,28 @@ export interface GenerateOptions {
   readonly exclude?: Iterable<string>
   /** Checked before every store request; its reason is rethrown as is. */
   readonly signal?: AbortSignalLike
+  /** Attach the full `explain()` trace to the result as `trace` (SPEC 16.4). */
+  readonly trace?: boolean
+}
+
+/** Options of `candidates()`. */
+export interface CandidatesOptions {
+  /** Per-call language; must be an enabled code. */
+  readonly lang?: Lang
+  /** Number of candidates, 1 to 16 (default 5). */
+  readonly limit?: number
+}
+
+/** One body the fit search found (SPEC 12), best first. No store is asked. */
+export interface BodyCandidate {
+  /** The body (the ID without its tail). */
+  readonly body: string
+  /** Tail length this body needs (0: the body is the whole ID). */
+  readonly tailLength: number
+  /** Fit cost (SPEC 12); lower is better. */
+  readonly cost: number
+  /** Body segments (no tail segment). */
+  readonly segments: readonly Segment[]
 }
 
 /** Options of `createUnique()` (SPEC 16.2, 13.5). */
@@ -105,6 +131,10 @@ export interface Slugger {
   generate(title: string, opts: GenerateOptions): Promise<SlugResult>
   /** generate + insert + retry on a lost race (SPEC 13.5). Rejects with ConflictError after the retries. */
   createUnique<T = undefined>(title: string, opts: CreateUniqueOptions<T>): Promise<CreateUniqueResult<T>>
+  /** `suggest()` with the full trace of every step (SPEC 16.4). `toString()` gives a text table. */
+  explain(title: string, opts?: SuggestOptions): Explanation
+  /** The best bodies of the fit search, best first, without a store (SPEC 12). */
+  candidates(title: string, opts?: CandidatesOptions): readonly BodyCandidate[]
 }
 
 /** Internal: the resolve output and the result of one sync call (corpus report, explain). */
@@ -112,6 +142,7 @@ export interface SuggestTrace {
   readonly result: SlugResult
   readonly out: ResolveOut
   readonly tier: StoreTier
+  readonly doc: Doc
 }
 
 /** A sync store for tools and tests: answers every request kind (tier B or C). */
@@ -130,14 +161,54 @@ export function suggestTrace(
   title: string,
   opts: SuggestOptions = {},
   driver?: SyncDriver,
+  log?: ReqLog[],
 ): SuggestTrace {
   const doc = analyzeDoc(title, cfg, opts.lang === undefined ? {} : { lang: opts.lang })
   const exclude = new Set<string>(opts.exclude ?? [])
   const taken: Taken | undefined = opts.taken
-  const gen = resolveDoc(doc, cfg, compile(cfg), exclude)
+  const plain = resolveDoc(doc, cfg, compile(cfg), exclude)
+  const gen = log === undefined ? plain : recorded(plain, log)
   const { out, tier } =
     driver === undefined ? driveSync(gen, taken) : { out: driveWith(gen, driver.answer), tier: driver.tier }
-  return { result: buildResult(doc, out, tier, fp), out, tier }
+  return { result: buildResult(doc, out, tier, fp), out, tier, doc }
+}
+
+/** `suggest()` with the trace (SPEC 16.4). */
+export function explainWith(cfg: ResolvedConfig, fp: string, title: string, opts: SuggestOptions = {}): Explanation {
+  const log: ReqLog[] = []
+  const tr = suggestTrace(cfg, fp, title, opts, undefined, log)
+  return makeExplanation(title, cfg, buildSteps(tr.doc, tr.out, log, tr.result), tr.result)
+}
+
+function limitOf(v: unknown): number {
+  if (v === undefined) return 5
+  if (typeof v !== 'number' || !Number.isInteger(v) || v < 1 || v > 16)
+    throw new ConfigError('limit must be an integer from 1 to 16', { field: 'limit', value: v, reason: 'out-of-range' })
+  return v
+}
+
+/** The best bodies of the first fit, without a store (no df, nothing taken). */
+export function candidatesWith(
+  cfg: ResolvedConfig,
+  title: string,
+  opts: CandidatesOptions = {},
+): readonly BodyCandidate[] {
+  const limit = limitOf(opts.limit)
+  const doc = analyzeDoc(title, cfg, opts.lang === undefined ? {} : { lang: opts.lang })
+  if (cfg.leak === 'opaque' || doc.empty) return Object.freeze([])
+  const { pool } = rankPool(doc, null, cfg, compile(cfg))
+  let cands = fitBody(pool, cfg)
+  if (cands.length === 0 && cfg.maxSegments > 1) cands = fitBody(pool, cfg, { maxSegments: 1 })
+  return Object.freeze(
+    cands.slice(0, limit).map((c) =>
+      Object.freeze({
+        body: c.body,
+        tailLength: c.tailLen,
+        cost: c.cost,
+        segments: Object.freeze(publicSegments(c.segs).map((x) => Object.freeze(x))),
+      }),
+    ),
+  )
 }
 
 /** The frozen public result (SPEC 16.3). */
@@ -196,9 +267,14 @@ export async function generateTrace(
   storeCaps(o.store)
   const ctx = contextOf(o)
   const doc = analyzeDoc(title, cfg, o.lang === undefined ? {} : { lang: o.lang })
-  const gen = resolveDoc(doc, cfg, compile(cfg), new Set<string>(o.exclude ?? []), spread)
+  const plain = resolveDoc(doc, cfg, compile(cfg), new Set<string>(o.exclude ?? []), spread)
+  const log: ReqLog[] | undefined = o.trace === true ? [] : undefined
+  const gen = log === undefined ? plain : recorded(plain, log)
   const { out, tier } = await driveStore(gen, o.store, ctx, cfg)
-  return { result: buildResult(doc, out, tier, fp), out, tier }
+  const result = buildResult(doc, out, tier, fp)
+  if (log === undefined) return { result, out, tier, doc }
+  const trace = makeExplanation(title, cfg, buildSteps(doc, out, log, result), result)
+  return { result: Object.freeze({ ...result, trace }), out, tier, doc }
 }
 
 function retriesOf(v: unknown): number {
@@ -323,6 +399,8 @@ export function createSlugger(config?: SluggerConfig): Slugger {
     generate: async (title: string, opts: GenerateOptions) => (await generateTrace(cfg, fp, title, opts)).result,
     createUnique: <T = undefined>(title: string, opts: CreateUniqueOptions<T>) =>
       createUniqueWith<T>(cfg, fp, title, opts),
+    explain: (title: string, opts?: SuggestOptions) => explainWith(cfg, fp, title, opts),
+    candidates: (title: string, opts?: CandidatesOptions) => candidatesWith(cfg, title, opts),
   })
 }
 
@@ -377,6 +455,11 @@ export function slugMany(titles: Iterable<string>, opts?: SuggestOptions): SlugR
 /** Store-backed result with the default slugger (SPEC 16.1). */
 export function generate(title: string, opts: GenerateOptions): Promise<SlugResult> {
   return getDefaultSlugger().generate(title, opts)
+}
+
+/** `suggest()` with the full trace, default slugger (SPEC 16.4). */
+export function explain(title: string, opts?: SuggestOptions): Explanation {
+  return getDefaultSlugger().explain(title, opts)
 }
 
 /** generate + insert + retry with the default slugger (SPEC 13.5). */

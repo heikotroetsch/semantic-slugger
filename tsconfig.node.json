@@ -12,7 +12,9 @@
     "lib": ["ES2023"],
     "types": ["node"],
     "skipLibCheck": true,
+    "allowJs": true,
     "noEmit": true
   },
-  "include": ["src/cli.ts", "scripts", "test", "*.config.ts"]
+  "include": ["src/cli.ts", "src/cli", "scripts", "test", "*.config.ts"],
+  "exclude": ["test/smoke", "test/browser"]
 }

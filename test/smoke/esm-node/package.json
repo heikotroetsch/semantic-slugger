@@ -1,0 +1,5 @@
+{
+  "name": "smoke-esm-node",
+  "private": true,
+  "type": "module"
+}

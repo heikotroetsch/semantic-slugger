@@ -1,10 +1,14 @@
 /**
- * Write generated example and golden files (SPEC 14.2, 17.3). Run by `pnpm test:update`.
- * Now: `examples/sql/schema.sql` from `sqlSchema()`; a test checks that they match.
- * The golden JSON files (`test/golden/v1.*.json`) follow in a later milestone.
+ * Write generated example, golden and README files (SPEC 14.2, 17.3, 18.9). Run by `pnpm test:update`.
+ * - `examples/sql/schema.sql` from `sqlSchema()`
+ * - `test/golden/v1.subset.json`: the golden subset for the Node and browser parity tests (19.5)
+ * - the config table in `README.md` from `DEFAULTS` (18.9)
+ * Tests check that each file matches.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { sqlSchema } from '../src/adapters/sql.ts'
+import { goldenSubset } from './lib/golden.ts'
+import { updateReadme } from './lib/readme.ts'
 
 function write(rel: string, text: string): void {
   const file = new URL(`../${rel}`, import.meta.url)
@@ -21,3 +25,5 @@ function write(rel: string, text: string): void {
 }
 
 write('examples/sql/schema.sql', sqlSchema())
+write('test/golden/v1.subset.json', `${JSON.stringify(goldenSubset(), null, 2)}\n`)
+write('README.md', updateReadme(readFileSync(new URL('../README.md', import.meta.url), 'utf8')))

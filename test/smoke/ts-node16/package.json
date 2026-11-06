@@ -1,0 +1,5 @@
+{
+  "name": "smoke-ts-node16",
+  "private": true,
+  "type": "module"
+}

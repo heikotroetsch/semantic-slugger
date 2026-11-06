@@ -44,7 +44,7 @@ describe('public surface', () => {
 describe('browser-safe core', () => {
   it('no node: imports in src (except the CLI)', () => {
     for (const f of files(srcDir)) {
-      if (f.endsWith('/cli.ts')) continue
+      if (f.endsWith('/cli.ts') || f.includes('/cli/')) continue
       const imports = [...readFileSync(f, 'utf8').matchAll(/^\s*(?:import|export)\b[^'"]*from\s+['"]([^'"]+)['"]/gm)]
       for (const m of imports) expect(m[1], f).not.toMatch(/^node:|^(fs|path|crypto|os|util|buffer)$/)
     }

@@ -46,14 +46,29 @@ export {
 } from './errors.ts'
 /** @experimental (SPEC 6.7) */
 export type { LanguagePack } from './lang/pack.ts'
-export type { Segment, SlugReason, SlugResult, SlugWarning, StoreTier } from './result.ts'
+export type {
+  Explanation,
+  NameSignalName,
+  RankExcludeWhy,
+  RemovedList,
+  ResolveStatus,
+  Segment,
+  SlugReason,
+  SlugResult,
+  SlugWarning,
+  Step,
+  StoreTier,
+} from './result.ts'
 export {
   type AnalyzeOptions,
   analyze,
+  type BodyCandidate,
+  type CandidatesOptions,
   type CreateUniqueOptions,
   type CreateUniqueResult,
   createSlugger,
   createUnique,
+  explain,
   type GenerateOptions,
   generate,
   isValidSlug,

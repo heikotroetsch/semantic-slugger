@@ -8,6 +8,8 @@
       "!**/coverage",
       "!**/node_modules",
       "!SPEC.md",
+      "!README.md",
+      "!CHANGELOG.md",
       "!test/fixtures/titles.json",
       "!test/__snapshots__",
       "!docs/acceptance.md",
@@ -37,7 +39,7 @@
   },
   "overrides": [
     {
-      "includes": ["src/**", "!src/cli.ts"],
+      "includes": ["src/**", "!src/cli.ts", "!src/cli/**"],
       "linter": {
         "rules": {
           "style": {
