@@ -49,6 +49,12 @@ export function enPack(): LanguagePack {
         suffixes: ['ly', 'ive', 'ous', 'able', 'ible', 'ful', 'less', 'ed'],
         lowerSuffixes: [],
         lowerCaseRule: false,
+        // common nouns with an attr suffix (DEVIATIONS: `Family Trip`, `Electricity Supply Contract`)
+        // biome-ignore format: word list
+        except: [
+          'alternative', 'anomaly', 'archive', 'assembly', 'butterfly', 'detective', 'directive', 'executive',
+          'family', 'incentive', 'initiative', 'monopoly', 'narrative', 'objective', 'perspective', 'supply',
+        ],
       },
     })
   }

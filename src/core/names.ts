@@ -8,7 +8,7 @@ import type { DetectedLang } from '../config.ts'
 import type { Compiled } from './compile.ts'
 import { splitCompound } from './compound.ts'
 import type { Normalized } from './normalize.ts'
-import { RE_DECIMAL_VERSION, RE_HAS_DIGIT, RE_HAS_LETTER, RE_LETTER } from './regexes.ts'
+import { RE_DECIMAL_VERSION, RE_HAS_DIGIT, RE_HAS_LETTER, RE_LETTER, RE_SENTENCE_BREAK } from './regexes.ts'
 import { type NameSignal, type Tok, versionFromDecimal } from './tokenize.ts'
 
 export interface NamesResult {
@@ -45,6 +45,7 @@ function isAttr(t: Tok, first: boolean, title: DetectedLang, c: Compiled): boole
     const known = idx !== undefined && splitCompound(a, idx) !== null
     if (!known) {
       const suffix = (s: string) => a.endsWith(s) && !(s === 'haft' && a.endsWith('schaft'))
+      if ((p.attr.except ?? []).includes(a)) return false
       if ((p.attr.suffixes ?? []).some(suffix)) return true
       if (t.case === 'lower' && (p.attr.lowerSuffixes ?? []).some(suffix)) return true
     }
@@ -63,8 +64,13 @@ export function applyNames(toks: Tok[], title: DetectedLang, c: Compiled, n: Nor
   const words = toks.filter(isWord)
   const lettered = words.filter((t) => RE_HAS_LETTER.test(t.ascii))
   const allCaps = allCapsTitle(n)
-  const titleCase = lettered.length > 0 && lettered.every(capitalized)
+  // a token with an upper-case letter inside (`iPhone`, `eBay`) counts as capitalized for Title Case
+  const titleCase = lettered.length > 0 && lettered.every((t) => capitalized(t) || t.innerCaps)
   const firstWord = words[0]
+  // a word after `:`, `!` or `?` starts a new sentence (`PR #812: Fix pagination bug`)
+  const sentenceStart = new Set<Tok>()
+  for (let i = 1; i < toks.length; i++)
+    if (RE_SENTENCE_BREAK.test((toks[i - 1] as Tok).next)) sentenceStart.add(toks[i] as Tok)
   const pack = c.pack(title)
   const sentenceCaseLang = pack?.nounsCapitalized !== true
   for (const t of words) {
@@ -88,6 +94,7 @@ export function applyNames(toks: Tok[], title: DetectedLang, c: Compiled, n: Nor
         !titleCase &&
         capitalized(t) &&
         t !== firstWord &&
+        !sentenceStart.has(t) &&
         !c.months.has(t.ascii) &&
         !c.weekdays.has(t.ascii)
       )
@@ -106,6 +113,8 @@ export function applyNames(toks: Tok[], title: DetectedLang, c: Compiled, n: Nor
     const t = toks[i] as Tok
     const prev = toks[i - 1] as Tok
     if (!isWord(prev)) continue
+    // punctuation between the word and the number breaks the link (`Green Tea, 100 Bags`)
+    if (prev.next !== (t.text[0] ?? '')) continue
     const position =
       prev.role === 'name' ||
       prev.role === 'acronym' ||

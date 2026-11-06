@@ -115,6 +115,42 @@ export function mergeEntries(src: LexiconSource): LexiconEntry[] {
   return list
 }
 
+interface StemWord {
+  /** Ascii key or form. */
+  readonly word: string
+  /** The same, key-folded (`haeuser` -> `hauser`). */
+  readonly fold: string
+  readonly entry: LexiconEntry
+}
+
+function commonPrefix(a: string, b: string): number {
+  let i = 0
+  while (i < a.length && i < b.length && a[i] === b[i]) i++
+  return i
+}
+
+/**
+ * Pick the stem match (SPEC 4.4 steps 2 and 3, see DEVIATIONS): a compound part entry (`partOnly`)
+ * matches only a token that starts with the part (`haeuser` -> `haus`, but `druck` is no `drucker`).
+ * Of the rest, a word that the token starts with wins, then the longest common prefix with the token
+ * (`rechnern` -> `rechner`, not `recht`; `daecher` -> `dach`, not `dachregion`), then data order.
+ */
+function pickStem(token: string, fold: string, cands: readonly StemWord[]): LexiconEntry | undefined {
+  let best: StemWord | undefined
+  let bestLen = -1
+  for (const w of cands) {
+    const whole = token.startsWith(w.word)
+    const wholeFold = fold.startsWith(w.fold)
+    if (w.entry.partOnly === true && !whole && !wholeFold) continue
+    const n = commonPrefix(token, w.word) + (whole ? 2000 : 0) + (wholeFold ? 1000 : 0)
+    if (n > bestLen) {
+      best = w
+      bestLen = n
+    }
+  }
+  return best?.entry
+}
+
 export function buildLexicon(src: LexiconSource): Lexicon {
   const entries = mergeEntries(src)
   const exact = new Map<string, LexiconEntry[]>()
@@ -140,13 +176,12 @@ export function buildLexicon(src: LexiconSource): Lexicon {
       else l.push(e)
     }
   }
-  const stemIndex = new Map<string, Map<string, LexiconEntry>>()
-  const stemList = new Map<string, Map<string, LexiconEntry[]>>()
-  const indexFor = (lang: string): Map<string, LexiconEntry> => {
+  /** Per language: stem -> the indexed words with their entries, in data order. */
+  const stemIndex = new Map<string, Map<string, StemWord[]>>()
+  const indexFor = (lang: string): Map<string, StemWord[]> => {
     let m = stemIndex.get(lang)
     if (m === undefined) {
       m = new Map()
-      const all = new Map<string, LexiconEntry[]>()
       const st = src.stemmers.get(lang)
       if (st !== undefined) {
         for (const e of entries) {
@@ -154,22 +189,22 @@ export function buildLexicon(src: LexiconSource): Lexicon {
           if (e.lang !== lang && e.lang !== '*') continue
           for (const s of words(e).single) {
             const k = st.stem(s)
-            if (!m.has(k)) m.set(k, e)
-            const l = all.get(k)
-            if (l === undefined) all.set(k, [e])
-            else if (!l.includes(e)) l.push(e)
+            const l = m.get(k)
+            const w = { word: s, fold: st.keyFold(s), entry: e }
+            if (l === undefined) m.set(k, [w])
+            else l.push(w)
           }
         }
       }
       stemIndex.set(lang, m)
-      stemList.set(lang, all)
     }
     return m
   }
   const stemHit = (ascii: string, lang: string): LexiconEntry | undefined => {
     const st = src.stemmers.get(lang)
     if (st === undefined) return undefined
-    return indexFor(lang).get(st.stem(ascii))
+    const cands = indexFor(lang).get(st.stem(ascii))
+    return cands === undefined ? undefined : pickStem(ascii, st.keyFold(ascii), cands)
   }
   return {
     entries,
@@ -196,9 +231,8 @@ export function buildLexicon(src: LexiconSource): Lexicon {
     stemClashes() {
       const out: string[] = []
       for (const p of src.packs) {
-        indexFor(p.code)
-        for (const [k, l] of stemList.get(p.code) ?? []) {
-          const keys = [...new Set(l.map((e) => e.key))]
+        for (const [k, l] of indexFor(p.code)) {
+          const keys = [...new Set(l.map((w) => w.entry.key))]
           if (keys.length > 1) out.push(`${p.code}:${k}=${keys.join('|')}`)
         }
       }

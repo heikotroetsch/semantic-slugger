@@ -87,8 +87,8 @@ export const RE_WEEK: RegExp = /(?<![\p{L}\p{N}])(kw|cw|week|wk)\s?(\d{1,2})(?![
 export const RE_YEAR: RegExp = /(?<![\p{L}\p{N}])(?:19|20)\d\d(?![\p{L}\p{N}])/gu
 /** Historic years 1500 to 1899 (SPEC 5.4). */
 export const RE_HISTORIC_YEAR: RegExp = /(?<![\p{L}\p{N}])1[5-8]\d\d(?![\p{L}\p{N}])/gu
-/** Long numbers (order, invoice, case numbers). */
-export const RE_LONGNUM: RegExp = /(?<![\p{L}\p{N}])\d{5,4096}(?![\p{L}\p{N}])/gu
+/** Long numbers (order, invoice, case numbers); not the digits of a decimal (`3.14159` is noise). */
+export const RE_LONGNUM: RegExp = /(?<![\p{L}\p{N}]|\d[.,])\d{5,4096}(?![\p{L}\p{N}]|[.,]\d)/gu
 /** `v2`, `v2.4`, `v1.10.3`. */
 export const RE_VERSION_V: RegExp = /(?<![\p{L}\p{N}])v(\d{1,3}(?:[._]\d{1,3}){0,2})(?![\p{L}\p{N}])/gu
 /** A word followed by a version number; the word is checked against the version words (SPEC 5.4). */
@@ -111,6 +111,8 @@ export const RE_HASH_NUMBER: RegExp = /#(\d{1,6})(?![\p{L}\p{N}])/gu
 export const RE_CODE_RUN: RegExp = /[a-z0-9()/.-]{1,256}/g
 /** A hyphen followed by a word of 4+ letters ends a code run (`B2B-Marketing`). */
 export const RE_RUN_WORD_TAIL: RegExp = /-[a-z]{4,256}/g
+/** A hyphen part that starts with 4+ letters (`3-Zimmer-Wohnung`: the number is cut off, SPEC 5.1). */
+export const RE_HYPHEN_WORD: RegExp = /^\p{L}{4}/u
 export const RE_TOKEN_CHARS: RegExp = /[\p{L}\p{N}-]{1,4096}/gu
 export const RE_DIGITS: RegExp = /^\d{1,4096}$/
 export const RE_HAS_DIGIT: RegExp = /\d/
@@ -124,6 +126,8 @@ export const RE_CLASS_VALUE: RegExp = /^\d{1,2}[a-z]$/
 export const RE_ROMAN: RegExp = /^x{0,3}(?:ix|iv|v?i{0,3})$/
 export const RE_ILO_ONLY: RegExp = /^[ilo]{1,3}$/
 export const RE_VOWEL: RegExp = /[aeiouy]/
+/** The char after a token that starts a new sentence (name signal 4, SPEC 6.6). */
+export const RE_SENTENCE_BREAK: RegExp = /^[:!?]$/
 export const RE_STANDARD_PREFIX: RegExp = /^(?:din|en|iso|iec|ieee|rfc)$/
 export const RE_UNDERSCORE: RegExp = /_/g
 export const RE_DOT: RegExp = /\./g

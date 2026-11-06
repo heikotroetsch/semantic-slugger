@@ -236,3 +236,53 @@ describe('deny tokens (SPEC 6.6)', () => {
     expect(f.phrases).toEqual([])
   })
 })
+
+describe('verifier round 1 (M2)', () => {
+  it('a hyphen resets the inner-caps signal; each Title Case part gives case `title`', () => {
+    expect(tok('Edelstahl-Wasserkocher', 'edelstahlwasserkocher')?.innerCaps).toBe(false)
+    expect(tok('Edelstahl-Wasserkocher', 'edelstahlwasserkocher')?.case).toBe('title')
+    expect(kept('Edelstahl-Wasserkocher')).toEqual(['edelstahlwasserkocher:topic'])
+    expect(kept('Gluten-Free Recipes')).toEqual(['glutenfree:topic', 'recipes:topic'])
+    expect(tok('GitHub Actions', 'github')?.innerCaps).toBe(true)
+  })
+
+  it('a number before a hyphen word is cut off; the word parts stay (5.1 step 1b, 3)', () => {
+    expect(tok('3-Zimmer-Wohnung mit Balkon', 'zimmerwohnung')?.parts).toEqual(['zimmer', 'wohnung'])
+    expect(keys('3-Zimmer-Wohnung mit Balkon')).toEqual(['zimmerwohnung:topic', 'balkon:topic'])
+    expect(tok('10-Punkte-Plan für Schulen', 'punkteplan')?.parts).toEqual(['punkte', 'plan'])
+    expect(tok('10-Punkte-Plan für Schulen', '10')?.cls).toBe('smallnum')
+  })
+
+  it('parts of one letter are dropped unless the letter starts a lexicon word', () => {
+    const t = tok('A/B-Test Startseite', 'test')
+    expect(t?.parts).toBeUndefined()
+    expect(t?.case).toBe('title')
+    expect(tok('E-Mail-Vorlage Kunden', 'emailvorlage')?.parts).toEqual(['e', 'mail', 'vorlage'])
+  })
+
+  it('replacement words of normalize have case `unknown`', () => {
+    expect(tok('C++ / C# Schulung', 'csharp')?.case).toBe('unknown')
+    expect(keys('C# Schulung für Entwickler')).toContain('csharp:topic')
+  })
+
+  it('a marker word takes `#` + number (5.2)', () => {
+    expect(keys('Wartung Teil #2')).toEqual(['wartung:topic', 'pt2:marker'])
+  })
+
+  it('look-alike code runs are noise (5.2)', () => {
+    expect(keys('Il1 O0 rn m')).toEqual(['rn:topic'])
+    expect(keys('0O1lI 0o1li')).toEqual([])
+  })
+
+  it('an upper-case one-letter unit glued to a number is a code; a decimal is no long number', () => {
+    expect(keys('3D-Druck Workshop')).toEqual(expect.arrayContaining(['c3d:code', 'druck:topic']))
+    expect(keys('50kg Paket')).toContain('q50kg:quantity')
+    expect(front('3.14159').tokens.map((t) => t.cls)).toEqual(['noise'])
+  })
+
+  it('a month word at title start needs a year or a day number (5.4)', () => {
+    expect(keys('August Müller Geburtstag')).toContain('august:topic')
+    expect(keys('August 2026 Newsletter')).toContain('m08:month')
+    expect(keys('Newsletter März')).toContain('m03:month')
+  })
+})

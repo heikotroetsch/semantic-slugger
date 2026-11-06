@@ -59,6 +59,16 @@ function order(c: Compiled, code: string): number {
   return c.cfg.languages.indexOf(code)
 }
 
+/**
+ * An abbreviation typed in capitals tells the language only when all entries that list it agree
+ * (`PR`: de and en, `CRM`: `*` and en). Used by detection and by the per-token language.
+ */
+function sharedAbbr(t: Tok, c: Compiled): boolean {
+  if (t.capsAbbr === undefined) return false
+  const hits = c.lexicon.knownAbbr(t.capsAbbr)
+  return hits.length > 0 && new Set(hits.map((e) => e.lang ?? '*')).size > 1
+}
+
 /** Detect the title language (SPEC 6.1). `toks` are the tokens after deny tokens are removed. */
 export function detectLanguage(toks: readonly Tok[], n: Normalized, c: Compiled, option?: string): LangResult {
   const zero: Record<string, number> = {}
@@ -78,16 +88,22 @@ export function detectLanguage(toks: readonly Tok[], n: Normalized, c: Compiled,
   for (const t of toks) {
     if (t.cls !== 'word' || t.translit) continue
     const a = t.ascii
+    // an upper-case token that is an `upperOnly` lexicon word is no stop word (`IT`, `US`, SPEC 6.3)
+    const upperWord = t.case === 'upper' && c.lexicon.exactAll(a).some((e) => e.upperOnly === true)
     for (const p of c.packs) {
-      if (c.onlyStop.get(p.code)?.has(a) === true) add(p.code, 2, `stop:${a}`)
+      if (!upperWord && c.onlyStop.get(p.code)?.has(a) === true) add(p.code, 2, `stop:${a}`)
       if ((p.hints?.suffixes ?? []).some((s) => a.endsWith(s))) add(p.code, 1, `suffix:${a}`)
       if (charHit.length === 0 && a.length >= 5 && (p.hints?.weakSuffixes ?? []).some((s) => a.endsWith(s)))
         add(p.code, 1, `weak-suffix:${a}`)
       if (charHit.length === 0 && digraphHit(t, p, c)) add(p.code, 1, `digraph:${a}`)
+      // compound hint: only splits into known parts, not at typed hyphens (`Syllabus` is no `sylla|bus`)
       const idx = c.parts.get(p.code)
-      if (idx !== undefined && a.length >= 8 && splitCompound(a, idx) !== null) add(p.code, 1, `compound:${a}`)
+      if (idx !== undefined && t.parts === undefined && a.length >= 8) {
+        const split = splitCompound(a, idx)
+        if (split?.every((x) => x.known) === true) add(p.code, 1, `compound:${a}`)
+      }
     }
-    const lx = detectLookup(t, c)
+    const lx = sharedAbbr(t, c) ? undefined : detectLookup(t, c)
     const ll = lx?.lang ?? '*'
     if (lx !== undefined && ll !== '*' && score.has(ll) && (lx.partOnly !== true || a.length >= 6))
       add(ll, 1, `lex:${a}`)
@@ -106,12 +122,7 @@ export function detectLanguage(toks: readonly Tok[], n: Normalized, c: Compiled,
 /** Per-token language (SPEC 6.1, rules 1 to 5). */
 export function tokenLanguage(t: Tok, title: LangResult, n: Normalized, c: Compiled): DetectedLang {
   if (t.translit || !RE_HAS_LETTER.test(n.canonical)) return 'und'
-  let lx = t.cls === 'word' ? detectLookup(t, c) : undefined
-  // an abbreviation typed in capitals tells the language only when all its entries agree (`PR`)
-  if (lx !== undefined && t.capsAbbr !== undefined) {
-    const langs = new Set(c.lexicon.knownAbbr(t.capsAbbr).map((e) => e.lang))
-    if (langs.size > 1) lx = undefined
-  }
+  const lx = t.cls === 'word' && !sharedAbbr(t, c) ? detectLookup(t, c) : undefined
   const ll = lx?.lang ?? '*'
   if (lx !== undefined && ll !== '*' && lx.partOnly !== true && c.pack(ll) !== undefined) return ll
   for (const p of c.packs) {

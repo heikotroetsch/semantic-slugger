@@ -142,3 +142,36 @@ describe('und plural fold (SPEC 8.2)', () => {
     for (const w of ['bus', 'status', 'analysis', 'chaos', 'class', 'gas']) expect(pluralFold(w)).toBe(w)
   })
 })
+
+describe('verifier round 1 (M2): detection', () => {
+  it('a shared abbreviation and an upper-case upperOnly word give no language score', () => {
+    expect(lang('PR #812: Fix pagination bug')).toBe('en')
+    expect(kept('PR #812: Fix pagination bug')).toEqual(expect.arrayContaining(['pagination:topic', 'bug:topic']))
+    expect(front('PR Review Checklist').tokens.find((t) => t.ascii === 'pr')?.lex?.key).toBe('pull request')
+    expect(lang('HR Policy Update: Remote Work')).not.toBe('de')
+    expect(lang('Risikoanalyse Rollout CRM')).not.toBe('en')
+    expect(lang('IT Projekt')).toBe('de')
+    expect(lang('US Markt Analyse')).not.toBe('en')
+  })
+
+  it('the compound hint counts only splits into known parts, not typed hyphens', () => {
+    expect(lang('Syllabus: World History 101')).not.toBe('de')
+    expect(lang('quarterly-report_Q3-2026')).not.toBe('de')
+  })
+
+  it('conflict words stay in und titles (bare spec titles, 6.3, 19.1)', () => {
+    expect(kept('Brightwave Pro 14')).toEqual(['brightwave:topic', 'pro:topic', 'd14:model'])
+    expect(kept('War Room')).toEqual(['war:topic', 'room:topic'])
+    expect(kept('Die Casting')).toEqual(['die:topic', 'casting:topic'])
+    expect(kept('Tavora Phone 8 Pro 256 GB Silver')).toContain('pro:topic')
+  })
+
+  it('stem lookup picks the word the token starts with (4.4 step 3)', () => {
+    const lex = (t: string, a: string) => front(t).tokens.find((x) => x.ascii === a)?.lex?.key
+    expect(lex('Neue Rechnern im Büro', 'rechnern')).toBe('rechner')
+    expect(lex('Rezept des Kuchens', 'kuchens')).toBe('kuchen')
+    expect(lex('Neue Küchen planen', 'kuechen')).toBe('kueche')
+    expect(lex('Druck der Broschüre', 'druck')).toBeUndefined()
+    expect(lex('Häuser am See', 'haeuser')).toBe('haus')
+  })
+})

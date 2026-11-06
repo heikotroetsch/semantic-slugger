@@ -71,6 +71,8 @@ export interface LanguagePack {
     suffixes?: readonly string[]
     lowerSuffixes?: readonly string[]
     lowerCaseRule?: boolean
+    /** Words that end in a suffix but are never attr (`family`, `supply`); see DEVIATIONS. */
+    except?: readonly string[]
   }
 }
 
@@ -252,9 +254,9 @@ export function validatePack(p: unknown, field: string, builtin: readonly string
   if (nw) out.numberWords = nw
   const attr = own(v, 'attr')
   if (attr !== undefined) {
-    const a = obj(`${field}.attr`, attr, ['suffixes', 'lowerSuffixes', 'lowerCaseRule'])
+    const a = obj(`${field}.attr`, attr, ['suffixes', 'lowerSuffixes', 'lowerCaseRule', 'except'])
     const ac: Record<string, unknown> = {}
-    for (const k of ['suffixes', 'lowerSuffixes'] as const) {
+    for (const k of ['suffixes', 'lowerSuffixes', 'except'] as const) {
       const l = list(`${field}.attr.${k}`, own(a, k))
       if (l) ac[k] = l
     }

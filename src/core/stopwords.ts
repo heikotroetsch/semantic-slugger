@@ -68,7 +68,9 @@ function markLegal(toks: Tok[], c: Compiled): Set<number> {
 export function applyStopWords(toks: Tok[], title: DetectedLang, c: Compiled): StopResult {
   const removed: { word: string; list: DropReason }[] = []
   const weak: string[] = []
-  const lang = title === 'und' ? c.cfg.defaultLang : title
+  // conflict words and number words are content words in another language: in an `und` title there
+  // is no evidence for the language that lists them, so they stay (`War Room`, `Brightwave Pro 14`)
+  const conflictLang = title === 'und' ? undefined : title
   const legal = markLegal(toks, c)
   for (let i = 0; i < toks.length; i++) {
     const t = toks[i] as Tok
@@ -93,12 +95,13 @@ export function applyStopWords(toks: Tok[], title: DetectedLang, c: Compiled): S
       const conflict = c.stop.conflictLangs.get(a)
       const fn = c.stop.functionLangs.get(a)
       if (conflict !== undefined && fn !== undefined && [...fn].every((l) => conflict.has(l))) {
-        if (conflict.has(lang)) list = 'conflict'
+        if (conflictLang !== undefined && conflict.has(conflictLang)) list = 'conflict'
       } else if (fn !== undefined) list = 'function'
       else if (c.stop.noise.has(a)) list = 'noise'
       else list = 'custom'
     }
-    if (list === undefined && c.numberWords.get(lang)?.has(a) === true) list = 'conflict'
+    if (list === undefined && conflictLang !== undefined && c.numberWords.get(conflictLang)?.has(a) === true)
+      list = 'conflict'
     if (list !== undefined) {
       t.drop = list
       removed.push({ word: a, list })

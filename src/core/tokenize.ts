@@ -25,6 +25,7 @@ import {
   RE_HAS_LETTER,
   RE_HASH_NUMBER,
   RE_HISTORIC_YEAR,
+  RE_HYPHEN_WORD,
   RE_ILO_ONLY,
   RE_LETTER,
   RE_LONGNUM,
@@ -143,12 +144,22 @@ function caseOf(ctx: Ctx, start: number, end: number): { flag: CaseFlag; inner: 
   let firstUp = false
   let inner = false
   let prevLower = false
+  // every letter segment (between hyphens or digits) is Title Case: `Edelstahl-Wasserkocher`
+  let segTitle = true
+  let segStart = true
   for (let i = start; i < end; i++) {
     const c = ctx.s[i] as string
-    if (!isLetter(c)) continue
+    if (!isLetter(c)) {
+      // a hyphen or digit ends the segment: `Team-Meeting` has no inner capital (SPEC 6.6 signal 1)
+      prevLower = false
+      segStart = true
+      continue
+    }
     const u = ctx.up[i] === true
     if (letters === 0) firstUp = u
     if (u && prevLower) inner = true
+    if (segStart !== u) segTitle = false
+    segStart = false
     prevLower = !u
     letters++
     if (u) ups++
@@ -156,7 +167,7 @@ function caseOf(ctx: Ctx, start: number, end: number): { flag: CaseFlag; inner: 
   if (letters === 0) return { flag: 'lower', inner: false, cap: false }
   if (ups === letters) return { flag: letters === 1 ? 'title' : 'upper', inner: false, cap: true }
   if (ups === 0) return { flag: 'lower', inner: false, cap: false }
-  if (firstUp && ups === 1) return { flag: 'title', inner: false, cap: true }
+  if (firstUp && (ups === 1 || segTitle)) return { flag: 'title', inner: false, cap: true }
   return { flag: 'mixed', inner, cap: firstUp }
 }
 
@@ -275,6 +286,9 @@ function claimNumbers(ctx: Ctx, c: Compiled): void {
   claim(ctx, RE_QUANTITY, (m) => {
     const unit = c.units.get(m[2] as string)
     if (unit === undefined) return null
+    // a one-letter unit glued to the number in upper case is a letter-digit code (`3D`, `5G`), not a unit
+    const end = m.index + m[0].length
+    if ((m[2] as string).length === 1 && !RE_SPACE_CHAR.test(m[0]) && ctx.up?.[end - 1] === true) return null
     const n = (m[1] as string).replace(',', '.')
     const decimal = n.includes('.')
     const ascii = decimal ? '' : `${num(n)}${unit}`
@@ -344,7 +358,9 @@ function claimCodeRuns(ctx: Ctx, c: Compiled): void {
     let allUpper = true
     for (let i = start; i < end; i++) if (RE_HAS_LETTER.test(ctx.s[i] as string) && up[i] !== true) allUpper = false
     for (let i = start; i < end; i++) ctx.taken[i] = 1
-    ctx.out.push(codeTok(make(ctx, start, end, 'code', text, { capsRun: allUpper })))
+    // look-alike chars mixing `[01]` with `[oli]` are noise, also in a code run (5.2: `Il1`, `O0`)
+    if (RE_LOOKALIKE_PAIR.test(text) && !c.lexicon.hasExact(text)) ctx.out.push(make(ctx, start, end, 'noise', text))
+    else ctx.out.push(codeTok(make(ctx, start, end, 'code', text, { capsRun: allUpper })))
   }
 }
 
@@ -371,32 +387,63 @@ function codeTok(t: Tok): Tok {
   return ok ? { ...t, cls: 'code', key: `c${t.ascii}` } : { ...t, cls: 'noise' }
 }
 
-/** Step 2 and 3: split the rest into word tokens; inner hyphens keep the token and record parts. */
-function splitWords(ctx: Ctx): void {
+interface Piece {
+  text: string
+  start: number
+  ascii: string
+}
+
+/**
+ * Parts of one letter are dropped (SPEC 5.1 step 3, `B-Test` -> `test`), unless the letter joined with
+ * the next part is a lexicon word (`E-Mail-Vorlage` keeps `e|mail|vorlage`, 5.1 step 4).
+ */
+function dropLetterParts(group: Piece[], c: Compiled): Piece[] {
+  if (group.length < 2) return group
+  const out: Piece[] = []
+  for (let i = 0; i < group.length; i++) {
+    const g = group[i] as Piece
+    const next = group[i + 1]
+    const letter = g.ascii.length === 1 && RE_HAS_LETTER.test(g.ascii)
+    if (letter && !(next !== undefined && c.lexicon.hasExact(g.ascii + next.ascii))) continue
+    out.push(g)
+  }
+  return out.length > 0 ? out : group
+}
+
+/**
+ * Step 2 and 3: split the rest into word tokens; inner hyphens keep the token and record parts. A
+ * number followed by a hyphen and a word of 4+ letters is its own token (`3-Zimmer-Wohnung` -> `3` +
+ * `zimmer|wohnung`), like the hyphen-word cut of code runs (5.1 step 1b).
+ */
+function splitWords(ctx: Ctx, c: Compiled): void {
   let masked = ''
   for (let i = 0; i < ctx.s.length; i++) masked += ctx.taken[i] === 1 ? ' ' : (ctx.s[i] as string)
   RE_TOKEN_CHARS.lastIndex = 0
   for (let m = RE_TOKEN_CHARS.exec(masked); m !== null; m = RE_TOKEN_CHARS.exec(masked)) {
     const pieces = m[0].split('-')
     let pos = m.index
-    let group: { text: string; start: number }[] = []
+    let group: Piece[] = []
     const flush = () => {
-      if (group.length === 0) return
-      const first = group[0] as { text: string; start: number }
-      const last = group[group.length - 1] as { text: string; start: number }
-      const start = first.start
-      const end = last.start + last.text.length
-      const parts = group.map((g) => asciiFold(g.text).replace(RE_NON_ALNUM, '')).filter((p) => p !== '')
-      const ascii = parts.join('')
-      if (ascii !== '') {
-        const extra: Partial<Tok> = parts.length > 1 ? { parts } : {}
-        ctx.out.push(make(ctx, start, end, 'word', ascii, extra))
-      }
+      const kept = dropLetterParts(
+        group.filter((g) => g.ascii !== ''),
+        c,
+      )
       group = []
+      if (kept.length === 0) return
+      const first = kept[0] as Piece
+      const last = kept[kept.length - 1] as Piece
+      const parts = kept.map((g) => g.ascii)
+      const extra: Partial<Tok> = parts.length > 1 ? { parts } : {}
+      ctx.out.push(make(ctx, first.start, last.start + last.text.length, 'word', parts.join(''), extra))
     }
-    for (const p of pieces) {
+    for (let k = 0; k < pieces.length; k++) {
+      const p = pieces[k] as string
       if (p === '') flush()
-      else group.push({ text: p, start: pos })
+      else {
+        group.push({ text: p, start: pos, ascii: asciiFold(p).replace(RE_NON_ALNUM, '') })
+        const next = pieces[k + 1]
+        if (group.length === 1 && RE_DIGITS.test(p) && next !== undefined && RE_HYPHEN_WORD.test(next)) flush()
+      }
       pos += p.length + 1
     }
     flush()
@@ -419,9 +466,17 @@ function allUpperLetters(t: Tok): boolean {
   return t.case === 'upper' || (t.case === 'title' && t.ascii.length === 1)
 }
 
+/** Replacement words of normalize (SPEC 4.1); written by the library, so their case flag is `unknown`. */
+const REPLACED: ReadonlySet<string> = new Set(['cpp', 'csharp', 'dotnet'])
+
 /** Classify a word token by its own text (SPEC 5.2). */
-function classifyWord(ctx: Ctx, t: Tok, c: Compiled): Tok[] {
-  const a = t.ascii
+function classifyWord(ctx: Ctx, tok: Tok, c: Compiled): Tok[] {
+  const a = tok.ascii
+  // `C++`, `C#` and `.NET` are replaced in normalize (4.1): their case says nothing
+  const t: Tok =
+    tok.parts === undefined && REPLACED.has(a) && tok.case === 'lower'
+      ? { ...tok, case: 'unknown', cap: false, innerCaps: false }
+      : tok
   if (t.parts === undefined && RE_DIGITS.test(a)) {
     return [{ ...t, cls: 'smallnum', value: Number(a) }]
   }
@@ -488,7 +543,12 @@ function markers(ctx: Ctx, toks: Tok[], c: Compiled): Tok[] {
         if (nr !== undefined && nr.cls === 'word' && (nr.ascii === 'nr' || nr.ascii === 'no')) j++
         const vt = toks[j]
         if (vt === undefined) continue
-        const v = markerValue(vt, spec, c)
+        let v = markerValue(vt, spec, c)
+        // `Teil #2`: the `#` marker after a marker word gives its number (marker word + optional `#`, 5.2)
+        if (v === null && vt.cls === 'marker' && vt.markerWord === '#' && vt.key !== undefined) {
+          const d = vt.key.slice(MARKER_HASH_PREFIX.length)
+          if (d.length <= 3) v = d
+        }
         if (v === null) continue
         const key = spec.prefix + v
         out.push(
@@ -558,7 +618,8 @@ function context(ctx: Ctx, toks: Tok[], c: Compiled): Tok[] {
     if (t.cls === 'word') {
       const m = c.months.get(t.ascii)
       if (m !== undefined) {
-        const cap = t.cap
+        // capitalization at title start says nothing: `August` the first name stays a word (5.4)
+        const cap = t.cap && prev !== undefined
         const dayBefore = prev?.cls === 'smallnum' && (prev.value ?? 0) >= 1 && (prev.value ?? 0) <= 31
         const yearNear = prev?.cls === 'year' || next?.cls === 'year'
         if (cap || dayBefore || yearNear) t = { ...t, cls: 'month', key: `m${String(m).padStart(2, '0')}` }
@@ -627,7 +688,7 @@ export function tokenize(n: Normalized, c: Compiled): Tok[] {
   const ctx: Ctx = { s: n.surface, up: n.up, tr: n.tr, taken: new Uint8Array(n.surface.length), out: [] }
   claimNumbers(ctx, c)
   claimCodeRuns(ctx, c)
-  splitWords(ctx)
+  splitWords(ctx, c)
   const sorted = [...ctx.out].sort((a, b) => a.start - b.start || a.end - b.end)
   const classified: Tok[] = []
   for (const t of sorted) {

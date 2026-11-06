@@ -174,16 +174,21 @@ describe('v1 lexicon data (SPEC 15)', () => {
   })
 
   it('stem clashes in the v1 data are on the allowed list (4.4 step 3)', () => {
+    for (const e of STEM_CLASH_FIXTURE) expect(e.reason.length, e.clash).toBeGreaterThan(20)
     const allowed = new Set<string>(ALLOWED_STEM_CLASHES)
     const clashes = compile(cfgOf()).lexicon.stemClashes()
     expect(clashes.filter((c) => !allowed.has(c))).toEqual([])
   })
 })
 
-/** Reviewed stem clashes: the earlier entry in data order wins (SPEC 4.4 step 3). */
-const ALLOWED_STEM_CLASHES: readonly string[] = JSON.parse(
+/**
+ * Reviewed stem clashes, each with a reason (SPEC 4.4 step 3). The stem match picks the word the
+ * token starts with, then the longest common prefix, then data order (DEVIATIONS).
+ */
+const STEM_CLASH_FIXTURE = JSON.parse(
   readFileSync(new URL('../fixtures/stem-clashes.json', import.meta.url), 'utf8'),
-) as string[]
+) as { clash: string; reason: string }[]
+const ALLOWED_STEM_CLASHES: readonly string[] = STEM_CLASH_FIXTURE.map((e) => e.clash)
 
 describe('v1 stop word data (SPEC 6.3)', () => {
   it('each conflict word is in the function list of each language it is listed for', () => {

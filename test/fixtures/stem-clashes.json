@@ -1,10 +1,34 @@
 [
-  "de:dach=dach|dachregion",
-  "de:kind=kind|kinder",
-  "de:kuch=kueche|kuchen",
-  "de:kund=kunde|kunden",
-  "de:lehr=lehrer|lehr",
-  "de:rech=recht|rechner",
-  "de:sonstig=sonstiges|sonstige",
-  "en:plan=planning|plan"
+  {
+    "clash": "de:dach=dach|dachregion",
+    "reason": "dachregion lists the form dach; the part dach (roof) is the same word, so dach and its inflections (daecher) pick the part, whose word the token starts with"
+  },
+  {
+    "clash": "de:kind=kind|kinder",
+    "reason": "two parts of one word (singular and plural); either entry is the right meaning"
+  },
+  {
+    "clash": "de:kuch=kueche|kuchen",
+    "reason": "different meanings (kitchen, cake); the stem match picks the word the token starts with (kuchens -> kuchen, kuechen -> kueche)"
+  },
+  {
+    "clash": "de:kund=kunde|kunden",
+    "reason": "two parts of one word (singular and plural); either entry is the right meaning"
+  },
+  {
+    "clash": "de:lehr=lehrer|lehr",
+    "reason": "different meanings (teacher, teaching); the stem match picks the word the token starts with (lehre -> lehr, lehrern -> lehrer)"
+  },
+  {
+    "clash": "de:rech=recht|rechner",
+    "reason": "different meanings (law, computer); the stem match picks the word the token starts with (rechnern -> rechner, rechte -> recht)"
+  },
+  {
+    "clash": "de:sonstig=sonstiges|sonstige",
+    "reason": "two forms of one weak word; either entry is the right meaning"
+  },
+  {
+    "clash": "en:plan=planning|plan",
+    "reason": "related weak words; the stem match picks the word the token starts with (plans -> plan, not planning)"
+  }
 ]

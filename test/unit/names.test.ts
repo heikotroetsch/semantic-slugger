@@ -104,3 +104,32 @@ describe('leak notes (SPEC 6.6)', () => {
     ])
   })
 })
+
+describe('verifier round 1 (M2)', () => {
+  it('hyphenated Title Case words are no names; inner caps still are', () => {
+    for (const w of ['Edelstahl-Wasserkocher Test', 'Gluten-Free Cookies', 'Team-Meeting Notes', 'Wi-Fi Setup'])
+      expect(front(w).names).toEqual([])
+    expect(signal('GitHub Actions', 'github')).toBe('inner-caps')
+  })
+
+  it('an inner-caps word at title start does not break Title Case', () => {
+    expect(kept('iPhone 15 Case Review')).toEqual(['iphone:name', 'd15:model', 'case:topic', 'review:topic'])
+    expect(front('iPad Air Case Review').names.map((n) => n.word)).toEqual(['ipad'])
+    expect(front('eBay Seller Guide').names.map((n) => n.word)).toEqual(['ebay'])
+  })
+
+  it('a word after a colon starts a new sentence', () => {
+    expect(signal('PR #812: Fix pagination bug', 'fix')).toBeUndefined()
+  })
+
+  it('punctuation breaks the model link (5.1 step 4c)', () => {
+    expect(kept('Organic Green Tea, 100 Bags').filter((k) => k.endsWith(':model'))).toEqual([])
+    expect(kept('Syllabus: World History 101')).toContain('d101:model')
+  })
+
+  it('EN attr exceptions: common nouns with `-ly` are topics', () => {
+    expect(kept('Family Trip Planning')).toContain('family:topic')
+    expect(kept('Electricity Supply Contract 2026')).toContain('supply:topic')
+    expect(kept('a quickly written note', undefined, 'en')).toContain('quickly:attr')
+  })
+})
