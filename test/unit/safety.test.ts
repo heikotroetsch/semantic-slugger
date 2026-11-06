@@ -95,6 +95,19 @@ describe('B3 whole body', () => {
     expect(bodyBlocked([n('cu'), n('nt')], cfg)).toBe(true)
   })
 
+  it('non-soft list words of 4+ chars (1488 -> iabb, nsdap, stfu) are blocked across boundaries', () => {
+    expect(bodyBlocked([v('v14'), v('88kg')], cfg)).toBe(true)
+    expect(bodyBlocked([v('gewicht'), v('v14'), v('88kg')], cfg)).toBe(true)
+    expect(bodyBlocked([v('rains'), v('dapper')], cfg)).toBe(true)
+    expect(bodyBlocked([v('rains'), v('coat')], cfg)).toBe(false)
+    const strict = [...BLOCK_SHORT_DE, ...TAIL_BLOCK_EXTRA].filter((w) => w.length >= 4)
+    expect(strict).toEqual(expect.arrayContaining(['iabb', 'nsdap', 'stfu']))
+    for (const w of strict) {
+      expect(bodyBlocked([v(`x${w}y`)], cfg), w).toBe(true)
+      for (let i = 1; i < w.length; i++) expect(bodyBlocked([v(w.slice(0, i)), v(w.slice(i))], cfg), w).toBe(true)
+    }
+  })
+
   it('no false hits on common words', () => {
     for (const w of ['kotfluegel', 'scheibenwischer', 'hurtig', 'kasse', 'massnahme', 'dokument', 'schwankung']) {
       expect(bodyBlocked([v(w)], cfg), w).toBe(false)

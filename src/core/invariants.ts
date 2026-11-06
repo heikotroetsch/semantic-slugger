@@ -13,6 +13,7 @@ import {
   hasLookalikePair,
   type SafetySegment,
   segmentBlocked,
+  strictHitIn,
   tailBlocked,
 } from './safety.ts'
 
@@ -97,7 +98,8 @@ export function assertInvariants(
 
 /**
  * Route and form check (SPEC 2.3): I1, I2, I3, I4, I9 and the blocklist. The tail position is unknown,
- * so I5 is not checked. Blocklist: B1 on each separator-split segment, hard words in the joined ID.
+ * so I5 is not checked. Blocklist: B1 on each separator-split segment, and in the joined ID every
+ * non-soft list word of 4+ chars (the B3 set) plus every hard word.
  */
 export function isValidSlugResolved(id: unknown, cfg: ResolvedConfig): boolean {
   if (typeof id !== 'string') return false
@@ -107,5 +109,6 @@ export function isValidSlugResolved(id: unknown, cfg: ResolvedConfig): boolean {
   if (!asciiOnly(id)) return false
   const segs = cfg.separator === '' ? [id] : id.split(cfg.separator)
   for (const s of segs) if (segmentBlocked(s, cfg)) return false
-  return !hardHitIn(fold(segs.join('')), cfg)
+  const joined = fold(segs.join(''))
+  return !hardHitIn(joined, cfg) && !strictHitIn(joined, cfg)
 }

@@ -126,6 +126,9 @@
 | t566 | de | edge | Überweisung an DE89 3704 0044 0532 0130 00 | `ueberweisung-tx2` | base | full |
 | t567 | en | edge | Feedback to team@example.com | `feedback-dmbncsk` | base | full |
 | t568 | en | edge | Docs at https://example.com/docs/start | `docs-ygj49thbyfn` | base | lexicon |
+| t571 | de | edge | Jahresbericht Vertrieb Nord 2026 | `vertrieb-nord-26` | base | full full number |
+| t575 | de | edge | MRT Knie links | `mrt-knie-shk3wg5` | base | full full |
+| t583 | en | edge | Trip report from Lisbon | `trip-lisbon-zchf` | base | full full |
 | t591 | de | edge | Vertrag GmbH AG | `vertrag-fnzg3z45` | base | full |
 | t592 | und | edge | Datei.pdf | `datei-khsxzkcvg5` | base | full |
 | t593 | und | edge | ⚡️ Strom 2026 🔌 | `strom-2026-xjzjz` | base | full number |
@@ -232,7 +235,6 @@
 | t559 | und | finance | Forecast Cash Flow | `for-cash-flow-fw` | base | coda full full |
 | t569 | de | finance | Jahresbericht Vertrieb Nord 2026 | `vertrieb-nord-26` | base | full full number |
 | t570 | de | finance | Jahresbericht Vertrieb Süd 2026 | `vertrieb-sued-26` | base | full full number |
-| t571 | de | finance | Jahresbericht Vertrieb Nord 2026 | `vertrieb-nord-26` | base | full full number |
 
 ## hr
 
@@ -354,7 +356,6 @@
 | t254 | en | medical | Phase 2 Trial Results for Compound KT-201 | `results-comp-ph2` | base | full coda number |
 | t560 | und | medical | Hand Hygiene Guidelines in Hospitals | `hand-hygiene-hos` | base | full full syll |
 | t574 | de | medical | MRT Knie links | `mrt-knie-shk3wg5` | base | full full |
-| t575 | de | medical | MRT Knie links | `mrt-knie-shk3wg5` | base | full full |
 
 ## meeting
 
@@ -698,5 +699,4 @@
 | t368 | de | travel | Urlaubsplanung Sommer 2026 | `urlaub-sommer-26` | base | full full number |
 | t369 | de | travel | Urlaubsplanung Sommer 2027 | `urlaub-sommer-27` | base | full full number |
 | t582 | en | travel | Trip report from Lisbon | `trip-lisbon-zchf` | base | full full |
-| t583 | en | travel | Trip report from Lisbon | `trip-lisbon-zchf` | base | full full |
 | t584 | en | travel | Trip report from Porto | `trip-porto-skwq6` | base | full full |

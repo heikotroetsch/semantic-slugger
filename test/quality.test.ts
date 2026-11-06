@@ -30,7 +30,7 @@ const Q4_GATES: Readonly<Record<string, number>> = {
   research: 5,
   software: 45,
   ticket: 10,
-  travel: 30,
+  travel: 25,
 }
 
 const rep = buildReport()

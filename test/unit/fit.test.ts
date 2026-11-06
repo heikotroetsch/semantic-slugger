@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import type { SluggerConfig } from '../../src/config.ts'
 import { compile } from '../../src/core/compile.ts'
@@ -11,7 +12,7 @@ import {
   tailCost,
   tailOptions,
 } from '../../src/core/fit.ts'
-import type { Laddered } from '../../src/core/ladder.ts'
+import type { Laddered, Rung } from '../../src/core/ladder.ts'
 import { rankPool } from '../../src/core/resolve.ts'
 import { doc } from '../helpers/concepts.ts'
 import { cfgOf } from '../helpers/front.ts'
@@ -129,6 +130,14 @@ describe('fit rules', () => {
     expect(cands('Board Minutes March 2026')[0]?.body).toContain('26mar')
   })
 
+  it('a year with a quarter and a month joins the first by title position, not by rank', () => {
+    // the month has tf 2 and ranks above Q1, but Q1 comes first in the title
+    const config: SluggerConfig = { lengthMode: 'max', length: 24 }
+    const body = cands('Q1 2026 Bericht März Planung März', config)[0]?.body ?? ''
+    expect(body).toContain('26q1')
+    expect(body).not.toContain('26mrz')
+  })
+
   it('a wide range fills two segments', () => {
     const c = cands('Archiv 1950–2020')[0] as Candidate
     expect(c.body).toBe('archiv-1950-2020')
@@ -186,6 +195,51 @@ describe('lower-bound cut (SPEC 12)', () => {
     }
   })
 
+  it('gives the same best candidates as a full search, over random pools (property)', () => {
+    const seed = Number(process.env.FC_SEED ?? Date.now() % 2 ** 31)
+    const numRuns = Math.max(1, Math.floor(Number(process.env.FC_RUNS ?? 1000) / 5))
+    // real concepts (topics, a quarter bonded to its year) as the frame; ladders and scores are random
+    const base = poolOf('Kraftwerk Nordsee Windpark Turbine Wartung Planung Leistung Netzanschluss Q3 2026', {
+      maxSegments: 5,
+    })
+    expect(base.length).toBe(6)
+    const rungArb = fc.record({
+      text: fc.stringMatching(/^[a-z][a-z0-9]{1,8}$/),
+      cost: fc.integer({ min: 0, max: 250 }),
+      plain: fc.boolean(),
+      verbatim: fc.boolean(),
+    })
+    const conceptArb = fc.record({
+      ladder: fc.array(rungArb, { minLength: 1, maxLength: 4 }),
+      score: fc.integer({ min: 1, max: 400 }),
+    })
+    fc.assert(
+      fc.property(
+        fc.subarray([0, 1, 2, 3, 4, 5], { minLength: 1 }),
+        fc.array(conceptArb, { minLength: 6, maxLength: 6 }),
+        fc.integer({ min: 1, max: 5 }),
+        fc.constantFrom('exact' as const, 'max' as const),
+        fc.integer({ min: 12, max: 32 }),
+        (pick, rand, maxSegments, lengthMode, length) => {
+          const pool: Laddered[] = pick.map((i) => {
+            const r = rand[i] as (typeof rand)[number]
+            const ladder: Rung[] = r.ladder
+              .map((x) => ({ ...x, segs: [x.text], kind: 'full' as const }))
+              .sort((a, b) => a.cost - b.cost)
+            return { ...(base[i] as Laddered), score: r.score, ladder }
+          })
+          const config: SluggerConfig = { maxSegments, lengthMode, length }
+          const cut = fitBody(pool, cfgOf({ ...config, maxPlans: 16 })).map(row)
+          const full = fitBody(pool, cfgOf({ ...config, maxPlans: 256 }))
+            .slice(0, 16)
+            .map(row)
+          expect(cut).toEqual(full)
+        },
+      ),
+      { seed, numRuns },
+    )
+  })
+
   it('worst case (pool 6, maxSegments 5) stays under 10 ms', () => {
     const config: SluggerConfig = { maxSegments: 5 }
     const title = 'Kraftwerk Nordsee Windpark Turbine Wartung Planung Leistung Netzanschluss Q3 2026'
@@ -194,12 +248,12 @@ describe('lower-bound cut (SPEC 12)', () => {
     const cfg = cfgOf(config)
     fitBody(pool, cfg)
     const times: number[] = []
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 20; i++) {
       const t0 = performance.now()
       fitBody(pool, cfg)
       times.push(performance.now() - t0)
     }
-    times.sort((x, y) => x - y)
-    expect(times[2]).toBeLessThan(10)
+    // the worst run, not the median (Q12)
+    expect(Math.max(...times)).toBeLessThan(10)
   })
 })

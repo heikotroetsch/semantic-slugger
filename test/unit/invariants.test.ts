@@ -82,6 +82,13 @@ describe('invariantFailure', () => {
     ).toBeNull()
   })
 
+  it('I6 non-soft list words of 4+ chars, also with verbatim segments and separator ""', () => {
+    const verb = (...t: string[]) => t.map((text) => ({ text, verbatim: true }))
+    expect(invariantFailure('gewicht-v14-88kg', 'gewicht-v14-88kg', '', max, verb('gewicht', 'v14', '88kg'))).toBe('I6')
+    const plain = resolveConfig({ separator: '', lengthMode: 'max' })
+    expect(invariantFailure('rainsdapper', 'rainsdapper', '', plain, verb('rains', 'dapper'))).toBe('I6')
+  })
+
   it('I7 reserved', () => {
     expect(invariantFailure('new', 'new', '', max)).toBe('I7')
     expect(invariantFailure('help-k3', 'help', 'k3', max)).toBeNull()
@@ -149,6 +156,13 @@ describe('isValidSlug', () => {
     expect(isValidSlug('strom-sd-nord-26')).toBe(false)
     expect(isValidSlug('strom-fi-ck-2026')).toBe(false)
     expect(isValidSlug('analyse-plt-2026')).toBe(true)
+  })
+
+  it('blocklist: non-soft list words of 4+ chars across boundaries (iabb, nsdap), like B3', () => {
+    expect(isValidSlug('gewicht-v14-88kg')).toBe(false)
+    expect(isValidSlug('gewichtv1488kgxx', { separator: '' })).toBe(false)
+    expect(isValidSlug('rainsdappcoatnjk', { separator: '' })).toBe(false)
+    expect(isValidSlug('gewicht-v14-p8jn')).toBe(true)
   })
 
   it('with a config', () => {

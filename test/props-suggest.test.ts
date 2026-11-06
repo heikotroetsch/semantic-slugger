@@ -4,7 +4,7 @@
  */
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { BLOCK_HARD } from '../src/data/v1/blocklist.ts'
+import { BLOCK_HARD, BLOCK_SHORT_DE, TAIL_BLOCK_EXTRA } from '../src/data/v1/blocklist.ts'
 import { LEXICON_DE } from '../src/data/v1/lexicon-de.ts'
 import { LEXICON_EN } from '../src/data/v1/lexicon-en.ts'
 import { LEXICON_SHARED } from '../src/data/v1/lexicon-shared.ts'
@@ -16,6 +16,8 @@ import { createSlugger, isSluggerError, isValidSlug, type SluggerConfig } from '
 const seed = Number(process.env.FC_SEED ?? Date.now() % 2 ** 31)
 const numRuns = Math.max(1, Math.floor(Number(process.env.FC_RUNS ?? 1000) / 2))
 console.log(`fast-check seed ${seed} (set FC_SEED to replay), runs ${numRuns}`)
+
+const STRICT_4 = [...BLOCK_SHORT_DE, ...TAIL_BLOCK_EXTRA].filter((w) => w.length >= 4)
 
 const lexiconWords = [...LEXICON_DE, ...LEXICON_EN, ...LEXICON_SHARED].map((e) => e.key)
 const word = fc.constantFrom(
@@ -44,6 +46,12 @@ const word = fc.constantFrom(
   '8',
   '1950–2020',
   'PROJ-1234',
+  '14',
+  '88 kg',
+  'Release',
+  'Rains',
+  'Dapper',
+  '1488',
 )
 const title = fc.oneof(
   fc.string({ unit: 'grapheme', maxLength: 120 }),
@@ -81,6 +89,9 @@ function check(id: string, body: string, tail: string, config: SluggerConfig): v
     x.replace(/[4310578]/g, (d) => ({ 4: 'a', 3: 'e', 1: 'i', 0: 'o', 5: 's', 7: 't', 8: 'b' })[d] as string)
   const joined = fold(id.split(sep || '\u0000').join(''))
   for (const w of BLOCK_HARD) expect(joined.includes(w), w).toBe(false)
+  // B3: non-soft list words of 4+ chars (iabb = 1488, nsdap, stfu) never occur in the joined body
+  const joinedBody = fold(body.split(sep || '\u0000').join(''))
+  for (const w of STRICT_4) expect(joinedBody.includes(w), w).toBe(false)
   expect(cfg.reserved).not.toContain(id)
   const segs = body === '' ? [] : sep === '' ? [body] : body.split(sep)
   for (const g of segs) expect(g).not.toMatch(/[lio][01]|[01][lio]/)

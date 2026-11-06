@@ -4090,7 +4090,7 @@
   {
     "id": "t571",
     "lang": "de",
-    "kind": "finance",
+    "kind": "edge",
     "title": "Jahresbericht Vertrieb Nord 2026",
     "expect": {
       "body": "ver-nord-2026",
@@ -4131,7 +4131,7 @@
   {
     "id": "t575",
     "lang": "de",
-    "kind": "medical",
+    "kind": "edge",
     "title": "MRT Knie links",
     "expect": {
       "body": "mrt-knie-links",
@@ -4252,7 +4252,7 @@
   {
     "id": "t583",
     "lang": "en",
-    "kind": "travel",
+    "kind": "edge",
     "title": "Trip report from Lisbon",
     "expect": {
       "body": "trip-lisbon",

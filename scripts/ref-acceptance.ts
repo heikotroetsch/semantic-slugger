@@ -2,9 +2,11 @@
  * Reference check of the acceptance examples (SPEC 20, milestone M4).
  *
  * A small, separate re-implementation of ranking (SPEC 10), ladders (SPEC 11) and the fit cost (SPEC 12)
- * written from the spec text. It does not import `src/core`: its input is the public `analyze()` result
- * (concepts, tokens, compound rows) and the public v1 data. For every row of section 20 it prints the
- * spec value, the reference value and the `src` value (`suggest()` or a sync memory store), and checks
+ * written from the spec text. The reference computation does not use `src/core`: its input is the public
+ * `analyze()` result (concepts, tokens, compound rows) and the public v1 data. The `src` values come from
+ * `suggest()` or from the sync memory store in `scripts/lib/corpus.ts` (that helper imports `src/core`:
+ * compile, normalize, resolve types, safety; it is only used for the `src` side). For every row of section 20 it
+ * prints the spec value, the reference value and the `src` value, and checks
  * I1 and I2 on every spec value. Exit code 1 when the reference and `src` disagree, when an expected
  * value cannot occur, or when a reference score differs from the `src` score.
  *
@@ -87,7 +89,7 @@ export const ROWS: readonly AcceptRow[] = [
   { n: '5', field: 'event', title: 'Sommerfest 2026', spec: 'sommerfest-26-[t2]', status: 'ref' },
   { n: '6', field: 'medical', title: 'MRT Knie links', spec: 'mrt-knie-[t7]', status: 'ref' },
   { n: '6m', field: 'medical', title: 'MRT Knie links', spec: 'mrt-knie-links', status: 'ref', config: MAX, configName: 'max' },
-  { n: '7', field: 'procurement', title: 'Rahmenvertrag Stromlieferung Standorte Nord 2026', spec: 'rv-strom-nord-26', status: 'ref', config: PROCUREMENT, configName: 'procurement recipe' },
+  { n: '7', field: 'procurement', title: 'Rahmenvertrag Stromlieferung Standorte Nord 2026', spec: 'rv-strom-nord-26', status: 'ref', config: PROCUREMENT, configName: 'example recipe (README 15.8, user config)' },
   { n: '8', field: 'procurement', title: 'Rahmenvertrag Stromlieferung Standorte Nord 2026', spec: 'vertrag-strom-26', status: 'unv' },
   { n: '9', field: 'hr', title: 'Mitarbeitergespräch Anna Weber 2026', spec: 'mitarb-2026-[t4]', status: 'unv', config: { denyTokens: ['anna', 'weber'] }, configName: 'denyTokens anna weber' },
   { n: '10', field: 'education', title: 'Elternabend Klasse 4b Grundschule Nord', spec: 'elternabend-nord', status: 'unv' },
@@ -905,6 +907,8 @@ function main(): void {
       're-implementation in `scripts/ref-acceptance.ts` and `src` agree on every row marked `ref`.',
       'Default config: length 16, exact, `-`, leak `normal`, no store df. `[tN]` = a tail of N chars.',
       '"after N" = inserted after row N into one memory store.',
+      'The rows are the SPEC 20 examples from many fields. The core has no field-specific data: a row',
+      'with an "example recipe" config uses words the user adds through `lexicon` (README recipes, 15.8).',
       '',
       table(results),
       '',

@@ -2,7 +2,7 @@
   {
     "name": "core",
     "path": "dist/index.js",
-    "import": "{ createSlugger, isValidSlug }",
+    "import": "{ slug }",
     "gzip": true,
     "limit": "48 KB"
   },

@@ -30,6 +30,8 @@ interface Compiled {
   readonly soft: readonly string[]
   /** B2: list words of 4+ chars from every list (also TAIL_BLOCK). */
   readonly long: readonly string[]
+  /** B3, B7-style joined checks: list words of 4+ chars that are not soft (hard, BLOCK_SHORT_DE, TAIL_BLOCK). */
+  readonly strict: readonly string[]
   /** B2: list words of exactly 3 chars from every list. */
   readonly three: ReadonlySet<string>
   /** B5: entries of length 3+ from every list, plus the 2-char TAIL_BLOCK entries (also in tail-fold form). */
@@ -64,6 +66,7 @@ function compiled(cfg: ResolvedConfig): Compiled {
       hard,
       soft,
       long: rungLists.filter((w) => w.length >= 4).sort(),
+      strict: rungLists.filter((w) => w.length >= 4 && !soft.includes(w)).sort(),
       three: new Set(rungLists.filter((w) => w.length === 3)),
       tail: withTailForms(tail),
       hardTail: withTailForms(hard),
@@ -101,6 +104,16 @@ export function hardHitIn(folded: string, cfg: ResolvedConfig): boolean {
   return false
 }
 
+/**
+ * True when the (already folded) text contains a list word of 4+ chars that is not soft: hard words
+ * and the 4+ char entries of BLOCK_SHORT_DE and TAIL_BLOCK (`iabb`, `nsdap`, `stfu`). Used by B3 and
+ * by `isValidSlug`; these words are never allowed, not even inside a verbatim segment.
+ */
+export function strictHitIn(folded: string, cfg: ResolvedConfig): boolean {
+  for (const w of compiled(cfg).strict) if (folded.includes(w)) return true
+  return false
+}
+
 /** A body segment with its verbatim flag (SPEC 9.2: equals a full user token or compound part). */
 export interface SafetySegment {
   readonly text: string
@@ -109,7 +122,8 @@ export interface SafetySegment {
 
 /**
  * B3: the joined, folded body contains no list word of 4+ chars, unless the word is soft and the hit
- * lies strictly inside one verbatim segment.
+ * lies strictly inside one verbatim segment. Non-soft words of 4+ chars (hard, `iabb`, `nsdap`, `stfu`)
+ * are always blocked, also across segment boundaries.
  */
 export function bodyBlocked(segments: readonly SafetySegment[], cfg: ResolvedConfig): boolean {
   const c = compiled(cfg)
@@ -120,7 +134,7 @@ export function bodyBlocked(segments: readonly SafetySegment[], cfg: ResolvedCon
     bounds.push({ start: pos, end: pos + s.text.length, verbatim: s.verbatim })
     pos += s.text.length
   }
-  for (const w of c.hard) if (w.length >= 4 && joined.includes(w)) return true
+  for (const w of c.strict) if (joined.includes(w)) return true
   for (const w of c.soft) {
     if (w.length < 4) continue
     for (let i = joined.indexOf(w); i !== -1; i = joined.indexOf(w, i + 1)) {

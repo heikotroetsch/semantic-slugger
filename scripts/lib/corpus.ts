@@ -192,21 +192,35 @@ function recognizable(tr: SuggestTrace, title: string): boolean {
 function keepVisible(tr: SuggestTrace, keep: readonly string[], s: Slugger): boolean {
   const lex = compile(s.config).lexicon
   const segs = tr.result.segments.filter((x) => x.kind !== 'tail' && x.kind !== 'fallback')
+  const plan = tr.out.plan
+  // compound parts of the source tokens of each chosen body segment (by segment text)
+  const partsOf = new Map<string, Set<string>>()
+  for (const fs of plan?.chosen.segs ?? []) {
+    const set = partsOf.get(fs.text) ?? new Set<string>()
+    for (const c of fs.concepts) {
+      for (const p of c.tok.split?.parts ?? []) set.add(p.text)
+      for (const p of c.tok.split?.raw ?? []) set.add(p.text)
+      for (const p of c.tok.parts ?? []) set.add(p)
+      for (const p of c.parts ?? []) set.add(p.text)
+    }
+    partsOf.set(fs.text, set)
+  }
   for (const word of keep) {
     const k = canon(word).replace(/ /g, '')
     if (k === '') continue
     const forms = new Set<string>([k])
     const abbrs = new Set<string>()
     for (const e of lex.exactAll(k)) for (const a of e.abbr ?? []) abbrs.add(a)
+    // a lexicon or joined rung of a concept that comes from this word
+    for (const c of plan?.chosen.content ?? [])
+      if (c.verbatim.includes(k) || c.display === k) for (const a of c.lex?.abbr ?? []) abbrs.add(a)
     for (const seg of segs) {
-      const plan = tr.out.plan
-      // a lexicon or joined rung of a concept that comes from this word
-      for (const c of plan?.chosen.content ?? [])
-        if (c.verbatim.includes(k) || c.display === k) for (const a of c.lex?.abbr ?? []) abbrs.add(a)
+      // containment counts only when k is a whole compound part of the segment's source token
+      const whole = partsOf.get(seg.text)?.has(k) === true
       for (const t of [seg.text, ...pieces(seg.text)]) {
         if (forms.has(t) || abbrs.has(t)) return true
         if (t.length >= 3 && k.startsWith(t)) return true
-        if (k.length >= 3 && t.length > k.length && t.includes(k)) return true
+        if (whole && k.length >= 3 && t.length > k.length && t.includes(k)) return true
       }
     }
   }
@@ -221,6 +235,14 @@ export interface DomainStats {
   readonly keepN: number
   readonly q19: number
   readonly avgSegs: number
+}
+
+export interface WorstRow {
+  readonly id: string
+  readonly kind: string
+  readonly title: string
+  readonly slug: string
+  readonly cost: number
 }
 
 export interface Metrics {
@@ -241,7 +263,11 @@ export interface Metrics {
   readonly plainShare: number
   readonly reasons: Readonly<Record<string, number>>
   readonly classMix: Readonly<Record<string, number>>
-  readonly worst: readonly { id: string; kind: string; title: string; slug: string; cost: number }[]
+  readonly worst: readonly WorstRow[]
+  /** The 20 worst IDs by fit cost per domain (SPEC 19.6). */
+  readonly worstByDomain: Readonly<Record<string, readonly WorstRow[]>>
+  /** IDs per store tier (SPEC 19.6). Every row runs alone without a store, so all are `none`. */
+  readonly storeTiers: Readonly<Record<string, number>>
   readonly speed: { medianUs: number; p99Us: number }
 }
 
@@ -331,7 +357,7 @@ export function buildReport(fixtures: readonly Fixture[] = loadFixtures()): Repo
   for (const x of content)
     for (const c of new Set((x.tr.out.plan?.chosen.content ?? []).map((c) => c.cls)))
       classMix[c] = (classMix[c] ?? 0) + 1
-  const worst = content
+  const ranked: WorstRow[] = content
     .filter((x) => x.tr.out.plan !== undefined)
     .map((x) => ({
       id: x.f.id,
@@ -341,7 +367,11 @@ export function buildReport(fixtures: readonly Fixture[] = loadFixtures()): Repo
       cost: x.tr.out.plan?.chosen.cost ?? 0,
     }))
     .sort((a, b) => b.cost - a.cost || (a.id < b.id ? -1 : 1))
-    .slice(0, 20)
+  const worst = ranked.slice(0, 20)
+  const worstByDomain: Record<string, WorstRow[]> = {}
+  for (const kind of kinds) worstByDomain[kind] = ranked.filter((w) => w.kind === kind).slice(0, 20)
+  const storeTiers: Record<string, number> = {}
+  for (const x of rows) storeTiers[x.r.storeTier] = (storeTiers[x.r.storeTier] ?? 0) + 1
   const sorted = [...times].sort((a, b) => a - b)
   const withPool = content.filter((x) => x.topKept !== undefined)
   const withKeep = content.filter((x) => x.keepVisible !== undefined)
@@ -366,6 +396,8 @@ export function buildReport(fixtures: readonly Fixture[] = loadFixtures()): Repo
       reasons,
       classMix,
       worst,
+      worstByDomain,
+      storeTiers,
       speed: {
         medianUs: Math.round((sorted[sorted.length >> 1] ?? 0) * 1000),
         p99Us: Math.round((sorted[Math.floor(sorted.length * 0.99)] ?? 0) * 1000),
@@ -405,6 +437,14 @@ export function independentSnapshot(rows: readonly IdRow[]): string {
 }
 
 const pct = (x: number): string => `${(x * 100).toFixed(1)}%`
+
+function worstTable(list: readonly WorstRow[]): string[] {
+  return [
+    '| id | kind | title | slug | cost |',
+    '|---|---|---|---|---|',
+    ...list.map((w) => `| ${w.id} | ${w.kind} | ${cell(w.title)} | \`${w.slug}\` | ${w.cost} |`),
+  ]
+}
 
 /** The corpus report as Markdown (SPEC 19.6). */
 export function formatReport(rep: Report): string {
@@ -454,13 +494,18 @@ export function formatReport(rep: Report): string {
       .sort((a, b) => b[1] - a[1])
       .map(([k, v]) => `- ${k}: ${v}`),
     '',
+    '## IDs per store tier',
+    '',
+    ...Object.entries(m.storeTiers).map(([k, v]) => `- ${k}: ${v}`),
+    '',
     '## 20 worst IDs by fit cost',
     '',
-    '| id | kind | title | slug | cost |',
-    '|---|---|---|---|---|',
-    ...m.worst.map((w) => `| ${w.id} | ${w.kind} | ${cell(w.title)} | \`${w.slug}\` | ${w.cost} |`),
+    ...worstTable(m.worst),
     '',
   ]
+  for (const [kind, list] of Object.entries(m.worstByDomain)) {
+    out.push(`### 20 worst IDs by fit cost: ${kind}`, '', ...worstTable(list), '')
+  }
   if (m.q15.failed.length > 0) {
     out.push('## Failed expect rows', '')
     for (const c of m.q15.failed)

@@ -55,4 +55,4 @@ jobs:
       - run: git diff --exit-code package.json
       - run: pnpm size
       # M7: pnpm smoke (packed tarball, 4 fixtures, bin)
-      # M4: pnpm corpus:report >> "$GITHUB_STEP_SUMMARY"
+      - run: pnpm corpus:report >> "$GITHUB_STEP_SUMMARY"

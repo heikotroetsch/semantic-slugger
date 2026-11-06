@@ -162,8 +162,12 @@ function slotOrder(
     const b = c.bond
     if (b === undefined || !byKey.has(b.with)) continue
     if (b.kind === 'year') {
-      const list = joinTo.get(b.with)
-      if (list !== undefined && list.length > 0) continue
+      // s is in rank order, so pick the first by title position (then key), not the first seen
+      const prev = joinTo.get(b.with)?.[0]
+      if (prev !== undefined) {
+        if (prev.pos < c.pos || (prev.pos === c.pos && prev.key <= c.key)) continue
+        child.delete(prev.key)
+      }
       joinTo.set(b.with, [c])
     } else {
       const list = joinTo.get(b.with) ?? []
