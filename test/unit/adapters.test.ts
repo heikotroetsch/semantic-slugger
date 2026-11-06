@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest'
 import { prismaStore } from '../../src/adapters/prisma.ts'
 import { sqlSchema, sqlStore } from '../../src/adapters/sql.ts'
+import { ConfigError } from '../../src/errors.ts'
 
 const ctx = { scope: 's1' }
 
@@ -83,7 +84,7 @@ describe('prismaStore without a database', () => {
       delegate: {
         count: async () => 0,
         findMany: async () => [],
-        createMany: async (a) => {
+        createMany: async (a: { data: unknown[] }) => {
           data.push(...a.data)
           return { count: 1 }
         },
@@ -97,5 +98,32 @@ describe('prismaStore without a database', () => {
     expect(data).toEqual([
       { tenantId: 's1', slug: 'a-b', body: 'a', stems: ['a', 'b'], titleKey: 'k', algorithm: 1, title: 'T a-b' },
     ])
+  })
+
+  it('queryRaw with scopeWhere needs fields.scope, and df then filters on that column', async () => {
+    const delegate = { count: async () => 0, findMany: async () => [] }
+    const queryRaw = async () => []
+    let err: unknown
+    try {
+      prismaStore({ delegate, queryRaw, scopeWhere: (t) => ({ tenantId: t }) })
+    } catch (e) {
+      err = e
+    }
+    expect(err).toBeInstanceOf(ConfigError)
+    expect((err as ConfigError).details?.reason).toBe('queryraw-needs-scope-column')
+    const sent: string[] = []
+    const s = prismaStore({
+      delegate,
+      queryRaw: async (sql) => {
+        sent.push(sql)
+        return [{ s: 'b', n: 3 }]
+      },
+      table: 'Document',
+      fields: { scope: 'tenantId', stems: 'slugStems', retiredAt: null },
+      scopeWhere: (t) => ({ tenantId: t }),
+    })
+    expect(await s.countStems(['b'], ctx)).toEqual(new Map([['b', 3]]))
+    expect(sent[0]).toContain('"tenantId"')
+    expect(sent[0]).not.toContain('"scope"')
   })
 })

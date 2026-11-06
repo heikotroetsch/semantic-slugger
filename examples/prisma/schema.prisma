@@ -33,6 +33,9 @@ model SlugEntry {
 //   fields: { slug: 'slug', body: 'slugBody', stems: 'slugStems', retiredAt: null },
 //   scopeWhere: (tenantId) => ({ tenantId }),
 // })
+// To add `queryRaw` here, also set `table: 'Document'` and `fields.scope: 'tenantId'` (the column names):
+// the df query filters only on `fields.scope` and does not use `scopeWhere`. Without `fields.scope`,
+// prismaStore throws ConfigError reason `queryraw-needs-scope-column`.
 model Document {
   id        String   @id @default(uuid())
   tenantId  String

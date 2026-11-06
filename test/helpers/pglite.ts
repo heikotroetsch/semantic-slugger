@@ -46,9 +46,15 @@ function p2002(e: unknown, columns: Readonly<Record<string, string>>): Error {
   })
 }
 
-export interface FakeDelegate extends Required<PrismaSlugDelegate> {
+/** The fake's methods with the arguments the adapter sends. It is assignable to `PrismaSlugDelegate`. */
+export interface FakeDelegate {
+  count(args: { where: Obj }): Promise<number>
+  findMany(args: { where: Obj; select: Obj; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<Obj[]>
+  createMany(args: { data: Obj[]; skipDuplicates?: boolean }): Promise<{ count: number }>
+  groupBy(args: { by: string[]; where: Obj; _count?: Obj }): Promise<Obj[]>
   create(args: { data: Obj }): Promise<Obj>
 }
+const _fits = (d: FakeDelegate): Required<PrismaSlugDelegate> => d
 
 /**
  * A small fake of a Prisma model delegate on SQL (SPEC 19.4). It knows the `where` forms the adapter

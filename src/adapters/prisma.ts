@@ -27,8 +27,22 @@ export type { DbSlugStore }
 
 type Where = Record<string, unknown>
 
-/** The model delegate methods the adapter calls (a structural subset of a Prisma model delegate). */
+/**
+ * The model delegate methods the adapter calls: `prisma.slugEntry`, `tx.document` and so on.
+ * The parameters are `never` so that a generated Prisma delegate (generic `SelectSubset` args with
+ * model-specific input types) is assignable without a cast. The adapter calls them with:
+ * `count({ where })`, `findMany({ where, select, take?, orderBy? })`,
+ * `createMany({ data: [row], skipDuplicates: true })` and `groupBy({ by: [body], where, _count: { _all: true } })`.
+ */
 export interface PrismaSlugDelegate {
+  count(args: never): Promise<number>
+  findMany(args: never): Promise<Record<string, unknown>[]>
+  createMany?(args: never): Promise<{ count: number }>
+  groupBy?(args: never): Promise<unknown>
+}
+
+/** The same methods with the arguments the adapter really passes. */
+interface DelegateCalls {
   count(args: { where: Where }): Promise<number>
   findMany(args: {
     where: Where
@@ -37,7 +51,7 @@ export interface PrismaSlugDelegate {
     orderBy?: Record<string, 'asc' | 'desc'>
   }): Promise<Record<string, unknown>[]>
   createMany?(args: { data: Record<string, unknown>[]; skipDuplicates?: boolean }): Promise<{ count: number }>
-  groupBy?(args: { by: string[]; where: Where; _count: Record<string, true> }): Promise<Record<string, unknown>[]>
+  groupBy?(args: { by: string[]; where: Where; _count: Record<string, true> }): Promise<unknown>
 }
 
 /** Prisma field names. `retiredAt: null` means the model has no retired field. */
@@ -58,14 +72,19 @@ export interface PrismaStoreOptions {
    * Optional raw query for df in one statement, for example `(sql, v) => tx.$queryRawUnsafe(sql, ...v)`.
    * It uses `table` and the column names `fields.scope`, `fields.stems` and the retired column
    * (`retired_at` by default, else `fields.retiredAt`). Fields with a different `@map` name need `fields`
-   * set to the column name.
+   * set to the column name. With `scopeWhere`, `fields.scope` must name the scope column (for example
+   * `tenant_id`), else `ConfigError` reason `queryraw-needs-scope-column`; the df query filters only on
+   * that column, so extra conditions in `scopeWhere` do not apply to df.
    */
   readonly queryRaw?: (sql: string, values: unknown[]) => Promise<unknown[]>
   /** Table for `queryRaw`; default `slug_entry`, checked as in SPEC 17.3. */
   readonly table?: string
   /** Defaults: `scope`, `slug`, `body`, `stems`, `titleKey`, `algorithm`, `retiredAt`. */
   readonly fields?: Partial<PrismaFields>
-  /** Overrides `fields.scope`, for example `(s) => ({ tenantId: s })`. Also spread into inserted rows. */
+  /**
+   * Overrides `fields.scope` in Prisma queries, for example `(s) => ({ tenantId: s })`. Also spread into
+   * inserted rows. Not used by `queryRaw` (see there).
+   */
   readonly scopeWhere?: (scope: string) => Record<string, unknown>
   /** More data for each inserted row (required columns of your model). */
   readonly extraData?: (rec: SlugRecord, scope: string) => Record<string, unknown>
@@ -96,7 +115,7 @@ export function isPrismaUniqueViolation(e: unknown, field?: string): boolean {
 
 /** A tier C `SlugStore` on a Prisma model delegate (SPEC 17.2). */
 export function prismaStore(o: PrismaStoreOptions): PrismaStore {
-  const d = o?.delegate
+  const d = o?.delegate as DelegateCalls | undefined
   if (typeof d !== 'object' || d === null || typeof d.count !== 'function' || typeof d.findMany !== 'function')
     throw new ConfigError('prismaStore needs a delegate with count() and findMany()', {
       field: 'delegate',
@@ -117,6 +136,13 @@ export function prismaStore(o: PrismaStoreOptions): PrismaStore {
   let raw: ((stems: readonly string[], scope: string) => Promise<Row[]>) | undefined
   const queryRaw = o.queryRaw
   if (queryRaw !== undefined) {
+    // The df statement filters on the column `fields.scope`; it cannot see what `scopeWhere` does.
+    if (o.scopeWhere !== undefined && o.fields?.scope === undefined)
+      throw new ConfigError('queryRaw with scopeWhere needs fields.scope: the scope column of the df query', {
+        field: 'fields.scope',
+        value: undefined,
+        reason: 'queryraw-needs-scope-column',
+      })
     const retiredColumn = o.fields?.retiredAt === undefined ? 'retired_at' : f.retiredAt
     const text = dfSql(
       quoteTable(o.table ?? 'slug_entry', 'table'),
@@ -148,7 +174,7 @@ export function prismaStore(o: PrismaStoreOptions): PrismaStore {
           where: { ...scopeWhere(ctx.scope), [f.body]: { in: [...bodies] } },
           _count: { _all: true },
         })
-        return countMap(rows, f.body, (r) => (r._count as { _all?: unknown } | undefined)?._all)
+        return countMap(rows as Row[], f.body, (r) => (r._count as { _all?: unknown } | undefined)?._all)
       }
       const ns = await Promise.all(bodies.map((b) => d.count({ where: { ...scopeWhere(ctx.scope), [f.body]: b } })))
       return new Map(bodies.map((b, i) => [b, toCount(ns[i])]))
