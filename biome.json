@@ -9,6 +9,8 @@
       "!**/node_modules",
       "!SPEC.md",
       "!test/fixtures/titles.json",
+      "!test/__snapshots__",
+      "!docs/acceptance.md",
       "!.changeset/*.md",
       "!src/vendor/porter2.ts"
     ]

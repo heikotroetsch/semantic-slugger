@@ -1,6 +1,7 @@
 /**
- * Drivers run the sans-IO resolver generators (SPEC 13.4). M1 has the sync driver:
- * tier 'none' without `taken`, tier 'A' with `taken`. The async store driver follows in M5.
+ * Drivers run the sans-IO resolver generators (SPEC 13.4). The sync driver gives tier 'none' without
+ * `taken` and tier 'A' with `taken`; `driveWith` takes any answer function. The async store driver
+ * follows in M5.
  */
 
 import type { StoreTier } from '../result.ts'
@@ -19,4 +20,11 @@ export function driveSync<T>(gen: Generator<Req, T, AnyAnswer>, taken?: Taken): 
   let step = gen.next()
   while (!step.done) step = gen.next(answerSync(step.value, taken))
   return { out: step.value, tier: taken ? 'A' : 'none' }
+}
+
+/** Run a resolver generator with an answer function (tests, tools and the sync store of the report). */
+export function driveWith<T>(gen: Generator<Req, T, AnyAnswer>, answer: (req: Req) => AnyAnswer): T {
+  let step = gen.next()
+  while (!step.done) step = gen.next(answer(step.value))
+  return step.value
 }

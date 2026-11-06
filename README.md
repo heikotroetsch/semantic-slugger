@@ -4,6 +4,13 @@ Short, readable, unique IDs from any title. German + English built in. Zero depe
 
 `Jahresbericht Vertrieb Nord 2026` -> `vertrieb-nord-26`
 
+```ts
+import { slug, suggest } from 'semantic-slugger'
+
+slug('Chocolate Cake Recipe') // 'choc-cake-recipe'
+suggest('Sommerfest 2026', { taken: new Set(['sommerfest-26-jf']) }) // a result with a new tail
+```
+
 Status: under construction (pre-0.1). The build order and the full design are in [SPEC.md](./SPEC.md).
 
 ## Develop

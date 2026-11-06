@@ -13,7 +13,9 @@ import { detectLanguage, finalLookup, type LangResult, tokenLanguage } from './l
 import { applyNames } from './names.ts'
 import { type Normalized, normalize } from './normalize.ts'
 import { matchPhrases, type PhraseMatch } from './phrase.ts'
-import { type RankRow, rankConcepts } from './rank.ts'
+import type { RankRow } from './rank.ts'
+import { rankPool } from './resolve.ts'
+import { isListWord } from './safety.ts'
 import { applyStopWords, backoff } from './stopwords.ts'
 import { titleKeyOf } from './tail.ts'
 import { type DropReason, dropDeny, type NameSignal, type Tok, tokenize } from './tokenize.ts'
@@ -55,7 +57,15 @@ export function analyzeFront(raw: unknown, cfg: ResolvedConfig, opts: FrontOptio
     })
   const n = normalize(raw, cfg, c.noiseCtx, c.translit)
   const all = tokenize(n, c)
-  const { kept, denied } = dropDeny(all, c)
+  const deny = dropDeny(all, c)
+  // B4 (SPEC 9.2): a word or code token that equals a blocklist word is dropped before concepts
+  const blocked: Tok[] = []
+  const kept: Tok[] = []
+  for (const t of deny.kept) {
+    if ((t.cls === 'word' || t.cls === 'code') && isListWord(t.ascii, cfg)) blocked.push(t)
+    else kept.push(t)
+  }
+  const denied = deny.denied
   const language = detectLanguage(kept, n, c, opts.lang)
   for (const t of kept) t.lang = tokenLanguage(t, language, n, c)
   const ph = matchPhrases(kept, c)
@@ -80,7 +90,7 @@ export function analyzeFront(raw: unknown, cfg: ResolvedConfig, opts: FrontOptio
     tokens: toks,
     denied,
     phrases: ph.matches,
-    removed: stop.removed,
+    removed: [...stop.removed, ...blocked.map((t) => ({ word: t.ascii, list: 'blocked' as const }))],
     weak: [...stop.weak, ...cp.weak],
     names: nm.names,
     splits: cp.splits,
@@ -203,7 +213,8 @@ function publicToken(t: Tok): AnalysisToken {
 export function analyzeTitle(raw: unknown, cfg: ResolvedConfig, opts: FrontOptions = {}): Analysis {
   const doc = analyzeDoc(raw, cfg, opts)
   const f = doc.front
-  const ranked = rankConcepts(doc.concepts, cfg)
+  // the pool needs the ladders: a concept without a rung is not in it (SPEC 10.4)
+  const { ranked } = rankPool(doc, null, cfg, compile(cfg))
   return Object.freeze({
     input: f.normalized.input,
     surface: f.normalized.surface,

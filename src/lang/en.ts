@@ -10,6 +10,7 @@ import { MARKERS_EN } from '../data/v1/markers.ts'
 import { MONTHS_EN } from '../data/v1/months.ts'
 import { NOISE_EN } from '../data/v1/noise.ts'
 import { NUMBER_WORDS_EN } from '../data/v1/number-words.ts'
+import { CODAS_EN, ONSETS_EN } from '../data/v1/phonology.ts'
 import { QUALIFIERS } from '../data/v1/qualifiers.ts'
 import { STOP_EN } from '../data/v1/stop-en.ts'
 import { VERSION_WORDS } from '../data/v1/versions.ts'
@@ -40,6 +41,7 @@ export function enPack(): LanguagePack {
         digraphs: [],
       },
       nounsCapitalized: false,
+      phonology: { codas: CODAS_EN, onsets: ONSETS_EN },
       months: MONTHS_EN,
       weekdays: WEEKDAYS_EN,
       weekPrefix: 'wk',

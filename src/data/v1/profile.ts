@@ -23,6 +23,7 @@ import * as months from './months.ts'
 import * as noise from './noise.ts'
 import * as numberWords from './number-words.ts'
 import * as parts from './parts-de.ts'
+import * as phonology from './phonology.ts'
 import * as qualifiers from './qualifiers.ts'
 import * as reserved from './reserved.ts'
 import * as stopDe from './stop-de.ts'
@@ -49,6 +50,7 @@ export function v1Profile(): Record<string, unknown> {
     noise,
     numberWords,
     parts,
+    phonology,
     qualifiers,
     reserved,
     stopDe,

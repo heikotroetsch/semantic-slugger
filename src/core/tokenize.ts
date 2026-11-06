@@ -67,7 +67,8 @@ export type TokClass =
   | 'noise'
 
 /** Why a token was removed (SPEC 16.4 stopwords step). */
-export type DropReason = 'function' | 'conflict' | 'noise' | 'legal' | 'custom' | 'deny'
+/** Why a token was removed. `blocked` is rule B4 (SPEC 9.2): the token equals a blocklist word. */
+export type DropReason = 'function' | 'conflict' | 'noise' | 'legal' | 'custom' | 'deny' | 'blocked'
 
 /** Final role of a kept word token. Lexicon classes, or a class found by signals (SPEC 6.4, 6.6). */
 export type WordRole = 'topic' | 'name' | 'acronym' | 'attr' | 'qualifier' | 'place' | 'direction' | 'region'

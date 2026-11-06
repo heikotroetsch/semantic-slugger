@@ -1,7 +1,7 @@
 /**
- * Bad words and look-alikes (SPEC 9.2). M1 implements the checks that do not need the language
- * pipeline: B1 (segments), B3 (whole body), B5 and B7 (tail), I8 (look-alike pairs).
- * B2, B4 and B6 work on rungs and tokens and follow with the ladders (M4).
+ * Bad words and look-alikes (SPEC 9.2): B1 (segments), B2 (rungs), B3 (whole body), B4 (source
+ * tokens, used by the language front), B5 and B7 (tail), I8 (look-alike pairs). B6 (2-digit years)
+ * is B1 on the year rung: the blocked short codes `18` and `88` are list words.
  */
 
 import type { ResolvedConfig } from '../config.ts'
@@ -28,6 +28,10 @@ interface Compiled {
   readonly segment: ReadonlySet<string>
   readonly hard: readonly string[]
   readonly soft: readonly string[]
+  /** B2: list words of 4+ chars from every list (also TAIL_BLOCK). */
+  readonly long: readonly string[]
+  /** B2: list words of exactly 3 chars from every list. */
+  readonly three: ReadonlySet<string>
   /** B5: entries of length 3+ from every list, plus the 2-char TAIL_BLOCK entries (also in tail-fold form). */
   readonly tail: readonly string[]
   /** B7: hard entries, also in tail-fold form. */
@@ -52,10 +56,15 @@ function compiled(cfg: ResolvedConfig): Compiled {
     const all = [...hard, ...soft, ...BLOCK_SHORT_DE, ...TAIL_BLOCK]
     const tail = all.filter((w) => w.length >= 3)
     for (const w of TAIL_BLOCK) if (w.length === 2) tail.push(w)
+    const lists = [...new Set([...hard, ...soft, ...BLOCK_SHORT_DE])]
+    // B2 also uses the TAIL_BLOCK extras (`fck`, `stfu`, ...): docs/DEVIATIONS.md
+    const rungLists = [...new Set([...lists, ...TAIL_BLOCK])]
     c = {
-      segment: new Set([...hard, ...soft, ...BLOCK_SHORT_DE]),
+      segment: new Set(lists),
       hard,
       soft,
+      long: rungLists.filter((w) => w.length >= 4).sort(),
+      three: new Set(rungLists.filter((w) => w.length === 3)),
       tail: withTailForms(tail),
       hardTail: withTailForms(hard),
     }
@@ -67,6 +76,23 @@ function compiled(cfg: ResolvedConfig): Compiled {
 /** B1: the folded segment is a list word. */
 export function segmentBlocked(seg: string, cfg: ResolvedConfig): boolean {
   return compiled(cfg).segment.has(fold(seg))
+}
+
+/**
+ * B2 (SPEC 9.2), for a rung that is not verbatim: f(rung) starts with a 3-char list word or contains a
+ * list word of 4+ chars.
+ */
+export function rungBlocked(text: string, cfg: ResolvedConfig): boolean {
+  const c = compiled(cfg)
+  const f = fold(text)
+  if (f.length >= 3 && c.three.has(f.slice(0, 3))) return true
+  for (const w of c.long) if (f.includes(w)) return true
+  return false
+}
+
+/** B4 (SPEC 9.2): the folded token text equals a word of any list. */
+export function isListWord(ascii: string, cfg: ResolvedConfig): boolean {
+  return compiled(cfg).segment.has(fold(ascii))
 }
 
 /** True when the (already folded) text contains a hard word. */

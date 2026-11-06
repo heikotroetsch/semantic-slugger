@@ -824,7 +824,11 @@
     "kind": "meeting",
     "title": "Sprintplanung Sprint 22",
     "group": "meeting-sprint-number",
-    "vary": "number"
+    "vary": "number",
+    "expect": {
+      "body": "sprint22",
+      "tail": 7
+    }
   },
   {
     "id": "t117",
@@ -1465,7 +1469,11 @@
     "kind": "legal",
     "title": "AGB Version 3.1",
     "group": "legal-agb-version",
-    "vary": "version"
+    "vary": "version",
+    "expect": {
+      "body": "agb-v31",
+      "tail": 8
+    }
   },
   {
     "id": "t208",
@@ -2300,7 +2308,11 @@
     "kind": "software",
     "title": "Versionshinweise 5.1",
     "group": "software-hinweise-version",
-    "vary": "version"
+    "vary": "version",
+    "expect": {
+      "body": "versionshinweise",
+      "tail": 0
+    }
   },
   {
     "id": "t324",
@@ -2308,7 +2320,12 @@
     "kind": "software",
     "title": "Versionshinweise 5.2",
     "group": "software-hinweise-version",
-    "vary": "version"
+    "vary": "version",
+    "expect": {
+      "body": "hinweise-v52",
+      "tail": 3,
+      "after": ["t323"]
+    }
   },
   {
     "id": "t325",
@@ -3115,7 +3132,11 @@
     "kind": "meeting",
     "title": "Team Lunch Friday",
     "group": "dup-01",
-    "vary": "exact"
+    "vary": "exact",
+    "expect": {
+      "body": "lunch-friday",
+      "tail": 3
+    }
   },
   {
     "id": "t437",
@@ -3233,25 +3254,41 @@
     "id": "t451",
     "lang": "mixed",
     "kind": "edge",
-    "title": ""
+    "title": "",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t452",
     "lang": "mixed",
     "kind": "edge",
-    "title": "   "
+    "title": "   ",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t453",
     "lang": "mixed",
     "kind": "edge",
-    "title": "\t\n  \n"
+    "title": "\t\n  \n",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t454",
     "lang": "mixed",
     "kind": "edge",
-    "title": " ​ "
+    "title": " ​ ",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t455",
@@ -3275,19 +3312,31 @@
     "id": "t458",
     "lang": "de",
     "kind": "edge",
-    "title": "der die das"
+    "title": "der die das",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t459",
     "lang": "de",
     "kind": "edge",
-    "title": "und oder für mit von der"
+    "title": "und oder für mit von der",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t460",
     "lang": "en",
     "kind": "edge",
-    "title": "the and of"
+    "title": "the and of",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t461",
@@ -3299,19 +3348,31 @@
     "id": "t462",
     "lang": "mixed",
     "kind": "edge",
-    "title": "GmbH AG Inc Ltd"
+    "title": "GmbH AG Inc Ltd",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t463",
     "lang": "mixed",
     "kind": "edge",
-    "title": "2026"
+    "title": "2026",
+    "expect": {
+      "body": "doc-2026",
+      "tail": 7
+    }
   },
   {
     "id": "t464",
     "lang": "mixed",
     "kind": "edge",
-    "title": "12345"
+    "title": "12345",
+    "expect": {
+      "body": "doc-2345",
+      "tail": 7
+    }
   },
   {
     "id": "t465",
@@ -3359,7 +3420,11 @@
     "id": "t472",
     "lang": "de",
     "kind": "edge",
-    "title": "Öl"
+    "title": "Öl",
+    "expect": {
+      "body": "oel",
+      "tail": 12
+    }
   },
   {
     "id": "t473",
@@ -3377,7 +3442,11 @@
     "id": "t475",
     "lang": "mixed",
     "kind": "edge",
-    "title": "🚚📦🚚"
+    "title": "🚚📦🚚",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t476",
@@ -3419,7 +3488,11 @@
     "id": "t482",
     "lang": "mixed",
     "kind": "edge",
-    "title": "---___...,,,;;;"
+    "title": "---___...,,,;;;",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t483",
@@ -3431,7 +3504,11 @@
     "id": "t484",
     "lang": "de",
     "kind": "edge",
-    "title": "Vertrag_v2_FINAL_final(3).docx"
+    "title": "Vertrag_v2_FINAL_final(3).docx",
+    "expect": {
+      "body": "vertrag-v2",
+      "tail": 5
+    }
   },
   {
     "id": "t485",
@@ -3515,7 +3592,11 @@
     "id": "t498",
     "lang": "mixed",
     "kind": "edge",
-    "title": "new"
+    "title": "new",
+    "expect": {
+      "body": "new",
+      "tail": 12
+    }
   },
   {
     "id": "t499",
@@ -3677,7 +3758,11 @@
     "id": "t525",
     "lang": "de",
     "kind": "edge",
-    "title": "STRASSE Strasse Straße STRAẞE"
+    "title": "STRASSE Strasse Straße STRAẞE",
+    "expect": {
+      "body": "strasse",
+      "tail": 8
+    }
   },
   {
     "id": "t526",
@@ -3713,7 +3798,11 @@
     "id": "t531",
     "lang": "mixed",
     "kind": "edge",
-    "title": "0O1lI 0o1li"
+    "title": "0O1lI 0o1li",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
   },
   {
     "id": "t532",
@@ -3725,7 +3814,11 @@
     "id": "t533",
     "lang": "de",
     "kind": "edge",
-    "title": "Teil 1 Teil 2 Teil 3"
+    "title": "Teil 1 Teil 2 Teil 3",
+    "expect": {
+      "body": "pt1-pt2-pt3",
+      "tail": 4
+    }
   },
   {
     "id": "t534",
@@ -3972,5 +4065,421 @@
     "lang": "en",
     "kind": "edge",
     "title": "Docs at https://example.com/docs/start"
+  },
+  {
+    "id": "t569",
+    "lang": "de",
+    "kind": "finance",
+    "title": "Jahresbericht Vertrieb Nord 2026",
+    "expect": {
+      "body": "vertrieb-nord-26",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t570",
+    "lang": "de",
+    "kind": "finance",
+    "title": "Jahresbericht Vertrieb Süd 2026",
+    "expect": {
+      "body": "vertrieb-sued-26",
+      "tail": 0,
+      "after": ["t569"]
+    }
+  },
+  {
+    "id": "t571",
+    "lang": "de",
+    "kind": "finance",
+    "title": "Jahresbericht Vertrieb Nord 2026",
+    "expect": {
+      "body": "ver-nord-2026",
+      "tail": 2,
+      "after": ["t569"]
+    }
+  },
+  {
+    "id": "t572",
+    "lang": "de",
+    "kind": "recipe",
+    "title": "Rezept Apfelkuchen mit Zimt",
+    "expect": {
+      "body": "apfelkuchen-zimt",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t573",
+    "lang": "de",
+    "kind": "event",
+    "title": "Sommerfest 2026",
+    "expect": {
+      "body": "sommerfest-26",
+      "tail": 2
+    }
+  },
+  {
+    "id": "t574",
+    "lang": "de",
+    "kind": "medical",
+    "title": "MRT Knie links",
+    "expect": {
+      "body": "mrt-knie",
+      "tail": 7
+    }
+  },
+  {
+    "id": "t575",
+    "lang": "de",
+    "kind": "medical",
+    "title": "MRT Knie links",
+    "expect": {
+      "body": "mrt-knie-links",
+      "tail": 0,
+      "config": {
+        "lengthMode": "max"
+      }
+    }
+  },
+  {
+    "id": "t576",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Rahmenvertrag Stromlieferung Standorte Nord 2026",
+    "expect": {
+      "body": "rv-strom-nord-26",
+      "tail": 0,
+      "config": {
+        "lexicon": [
+          {
+            "key": "rahmenvertrag",
+            "lang": "de",
+            "cls": "topic",
+            "forms": ["rahmenvertraege"],
+            "abbr": ["rv"],
+            "known": ["rv"]
+          },
+          {
+            "key": "leistungsverzeichnis",
+            "lang": "de",
+            "cls": "topic",
+            "abbr": ["lv"],
+            "known": ["lv"]
+          },
+          {
+            "key": "lieferung",
+            "lang": "de",
+            "cls": "topic",
+            "weak": true
+          },
+          {
+            "key": "standort",
+            "lang": "de",
+            "cls": "topic",
+            "forms": ["standorte"],
+            "weak": true
+          },
+          {
+            "key": "los",
+            "lang": "de",
+            "cls": "marker",
+            "abbr": ["los"]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "t577",
+    "lang": "de",
+    "kind": "legal",
+    "title": "Mietvertrag Wohnung Kassel 2026",
+    "expect": {
+      "body": "miet-woh-kass-26",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t578",
+    "lang": "de",
+    "kind": "meeting",
+    "title": "Protokoll Teamsitzung 12.03.2026",
+    "expect": {
+      "body": "protok-team-2026",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t579",
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Q3 2026 Marketing Budget Review",
+    "expect": {
+      "body": "mktg-budget-26q3",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t580",
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Chocolate Cake Recipe",
+    "expect": {
+      "body": "choc-cake-recipe",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t581",
+    "lang": "en",
+    "kind": "software",
+    "title": "Firefox v132 Release Notes",
+    "expect": {
+      "body": "firefox-rel-v132",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t582",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Trip report from Lisbon",
+    "expect": {
+      "body": "trip-lisbon",
+      "tail": 4
+    }
+  },
+  {
+    "id": "t583",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Trip report from Lisbon",
+    "expect": {
+      "body": "trip-lisbon",
+      "tail": 0,
+      "config": {
+        "lengthMode": "max"
+      }
+    }
+  },
+  {
+    "id": "t584",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Trip report from Porto",
+    "expect": {
+      "body": "trip-porto",
+      "tail": 5,
+      "after": ["t582"]
+    }
+  },
+  {
+    "id": "t585",
+    "lang": "en",
+    "kind": "news",
+    "title": "Storm warning for the north coast",
+    "expect": {
+      "body": "storm-warn-coast",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t586",
+    "lang": "en",
+    "kind": "software",
+    "title": "Kubernetes Upgrade Plan Q3 2026",
+    "expect": {
+      "body": "k8s-upgrade-26q3",
+      "tail": 0,
+      "config": {
+        "lexicon": [
+          {
+            "key": "kubernetes",
+            "cls": "name",
+            "abbr": ["k8s"],
+            "known": ["k8s"]
+          },
+          {
+            "key": "epic",
+            "lang": "en",
+            "cls": "topic",
+            "weak": true
+          }
+        ],
+        "reserved": {
+          "add": ["tickets", "board"]
+        }
+      }
+    }
+  },
+  {
+    "id": "t587",
+    "lang": "mixed",
+    "kind": "meeting",
+    "title": "Kick-off Meeting KI Strategie Q1 2026",
+    "expect": {
+      "body": "kick-ki-strat-26",
+      "tail": 0
+    }
+  },
+  {
+    "id": "t588",
+    "lang": "mixed",
+    "kind": "software",
+    "title": "Release 2.4 Hinweise zur Migration",
+    "expect": {
+      "body": "migration-v24",
+      "tail": 2
+    }
+  },
+  {
+    "id": "t589",
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Team Lunch Monday",
+    "expect": {
+      "body": "lunch-monday",
+      "tail": 3,
+      "after": ["t436"]
+    }
+  },
+  {
+    "id": "t590",
+    "lang": "de",
+    "kind": "legal",
+    "title": "AGB Version 3.1",
+    "expect": {
+      "body": "agb",
+      "tail": 12,
+      "config": {
+        "leak": "minimal"
+      }
+    }
+  },
+  {
+    "id": "t591",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Vertrag GmbH AG",
+    "expect": {
+      "body": "vertrag",
+      "tail": 8
+    }
+  },
+  {
+    "id": "t592",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Datei.pdf",
+    "expect": {
+      "body": "datei",
+      "tail": 10
+    }
+  },
+  {
+    "id": "t593",
+    "lang": "de",
+    "kind": "edge",
+    "title": "⚡️ Strom 2026 🔌",
+    "expect": {
+      "body": "strom-2026",
+      "tail": 5
+    }
+  },
+  {
+    "id": "t594",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "电力供应框架协议 2026",
+    "expect": {
+      "body": "doc-2026",
+      "tail": 7
+    }
+  },
+  {
+    "id": "t595",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "تقرير المبيعات السنوي",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
+  },
+  {
+    "id": "t596",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "年度销售报告",
+    "expect": {
+      "body": "doc",
+      "tail": 12
+    }
+  },
+  {
+    "id": "t597",
+    "lang": "en",
+    "kind": "edge",
+    "title": "new",
+    "expect": {
+      "body": "new",
+      "tail": 2,
+      "config": {
+        "lengthMode": "max"
+      }
+    }
+  },
+  {
+    "id": "t598",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Jahresbericht Vertrieb Nord 2026",
+    "expect": {
+      "body": "",
+      "tail": 16,
+      "config": {
+        "leak": "opaque",
+        "secret": "fixture-secret-0123456"
+      }
+    }
+  },
+  {
+    "id": "t599",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Jahresbericht Vertrieb Nord 2026",
+    "expect": {
+      "body": "vertrieb-nord-26",
+      "tail": 0,
+      "config": {
+        "lengthMode": "max"
+      }
+    }
+  },
+  {
+    "id": "t600",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Q3 2026 Marketing Budget Review",
+    "expect": {
+      "body": "mktg-budget-26q3",
+      "tail": 0,
+      "config": {
+        "lengthMode": "max"
+      }
+    }
+  },
+  {
+    "id": "t601",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Jahresbericht Vertrieb Nord 2026",
+    "expect": {
+      "body": "vertrieb-nord-26",
+      "tail": 0,
+      "config": {
+        "leak": "minimal"
+      }
+    }
   }
 ]

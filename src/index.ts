@@ -39,4 +39,13 @@ export {
 /** @experimental (SPEC 6.7) */
 export type { LanguagePack } from './lang/pack.ts'
 export type { Segment, SlugReason, SlugResult, SlugWarning, StoreTier } from './result.ts'
-export { type AnalyzeOptions, analyze, createSlugger, isValidSlug, type Slugger } from './slugger.ts'
+export {
+  type AnalyzeOptions,
+  analyze,
+  createSlugger,
+  isValidSlug,
+  type Slugger,
+  type SuggestOptions,
+  slug,
+  suggest,
+} from './slugger.ts'

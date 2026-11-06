@@ -11,6 +11,7 @@ import { MONTHS_DE } from '../data/v1/months.ts'
 import { NOISE_DE } from '../data/v1/noise.ts'
 import { NUMBER_WORDS_DE } from '../data/v1/number-words.ts'
 import { PARTS_DE } from '../data/v1/parts-de.ts'
+import { CODAS_DE, ONSETS_DE } from '../data/v1/phonology.ts'
 import { QUALIFIERS } from '../data/v1/qualifiers.ts'
 import { STOP_DE } from '../data/v1/stop-de.ts'
 import { VERSION_WORDS } from '../data/v1/versions.ts'
@@ -104,6 +105,7 @@ export function dePack(): LanguagePack {
         weakHeads: WEAK_HEADS_DE,
         genericModifiers: GENERIC_MODIFIERS_DE,
       },
+      phonology: { codas: CODAS_DE, onsets: ONSETS_DE },
       months: MONTHS_DE,
       weekdays: WEEKDAYS_DE,
       weekPrefix: 'kw',
