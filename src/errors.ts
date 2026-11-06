@@ -56,7 +56,7 @@ export class ExhaustedError extends SluggerError {
     super(
       'E_EXHAUSTED',
       message ??
-        `all ${details.tries} tail indexes from ${details.tailIndex} are taken for body "${details.body}". ` +
+        `all ${details.tries} tried tail IDs from index ${details.tailIndex} are taken for body "${details.body}". ` +
           'Use a store that implements countBody (tier B or C) for many rows with the same title.',
       details,
     )

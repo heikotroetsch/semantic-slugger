@@ -5,12 +5,19 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Use only a synthetic title.** Do not paste real contract titles, supplier names or customer data.
+        **Use only a synthetic title.** Do not paste real customer, patient, employee or other confidential data, or real names.
         This repository is public.
   - type: input
     id: title
     attributes:
       label: Synthetic title
+    validations:
+      required: true
+  - type: input
+    id: field
+    attributes:
+      label: Field (domain)
+      description: The kind of text the title comes from, for example blog, ticket, recipe, legal, medical or software.
     validations:
       required: true
   - type: textarea
@@ -38,5 +45,5 @@ body:
     attributes:
       label: Data check
       options:
-        - label: The title is invented. It contains no customer or real contract data.
+        - label: The title is invented. It contains no real customer, patient, employee or other confidential data, and no real names.
           required: true

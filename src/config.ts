@@ -18,20 +18,22 @@ import { RESERVED } from './data/v1/reserved.ts'
 import { ConfigError } from './errors.ts'
 import { utf8 } from './hash/encode.ts'
 import { siphash, u64hex } from './hash/siphash.ts'
+import type { LanguagePack } from './lang/pack.ts'
 
-export type Lang = 'de' | 'en'
+/** Built-in codes; more through `languagePacks` (SPEC 6.7, 16.2). */
+export type Lang = 'de' | 'en' | (string & {})
 export type DetectedLang = Lang | 'und'
 export type ListOption =
   | { add?: readonly string[]; remove?: readonly string[] }
   | ((defaults: readonly string[]) => readonly string[])
 
+/** Concept classes (SPEC 5.2, 15.1). */
 export type ConceptClass =
   | 'topic'
+  | 'name'
+  | 'acronym'
   | 'attr'
-  | 'org'
-  | 'action'
-  | 'activity'
-  | 'doctype'
+  | 'qualifier'
   | 'place'
   | 'direction'
   | 'region'
@@ -39,26 +41,41 @@ export type ConceptClass =
   | 'year'
   | 'range'
   | 'quarter'
+  | 'month'
   | 'week'
+  | 'weekday'
+  | 'version'
+  | 'model'
   | 'longnum'
   | 'code'
   | 'quantity'
 
+/** Classes a lexicon entry may have (SPEC 15.1). `attr`, `acronym` and the number classes are not allowed. */
+export type LexiconClass = 'topic' | 'name' | 'qualifier' | 'place' | 'direction' | 'region' | 'marker'
+
 /** Lexicon entry (SPEC 15.1). */
 export interface LexiconEntry {
   key: string
-  lang: 'de' | 'en' | '*'
+  /** User entries default to '*'. Must be '*' or an enabled language code. */
+  lang: Lang | '*'
   phrase?: readonly string[]
   forms?: readonly string[]
+  /** Display rungs. For cls 'marker', abbr[0] is the marker prefix (SPEC 5.3). */
   abbr?: readonly string[]
   known?: readonly string[]
-  cls: ConceptClass
+  cls: LexiconClass
   weak?: boolean
+  /** Match only when the raw token is upper case. */
+  upperOnly?: boolean
+  /** Match only when the raw token is lower case. */
+  lowerOnly?: boolean
   weight?: number
   prior?: 'common' | 'medium' | 'rare'
   part?: boolean
   partOnly?: boolean
   group?: string
+  /** Key of the entry with the same meaning in the other built-in language (SPEC 15.6). */
+  pair?: string
 }
 
 /** User config (SPEC 16.2). Every field is optional. */
@@ -72,16 +89,15 @@ export interface SluggerConfig {
   consistentRungs?: boolean
   languages?: readonly Lang[]
   defaultLang?: Lang
+  /** Experimental (SPEC 6.7): extra languages. */
+  languagePacks?: readonly LanguagePack[]
   detectLanguage?: (normalized: string) => DetectedLang | undefined
   transliterate?: (input: string) => string
   stopWords?: ListOption
-  domainStopWords?: ListOption
-  weakWords?: ListOption
   reserved?: ListOption
   blocklist?: { hard?: ListOption; soft?: ListOption }
   lexicon?: readonly LexiconEntry[]
   denyTokens?: readonly string[]
-  dropPersonNames?: boolean
   leak?: 'normal' | 'minimal' | 'opaque'
   secret?: string
   storeStems?: 'plain' | 'hashed'
@@ -110,19 +126,19 @@ export interface ResolvedConfig {
   /** Chars allowed at the other tail positions. */
   readonly tailAlphabet: string
   readonly consistentRungs: boolean
+  /** Enabled codes in priority order. */
   readonly languages: readonly Lang[]
   readonly defaultLang: Lang
+  /** Validated copies of the user packs, frozen. */
+  readonly languagePacks: readonly LanguagePack[]
   readonly detectLanguage?: (normalized: string) => DetectedLang | undefined
   readonly transliterate?: (input: string) => string
   readonly stopWords: readonly string[]
-  readonly domainStopWords: readonly string[]
-  readonly weakWords: readonly string[]
   readonly reserved: readonly string[]
   /** Leet-folded entries. */
   readonly blocklist: { readonly hard: readonly string[]; readonly soft: readonly string[] }
   readonly lexicon: readonly LexiconEntry[]
   readonly denyTokens: readonly string[]
-  readonly dropPersonNames: boolean
   readonly leak: 'normal' | 'minimal' | 'opaque'
   readonly secret?: string
   readonly storeStems: 'plain' | 'hashed'
@@ -147,7 +163,6 @@ type DefaultKeys =
   | 'consistentRungs'
   | 'languages'
   | 'defaultLang'
-  | 'dropPersonNames'
   | 'leak'
   | 'storeStems'
   | 'rarity'
@@ -173,7 +188,6 @@ export const DEFAULTS: DefaultConfig = Object.freeze({
   consistentRungs: false,
   languages: Object.freeze(['de', 'en'] as const),
   defaultLang: 'de',
-  dropPersonNames: true,
   leak: 'normal',
   storeStems: 'plain',
   rarity: 'store',
@@ -188,14 +202,13 @@ export const DEFAULTS: DefaultConfig = Object.freeze({
 })
 
 /**
- * Built-in defaults for the list options that come with the language data (SPEC 6.3).
- * The stop word, domain and weak lists are filled in M2; until then they are empty.
+ * Built-in defaults for the list options that come with the language data (SPEC 6.3: the
+ * function and noise tiers). The lists are filled in M2; until then they are empty.
  */
-const LIST_DEFAULTS: {
-  readonly stopWords: readonly string[]
-  readonly domainStopWords: readonly string[]
-  readonly weakWords: readonly string[]
-} = { stopWords: [], domainStopWords: [], weakWords: [] }
+const LIST_DEFAULTS: { readonly stopWords: readonly string[] } = { stopWords: [] }
+
+/** Built-in language codes (SPEC 6.7). */
+const BUILTIN_LANGS: readonly string[] = ['de', 'en']
 
 const KNOWN_KEYS: ReadonlySet<string> = new Set([
   'length',
@@ -207,16 +220,14 @@ const KNOWN_KEYS: ReadonlySet<string> = new Set([
   'consistentRungs',
   'languages',
   'defaultLang',
+  'languagePacks',
   'detectLanguage',
   'transliterate',
   'stopWords',
-  'domainStopWords',
-  'weakWords',
   'reserved',
   'blocklist',
   'lexicon',
   'denyTokens',
-  'dropPersonNames',
   'leak',
   'secret',
   'storeStems',
@@ -231,24 +242,19 @@ const KNOWN_KEYS: ReadonlySet<string> = new Set([
   'algorithm',
 ])
 
-const CONCEPT_CLASSES: ReadonlySet<string> = new Set([
+/** The LexiconClass set: the classes allowed for lexicon `cls` (SPEC 15.1). */
+export const LEXICON_CLASSES: ReadonlySet<string> = new Set<LexiconClass>([
   'topic',
-  'org',
-  'action',
-  'activity',
-  'doctype',
+  'name',
+  'qualifier',
   'place',
   'direction',
   'region',
   'marker',
-  'year',
-  'range',
-  'quarter',
-  'week',
-  'longnum',
-  'code',
-  'quantity',
 ])
+
+/** Marker prefix rule (SPEC 5.3): up to 6 letters, the last one not `l`, `i` or `o`. */
+const MARKER_PREFIX = /^[a-z]{0,5}[a-hj-km-np-z]$/
 
 export const SECRET_MIN_LENGTH = 16
 
@@ -336,18 +342,62 @@ function resolveAlphabet(v: unknown): { name: 'safe' | 'strict' | 'custom'; firs
   return { name: 'custom', first: letters, rest: v }
 }
 
-function resolveLanguages(v: unknown): readonly Lang[] {
-  if (v === undefined) return ['de', 'en']
-  if (!Array.isArray(v) || v.length === 0) fail('languages', v, 'invalid-languages')
-  const set = new Set<Lang>()
-  for (const l of v) {
-    if (l !== 'de' && l !== 'en') fail('languages', v, 'invalid-languages')
-    set.add(l)
+/**
+ * Copy pack data: arrays and plain objects are copied (own enumerable keys only), functions and
+ * primitives are kept. The copy is frozen later, so the caller's objects are never frozen.
+ */
+function copyData(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(copyData)
+  if (isPlainObject(v)) {
+    const out: Record<string, unknown> = {}
+    for (const k of Object.keys(v)) if (own(v, k) !== undefined) out[k] = copyData(v[k])
+    return out
   }
-  return (['de', 'en'] as const).filter((l) => set.has(l))
+  return v
 }
 
-function resolveLexicon(v: unknown): readonly LexiconEntry[] {
+/**
+ * Minimal language pack validation (SPEC 6.7, 23 #5). Full validation of every pack field follows
+ * in M2 (src/lang/pack.ts).
+ */
+function resolvePacks(v: unknown): readonly LanguagePack[] {
+  if (v === undefined) return []
+  if (!Array.isArray(v)) fail('languagePacks', v, 'invalid-language-pack')
+  const seen = new Set<string>()
+  return v.map((p: unknown, i: number): LanguagePack => {
+    const field = `languagePacks[${i}]`
+    if (!isPlainObject(p)) fail(field, p, 'invalid-language-pack')
+    const code = own(p, 'code')
+    if (typeof code !== 'string' || !/^[a-z]{2,3}$/.test(code) || code === 'und')
+      fail(`${field}.code`, code, 'invalid-language-pack')
+    if (BUILTIN_LANGS.includes(code)) fail(`${field}.code`, code, 'builtin-pack')
+    if (seen.has(code)) fail(`${field}.code`, code, 'invalid-language-pack')
+    seen.add(code)
+    const id = own(p, 'id')
+    if (typeof id !== 'string' || id === '') fail(`${field}.id`, id, 'invalid-language-pack')
+    const sw = own(p, 'stopWords')
+    if (!Array.isArray(sw) || sw.some((x) => typeof x !== 'string'))
+      fail(`${field}.stopWords`, sw, 'invalid-language-pack')
+    if (typeof own(p, 'stem') !== 'function') fail(`${field}.stem`, own(p, 'stem'), 'invalid-language-pack')
+    return copyData(p) as LanguagePack
+  })
+}
+
+/** Enabled language codes in the given priority order, without duplicates (SPEC 6.7). */
+function resolveLanguages(v: unknown, packs: readonly LanguagePack[]): readonly Lang[] {
+  if (v === undefined) return [...BUILTIN_LANGS]
+  if (!Array.isArray(v) || v.length === 0) fail('languages', v, 'invalid-languages')
+  const known = new Set([...BUILTIN_LANGS, ...packs.map((p) => p.code)])
+  const out: Lang[] = []
+  for (const l of v) {
+    if (typeof l !== 'string') fail('languages', v, 'invalid-languages')
+    if (!known.has(l)) fail('languages', l, 'unknown-language')
+    if (!out.includes(l)) out.push(l)
+  }
+  return out
+}
+
+function resolveLexicon(v: unknown, languages: readonly Lang[]): readonly LexiconEntry[] {
   if (v === undefined) return []
   if (!Array.isArray(v)) fail('lexicon', v, 'invalid-lexicon')
   return v.map((e: unknown, i: number): LexiconEntry => {
@@ -357,25 +407,39 @@ function resolveLexicon(v: unknown): readonly LexiconEntry[] {
     const cls = own(e, 'cls')
     const lang = own(e, 'lang') ?? '*'
     if (typeof key !== 'string' || !/^[a-z0-9]+( [a-z0-9]+)*$/.test(key)) fail(`${field}.key`, key, 'invalid-lexicon')
-    if (typeof cls !== 'string' || !CONCEPT_CLASSES.has(cls)) fail(`${field}.cls`, cls, 'invalid-lexicon')
-    if (lang !== 'de' && lang !== 'en' && lang !== '*') fail(`${field}.lang`, lang, 'invalid-lexicon')
+    if (typeof cls !== 'string' || !LEXICON_CLASSES.has(cls)) fail(`${field}.cls`, cls, 'invalid-lexicon')
+    if (typeof lang !== 'string') fail(`${field}.lang`, lang, 'invalid-lexicon')
+    if (lang !== '*' && !languages.includes(lang)) fail(`${field}.lang`, lang, 'unknown-language')
     const out: Record<string, unknown> = { key, cls, lang }
     for (const k of ['phrase', 'forms', 'abbr', 'known'] as const) {
       const a = own(e, k)
       if (a !== undefined) out[k] = Object.freeze([...stringArray(`${field}.${k}`, a)])
     }
-    for (const k of ['weak', 'part', 'partOnly'] as const) {
+    for (const k of ['weak', 'upperOnly', 'lowerOnly', 'part', 'partOnly'] as const) {
       const b = own(e, k)
       if (b !== undefined) out[k] = bool(`${field}.${k}`, b, false)
+    }
+    if (out.upperOnly === true && out.lowerOnly === true)
+      fail(`${field}.lowerOnly`, true, 'invalid-lexicon', `invalid config "${field}": upperOnly and lowerOnly both set`)
+    if (cls === 'marker') {
+      const prefix = (out.abbr as readonly string[] | undefined)?.[0]
+      if (prefix === undefined || !MARKER_PREFIX.test(prefix))
+        fail(
+          `${field}.abbr`,
+          prefix,
+          'invalid-marker-prefix',
+          `invalid config "${field}.abbr": a marker needs abbr[0] matching ${MARKER_PREFIX.source} (SPEC 5.3)`,
+        )
     }
     const weight = own(e, 'weight')
     if (weight !== undefined) out.weight = intIn(`${field}.weight`, weight, 0, -100, 100)
     const prior = own(e, 'prior')
     if (prior !== undefined) out.prior = oneOf(`${field}.prior`, prior, 'medium', ['common', 'medium', 'rare'])
-    const group = own(e, 'group')
-    if (group !== undefined) {
-      if (typeof group !== 'string') fail(`${field}.group`, group, 'invalid-lexicon')
-      out.group = group
+    for (const k of ['group', 'pair'] as const) {
+      const g = own(e, k)
+      if (g === undefined) continue
+      if (typeof g !== 'string') fail(`${field}.${k}`, g, 'invalid-lexicon')
+      out[k] = g
     }
     for (const k of Object.keys(e))
       if (!Object.hasOwn(out, k) && own(e, k) !== undefined) fail(`${field}.${k}`, e[k], 'unknown-key')
@@ -416,14 +480,16 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
   const tailMin = intIn('tailMin', g('tailMin'), DEFAULTS.tailMin, 1, length - 3)
   const alpha = resolveAlphabet(g('tailAlphabet'))
   const consistentRungs = bool('consistentRungs', g('consistentRungs'), DEFAULTS.consistentRungs)
-  const languages = resolveLanguages(g('languages'))
-  const defaultLang = oneOf<Lang>('defaultLang', g('defaultLang'), DEFAULTS.defaultLang, ['de', 'en'])
+  const languagePacks = resolvePacks(g('languagePacks'))
+  const languages = resolveLanguages(g('languages'), languagePacks)
+  const defaultLang = g('defaultLang') ?? DEFAULTS.defaultLang
+  if (typeof defaultLang !== 'string') fail('defaultLang', defaultLang, 'not-string')
+  if (!BUILTIN_LANGS.includes(defaultLang) && !languagePacks.some((p) => p.code === defaultLang))
+    fail('defaultLang', defaultLang, 'unknown-language')
   if (!languages.includes(defaultLang)) fail('defaultLang', defaultLang, 'default-lang-not-enabled')
   const detectLanguage = fnOpt<ResolvedConfig['detectLanguage']>('detectLanguage', g('detectLanguage'))
   const transliterate = fnOpt<ResolvedConfig['transliterate']>('transliterate', g('transliterate'))
   const stopWords = resolveList('stopWords', g('stopWords'), LIST_DEFAULTS.stopWords)
-  const domainStopWords = resolveList('domainStopWords', g('domainStopWords'), LIST_DEFAULTS.domainStopWords)
-  const weakWords = resolveList('weakWords', g('weakWords'), LIST_DEFAULTS.weakWords)
   const reserved = resolveList('reserved', g('reserved'), RESERVED)
   const bl = g('blocklist')
   if (bl !== undefined && !isPlainObject(bl)) fail('blocklist', bl, 'invalid-list')
@@ -433,10 +499,9 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
     hard: resolveList('blocklist.hard', bl ? own(bl, 'hard') : undefined, BLOCK_HARD, true),
     soft: resolveList('blocklist.soft', bl ? own(bl, 'soft') : undefined, BLOCK_SOFT, true),
   }
-  const lexicon = resolveLexicon(g('lexicon'))
+  const lexicon = resolveLexicon(g('lexicon'), languages)
   const dt = g('denyTokens')
   const denyTokens = dt === undefined ? [] : normEntries('denyTokens', stringArray('denyTokens', dt), false)
-  const dropPersonNames = bool('dropPersonNames', g('dropPersonNames'), DEFAULTS.dropPersonNames)
   const leak = oneOf('leak', g('leak'), DEFAULTS.leak, ['normal', 'minimal', 'opaque'])
   const secret = g('secret')
   if (secret !== undefined) {
@@ -472,16 +537,14 @@ export function resolveConfig(input?: SluggerConfig): ResolvedConfig {
     consistentRungs,
     languages,
     defaultLang,
+    languagePacks,
     ...(detectLanguage ? { detectLanguage } : {}),
     ...(transliterate ? { transliterate } : {}),
     stopWords,
-    domainStopWords,
-    weakWords,
     reserved,
     blocklist,
     lexicon,
     denyTokens,
-    dropPersonNames,
     leak,
     ...(secret !== undefined ? { secret: secret as string } : {}),
     storeStems,
@@ -512,7 +575,10 @@ export function defaultConfig(): ResolvedConfig {
   return defaultResolved
 }
 
-/** Canonical JSON: sorted keys, functions as "fn", undefined dropped (SPEC 14.2 item 9). */
+/**
+ * Canonical JSON: sorted keys, functions as "fn", undefined dropped (SPEC 14.2 item 9).
+ * Language packs are part of the resolved config, so their code, id and data are recorded (SPEC 6.7).
+ */
 export function canonicalJson(v: unknown): string {
   if (typeof v === 'function') return '"fn"'
   if (v === null || typeof v !== 'object') return JSON.stringify(v) ?? 'null'

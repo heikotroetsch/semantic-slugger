@@ -1,7 +1,7 @@
 {
   "name": "semantic-slugger",
   "version": "0.0.0",
-  "description": "Short, readable, unique IDs from titles. German + English. Zero dependencies.",
+  "description": "Short, readable, unique IDs from any title. German + English built in. Zero dependencies.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -15,9 +15,10 @@
     "slug",
     "id",
     "short-id",
+    "readable-id",
     "german",
+    "english",
     "abbreviation",
-    "procurement",
     "unique"
   ],
   "engines": {

@@ -1,5 +1,5 @@
 /**
- * semantic-slugger: short, readable, unique IDs from titles. Browser-safe core.
+ * semantic-slugger: short, readable, unique IDs from any title. Browser-safe core.
  */
 
 export type {
@@ -7,6 +7,7 @@ export type {
   DefaultConfig,
   DetectedLang,
   Lang,
+  LexiconClass,
   LexiconEntry,
   ListOption,
   ResolvedConfig,
@@ -32,5 +33,7 @@ export {
   SluggerError,
   StoreError,
 } from './errors.ts'
+/** @experimental (SPEC 6.7) */
+export type { LanguagePack } from './lang/pack.ts'
 export type { Segment, SlugReason, SlugResult, SlugWarning, StoreTier } from './result.ts'
 export { createSlugger, isValidSlug, type Slugger } from './slugger.ts'

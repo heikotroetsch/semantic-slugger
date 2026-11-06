@@ -1,17 +1,86 @@
 # semantic-slugger: implementation spec v1
 
-Status: rev 2, final for build, 2026-11-06. Owner: lead architect.
-Inputs: research report, three design proposals (readability, API, correctness), fixture corpus `test/fixtures/titles.json` (407 synthetic titles), review of rev 1 (46 issues plus fixture notes; decisions in Appendix A).
+Status: rev 3.1, final for build, 2026-11-06. Owner: lead architect.
+Inputs: rev 2 of this spec, the product owner (PO) change request "super generic slugger" (2026-11-06), the new multi-domain fixture corpus `test/fixtures/titles.json`, the M0+M1 code in `src/` (commit `aa18096`), and the review of rev 3 (decisions in Appendix B).
 
 This spec is the only source of truth for the build. Where it says MUST, tests check it. Where it says "guidance", the value is a target for review, not an exact expectation.
 
-**Public repo rule.** Use only synthetic titles. Never use real customer data, qado MCP tools or real contract data in code, tests, docs, issues or the playground.
+**Public repo rule.** Use only synthetic titles and invented names. Never use real customer, patient, employee or contract data, or data from internal tools, in code, tests, docs, issues or the playground.
+
+---
+
+## Rev 3 changes
+
+The PO asked for a generic library. It takes any title or short text from any field (blog posts, news, products, tickets, issues, meetings, recipes, research, events, legal, HR, medical, education, software, procurement, ...) and makes a short, readable, unique ID. qado (a procurement company) uses it, and so can anyone else. Procurement is one field among many. Domain knowledge comes from the user through generic config, not from the core.
+
+### Removed
+
+| What (rev 2) | Sections (rev 3) | Why |
+|---|---|---|
+| Org rule: walk left from a legal form, line words, `LINE_SUFFIXES`, class `org`, org rungs, org slot Q, weight -50 for line words | 2.1, 6.6, 10.1, 11.1, 15.9 | Supplier names next to a legal form are a procurement pattern. Rev 3 has one neutral class `name` (6.6) for company, product, project, place and person names, found by generic signals. Names stay allowed in the ID (PO: "supplier names are okay"). |
+| Person rule: `persontitle` drops the next tokens, the `FIRST_NAMES` list, the option `dropPersonNames` | 5.2, 6.6, 15.9, 16.2 | A first-name list is culture-bound and also drops product and place names. Users drop names with `denyTokens` or use `leak: 'minimal'`. Person titles (`Dr`, `Herr`, `Mr`) are now plain stop words. |
+| Classes `doctype`, `action`, `activity` and slot D | 2.1, 5.2, 10.1, 15 | They encode procurement document types and process steps. Rev 3 has three slots T, Q, N. A user says "this word matters less" with lexicon `weight` or `weak`. |
+| Procurement lexicon (rev 2 15.2 to 15.4: Rahmenvertrag, Leistungsverzeichnis, BANF, LkSG, MSA, RFQ, ...) and the procurement list of known abbreviations | 15 | Domain knowledge. Replaced by a generic starting lexicon (15.3 to 15.6). |
+| City and Kfz-code table, building-type places, floor codes (`eg og ug kg`), place-marker words (`Standort`, `Werk`, `Niederlassung`, `site`, `plant`, ...) and their re-class rule | 6.3, 10.1, 15.9 | German procurement data. The class `place` stays for user lexicon entries; there are no built-in places. |
+| Procurement compound parts and weak heads (`lieferung`, `vertrag`, `leistung`, `beschaffung`, ...) | 7.1, 15.7 | Replaced by a generic DE compound-part list (15.7) and generic weak heads (7.1). |
+| Procurement domain stop words (`vertrag`, `contract`, `agreement`, ...) and the procurement weak list (`beschaffung`, `supplier`, `standort`, ...) | 6.3 | Replaced by generic noise words (file and mail words, 6.3) and generic weak words (`report`, `update`, `bericht`, `entwurf`, ..., 15.6). |
+| Procurement markers (`los`, `nachtrag`, `amendment`, `sow`, `change order`, `change request`, `bauabschnitt`, `anlage`, `werk`, `plant`, `verhandlungsrunde`) | 5.3 | Replaced by generic markers (`teil/part`, `kapitel/chapter`, `folge/episode`, `sprint`, ...). Users add their own markers as lexicon entries of class `marker` (5.3). |
+| Payment-term noise pattern (`Net 60`, `30 Tage netto`) | 4.3 step 9 | Procurement only. |
+| Options `domainStopWords`, `weakWords`, `dropPersonNames` | 16.2 | Replaced by `stopWords`, lexicon `weak: true` and `denyTokens`. Fewer options, one place for domain knowledge. |
+| `leak: 'minimal'` rule "drop all org concepts" | 6.6, 10.4 | `minimal` now drops the generic classes `name`, `attr`, `code`, `marker`, `version`, `longnum`, `quantity` (rev 3.1: also `model`; acronyms are kept) (10.4). |
+| Gate Q16 (org consistency) and the fixture field `org` | 19.6, 19.7 | No org class. |
+| Normative references to fixture ids of the rev 2 corpus | 19, 20 | The corpus is new and multi-domain. Tests find fixtures by `group`, `near` and `expect`. Section 20 uses illustrative titles. |
+
+### Added
+
+| What | Sections | Why |
+|---|---|---|
+| Class `name`: proper nouns and product names | 6.6, 10 | A strong discriminator in every field. Found only by positive signals (inner capitals, directly before a legal form, capitalized inside a sentence-case EN title, user lexicon). Rev 3.1 moved all-caps words to the new class `acronym` (6.6). |
+| Classes `month` and `version` | 5.2, 5.4 | Months and versions are common in titles of many fields (newsletters, minutes, release notes, documents). |
+| Generic starting lexicon (about 250 entries in rev 3.1, about 400 at 1.0), generic known abbreviations, generic weak words | 15 | Domain-neutral defaults. |
+| Generic DE compound-part list (240 parts in rev 3.1) | 15.7 | Everyday, business and tech words. |
+| `LanguagePack` interface and option `languagePacks` (experimental) | 6.7, 16.2 | Others can add languages. `de` and `en` are built-in packs with the same interface. |
+| Lexicon class `marker`, lexicon flag `upperOnly` | 5.3, 15.1 | Users add markers (`Los`, `Lot`, `Ticket`) and case-bound abbreviations (`IT`, `EU`) without code. |
+| One concept per compound with 2+ strong parts, with morph and head rungs | 7.3, 11.1 | With generic everyday parts most German compounds split. Rev 2 made one concept per part, which filled the pool with parts and pushed out directions and years. |
+| Fit tie-break by rung cost in rank order | 12 | With equal cost, the higher-ranked concept keeps its better form (`firefox-rel-v132`, not `fir-release-v132`). |
+| Domain-balance gate Q18 | 19.6 | No field may be left behind. |
+| Domain recipes in the README (not shipped) | 15.8 | Shows how a field adds its own words, with procurement as one example. |
+| Section 23 "Rev 3 impact on M0-M1 code" | 23 | M0 and M1 are already built and committed. |
+
+### Kept as in rev 2
+
+ID format and invariants (2), normalization except the payment-term step (4), the compound DP (7.2), stemming and stored stems (8), bad words (9), graphemes, cuts and skeletons (11.2 to 11.4), the fit search (12), tail hash, store tiers, resolve and `createUnique` (13), determinism and versioning (14), result, errors and adapters (16.3 to 17), packaging and tooling (18.2 to 18.6). Rev 2 decisions in Appendix A stay valid unless marked obsolete.
+
+### Rev 3.1 changes (review of rev 3)
+
+The review of rev 3 found gaps in the corpus, in ranking for non-procurement titles, in section 20 and in some gates. Appendix B lists each issue with the decision. The main changes:
+
+| What | Sections |
+|---|---|
+| Fixture fields: `near` holds only fixture ids; the old labels move to `vary`; new fields `keep` and `skip`; corpus fixes in M1.5 | 19.7, 23 |
+| New gate Q19 (expected words kept, per domain); Q2 and Q4 report only (Q4 until M4); Q6 defined on canonical titles | 19.6 |
+| New classes `acronym` (slot T), `qualifier` (slot Q), `weekday` and `model` (slot N) | 5.2, 5.4, 6.6, 10, 15 |
+| Lexicon lookup step 0 for upper-case known abbreviations (`SEO`, `HR`, `KPI`) | 4.4 |
+| More generic markers (`variante`, `größe`, `klasse`, `typ`, `artikel`, `§`, ...), number words, model numbers (`Phone 8` -> `phone8`), decimal versions, quantities in the pool, historic years, wide ranges | 5 |
+| More function words; number words; doc-kind words with `weight: -60`; DE/EN pairs for weak words | 6.3, 15.6 |
+| Compounds: morph and head rungs are cryptic; direction and region modifiers become own concepts; hyphen rule in every language | 7.3, 11.1 |
+| Decreasing position bonus for all T concepts; topic-to-marker merge | 8.1, 10.3 |
+| Language detection: ASCII umlaut digraphs, parts hits, compound hint at 8+ chars, plural fold for `und` | 6.1, 8.2 |
+| Attr suffixes only in lower case, no `-schaft`; code runs need a digit or all upper case | 5.1, 6.4 |
+| Data: duplicate keys removed, jargon abbreviations made cryptic, procurement-leaning parts removed, counts corrected | 15 |
+| Section 20 rows checked against I1 and recomputed | 20 |
+
+### Rules for domain knowledge from rev 3 on
+
+1. The core ships only knowledge that helps in most fields: language (stop words, number words, stemming, compounds, transliteration), numbers and time (years, months, weekdays, versions, generic markers), directions and regions, generic qualifiers (15.5), generic document words (15.6), widely known cross-domain abbreviations, and bad words.
+2. A built-in lexicon entry must pass the cross-domain test of 15.2.
+3. Domain knowledge (procurement, medicine, law, ...) is user config: `lexicon`, `stopWords`, `denyTokens`, `reserved`, and `languagePacks` for new languages. The library ships no domain packs. The README shows short recipes for three fields (15.8).
 
 ---
 
 ## 0. How the three proposals were merged
 
-The three proposals mostly fit together. Readability gives the language pipeline and the fit search. API gives the developer surface and packaging. Correctness gives the tail, the store contract, the collision order and versioning. These conflicts were decided as follows:
+Rev 2 history, kept for reference. The three proposals mostly fit together. Readability gives the language pipeline and the fit search. API gives the developer surface and packaging. Correctness gives the tail, the store contract, the collision order and versioning. These conflicts were decided as follows:
 
 | # | Conflict | Decision | Why |
 |---|---|---|---|
@@ -21,7 +90,7 @@ The three proposals mostly fit together. Readability gives the language pipeline
 | C4 | Scope in the hash (correctness) vs not (API) | Not in the hash. Use `secret` per tenant if needed (README recommends it for multi-tenant use). | A client-side preview without the scope then matches the server for the empty-store case. Scopes are separate anyway. |
 | C5 | Duplicate spreading: attempt counter (readability) vs `dupIndex = countBody(body)` (correctness) | One tail index `k`. It starts at `countBody(body)` when the store can count, else at 0, and walks up. | O(1) for the n-th duplicate. For identical titles both paths reach the same ID. |
 | C6 | Smart re-pick source: `titleOf` (readability) vs `findByBody` returning stems (correctness) | `findByBody` with stems. Rev 2: stored stems do not depend on the lexicon (8.2). | No need to store or re-analyze titles. Works with hashed stems. Lexicon edits do not break old rows. |
-| C7 | Segment order: slot order (readability) vs rank order with anchor (correctness, API) | Slot order T, D, Q, N. Inside a slot: title position. | Same shape for all IDs, related IDs sort together, easier to remember. Sibling IDs do not swap segments when scores change. |
+| C7 | Segment order: slot order (readability) vs rank order with anchor (correctness, API) | Slot order T, D, Q, N (rev 3: T, Q, N; slot D removed). Inside a slot: title position. | Same shape for all IDs, related IDs sort together, easier to remember. Sibling IDs do not swap segments when scores change. |
 | C8 | Scores: floats (readability, API) vs fixed-point integers (correctness) | Integers in "centi" units (x100), integer log table. | Bit-identical results in every engine. |
 | C9 | Leak levels: `full/normal/minimal/opaque` vs `full/topic/none` vs `normal/minimal/opaque` | `normal` (default), `minimal`, `opaque`. | `full` was the same as `normal`. Three levels are enough. |
 | C10 | Fallback word: `doc` vs `item` vs lead letter `n` | `doc`. Numbers-only titles become `doc-2026-...`. | Reads as a word. Keeps "first char is a letter". |
@@ -30,7 +99,7 @@ The three proposals mostly fit together. Readability gives the language pipeline
 | C13 | Subpath names: `./memory` vs `./adapters/memory` | `./adapters/memory`, `./adapters/prisma`, `./adapters/sql`, `./data`. | Clear grouping. |
 | C14 | Data source format: `.txt` plus generator (API) vs TS files (others) | TS files with `as const` in `src/data/v1/`. No generator. | Fewer moving parts. The diff is still readable. |
 | C15 | Playground: Vite (readability, correctness) vs no bundler (API) | No bundler. Static HTML + `app.js` that imports `dist/`. | Zero extra dev deps. |
-| C16 | Long numbers (PO numbers): last 4 digits (readability) vs drop at 9+ digits (correctness) | Last 4 digits in `normal`, low score, so they only show when budget is left. Dropped in `minimal`. | Recognizable when space allows, low leak. |
+| C16 | Long numbers (order, invoice, case numbers): last 4 digits (readability) vs drop at 9+ digits (correctness) | Last 4 digits in `normal`, low score, so they only show when budget is left. Dropped in `minimal`. | Recognizable when space allows, low leak. |
 | C17 | Engines: `>=20` vs `>=22` | `>=22`. | Node 20 is EOL. vitest 5 needs 22.12+. |
 | C18 | Custom list options: array or function (API) vs `{add, remove}` (readability) | `{ add?, remove? }` or a function `(defaults) => list`. | Covers both needs. |
 | C19 | Re-pick candidate count and plan steps P0 to P5 (correctness) vs exhaustive fit sorted by cost (readability) | The fit search is the plan generator. Re-pick re-runs the fit with a diff boost. | One mechanism, deterministic, easy to explain. |
@@ -42,7 +111,7 @@ The three proposals mostly fit together. Readability gives the language pipeline
 
 ### Goals
 
-1. Turn a title (German, English or mixed) into a short ID that a person can read, guess the topic from and say on the phone. Example: `Rahmenvertrag Stromlieferung Standorte Nord 2026` gives `strom-rv-nord-26`.
+1. Turn a title or short text from any field (German, English or mixed) into a short ID that a person can read, guess the topic from and say on the phone. Examples: `Jahresbericht Vertrieb Nord 2026` gives `vertrieb-nord-26`, `Q3 2026 Marketing Budget Review` gives `mktg-budget-26q3`, `Chocolate Cake Recipe` gives `choc-cake-recipe`.
 2. Unique per scope, through the DB `UNIQUE(scope, slug)` constraint plus a retry helper.
 3. Stable: the ID is created once, stored and never recomputed.
 4. Fixed length by default (16), configurable 8 to 64. `max` mode as an option.
@@ -53,10 +122,12 @@ The three proposals mostly fit together. Readability gives the language pipeline
 9. Zero runtime dependencies. Core has no `node:` imports and runs in browsers, Deno, Bun and edge runtimes.
 10. ESM + CJS builds with types. Memory, Prisma and SQL adapters.
 11. `explain()` shows every pipeline step.
+12. Domain-neutral core. No field gets special rules. Domain knowledge comes through generic config (`lexicon`, `stopWords`, `denyTokens`, `reserved`, `languagePacks`).
 
 ### Non-goals (v1)
 
-- Languages other than de/en. Non-Latin scripts beyond a small Cyrillic/Greek table need the `transliterate` hook.
+- Built-in languages other than de and en. Other languages come through `languagePacks` (6.7, experimental). Non-Latin scripts beyond a small Cyrillic/Greek table need the `transliterate` hook or a pack.
+- Built-in domain packs (procurement, medical, legal, ...). The README has short recipes instead (15.8).
 - Changing an ID when the title changes.
 - Global uniqueness without a DB. Sync `taken` sets are best effort.
 - A full German dictionary or hyphenation patterns (license and size).
@@ -72,29 +143,32 @@ The three proposals mostly fit together. Readability gives the language pipeline
 
 ```
 <body>[<sep><tail>]
-body = seg ( <sep> seg ){0..3}         1 to maxSegments semantic segments, slot order T D Q N
+body = seg ( <sep> seg ){0..3}         1 to maxSegments semantic segments, slot order T Q N
 tail = C A{t-1}                        C = consonant letter, A = tail alphabet, t >= tMin (2)
 ```
 
 Examples (length 16, exact):
 
 ```
-strom-rv-nord-26        body only (16)
-strom-rv-2026-k3        body 13 + sep + tail 2
+vertrieb-nord-26        body only (16)
+ver-nord-2026-k3        body 13 + sep + tail 2
 doc-k7q9m3xdt2hz        empty title: fallback word + tail 12
-x7kq2m9dbn4hc8wt        leak 'opaque' (needs `secret`): tail only, 16
+x7kq2m9dbt3hc8wp        leak 'opaque' (needs `secret`): tail only, 16
 ```
+
+Rev 3 replaced the rev 2 opaque example `x7kq2m9dbn4hc8wt`, which cannot occur (B5 folds `n4h` to `nah`, which holds the blocked code `ah`; see `docs/DEVIATIONS.md` entry 10).
 
 Slots:
 
 | Slot | Concept classes | Typical length |
 |---|---|---|
-| T topic | `topic`, `attr` | 3 to 8 |
-| D type/action | `doctype`, `action`, `activity` | 2 to 5 |
-| Q qualifier | `place`, `direction`, `region`, `org`, `code` | 2 to 8 |
-| N number/time | `year`, `range`, `quarter`, `week`, `marker`, `longnum` | 2 to 5 |
+| T topic | `topic`, `name`, `acronym`, `attr` | 3 to 10 |
+| Q qualifier | `qualifier`, `place`, `direction`, `region`, `code` | 2 to 8 |
+| N number/time | `year`, `range`, `quarter`, `month`, `week`, `weekday`, `version`, `marker`, `model`, `longnum`, `quantity` | 2 to 9 |
 
-`org` is always slot Q. Score decides only which concepts go into the body. Within a slot, segments are ordered by first title position asc, then key asc (code-unit compare). So sibling IDs keep the same segment order when df changes scores. If the first segment of the body starts with a digit, the fallback word is prepended as an extra T segment (and counts against `maxSegments`; if that overflows, the lowest-score N segment is dropped).
+A `model` number is always joined to its word (5.2), so its segment sits in slot T at the word's position. A wide `range` rung fills two segments (11.5).
+
+Rev 2 had a fourth slot D (`doctype`, `action`, `activity`). Rev 3 removes it: those words are now plain `topic` concepts in slot T, ordered by title position like every other topic. Score decides only which concepts go into the body. Within a slot, segments are ordered by first title position asc, then key asc (code-unit compare). So sibling IDs keep the same segment order when df changes scores. If the first segment of the body starts with a digit, the fallback word is prepended as an extra T segment (and counts against `maxSegments`; if that overflows, the lowest-score N segment is dropped).
 
 ### 2.2 Tail alphabet
 
@@ -147,13 +221,18 @@ raw title
                     tokens, ordered noise removal with protected number spans, translit
                     -> canonical title (ascii, [a-z0-9 -]) + token surfaces (umlauts kept)
  2 tokenize         code runs joined first; tokens with class hints: word, year, range, quarter,
-                    week, marker+num, longnum, code, quantity, smallnum, orgsuffix, person-title, noise
- 3 detect language  de | en | und, plus per-token language (translit tokens are always und)
- 4 phrase match     multi-word lexicon entries ("master service agreement" -> msa)
- 5 stop words       function, conflict, domain (removed); weak and attr marked; back-off
- 6 org + persons    org name next to legal form (after line words), person names dropped
- 7 compound split   DP over lexicon parts with linkers, head/modifier roles (de tokens only)
- 8 concepts + stems concept per lexicon hit / head; lexicon-free stems (CISTEM / Porter2) for storage
+                    month, week, weekday, version, marker+num, model, longnum, code, quantity,
+                    smallnum, noise; deny tokens dropped right after tokenizing (6.6)
+ 3 detect language  pack code (de | en | user pack) or und, plus per-token language
+                    (translit tokens are always und)
+ 4 phrase match     multi-word lexicon entries ("machine learning" -> ml)
+ 5 stop words       function, conflict, number words, noise, legal forms (removed);
+                    weak and attr marked; back-off
+ 6 names            name signals (inner caps, before a legal form, sentence case, lexicon) and
+                    acronyms (all caps)
+ 7 compound split   DP over lexicon parts with linkers, head/modifier roles (packs with compound
+                    data only; built in: de)
+ 8 concepts + stems concept per lexicon hit / head; lexicon-free stems (pack stemmer) for storage
  9 rank             integer score: class, rarity (prior blended with store df), position, tf, weight
 10 ladders          display forms per concept, cost per rung, blocklist pre-filter
 11 fit              bounded search over concept subsets x rungs x tail length, lowest cost
@@ -205,7 +284,7 @@ Rules:
 - `NFKC/NFD` differences between engines only affect code points newer than the engine's Unicode version. All Latin, Greek and Cyrillic handling uses explicit tables.
 - `createSlugger` checks once that `String.prototype.normalize` exists and that `'ä'.normalize('NFD').length === 2`. If not, it throws `ConfigError` with reason `runtime-no-normalize`. No silent fallback, because the output would differ.
 - `utf8(s)` is our own encoder in `src/hash/encode.ts` (about 15 lines, code points to 1 to 4 bytes, lone surrogates already replaced). `TextEncoder` is not used, so the core type-checks with `lib: ["ES2022"]` and `types: []`.
-- `cased` keeps the pre-lowercase text. The tokenizer applies the same split to it, so each token gets a case flag `upper | title | lower | mixed`. If the token counts differ (rare NFKC or `ẞ` effects), all flags are `unknown`. Case flags are only signals for language, attr, org, person and legal-form rules. They never change the canonical title.
+- `cased` keeps the pre-lowercase text. The tokenizer applies the same split to it, so each token gets a case flag `upper | title | lower | mixed`. If the token counts differ (rare NFKC or `ẞ` effects), all flags are `unknown`. Case flags are only signals for language, attr, name, month and legal-form rules. They never change the canonical title.
 
 ### 4.2 Transliteration tables (v1 data)
 
@@ -224,30 +303,31 @@ The steps run in this order. All patterns use the `u` flag. `B = (?<![\p{L}\p{N}
 | 3 | IBAN | `B(?:<cc>)\d{2}(?: ?[a-z0-9]{4}){3,7}(?: ?[a-z0-9]{1,3})?E` | `<cc>` = fixed list of SEPA country codes (`ad at be bg ch cy cz de dk ee es fi fr gb gr hr hu ie is it li lt lu lv mc mt nl no pl pt ro se si sk sm`). `kw` is not in the list. A match whose 4-char groups are all years `(19\|20)\d\d` is kept (not an IBAN) |
 | 4 | dates | `B\d{1,2}[./]\d{1,2}[./](?:\d{4}\|\d{2})E` | not removed: masked as a protected `year` span (5.1) |
 | 5 | phone | `B(?:\+\d{1,3}\|0\d{1,5})(?:[ /()-]{1,2}\d{1,8}){1,4}E` | needs a leading `+` or `0` and at least one separator. Post-filter: 7 to 15 digits; without `+`, rejected when a group is a year `(19\|20)\d\d` |
-| 6 | protected spans | ranges, `fy`, weeks, years, longnum (5.1 rules) | detected and masked so steps 7 to 9 cannot touch them. Masks are private-use chars, restored before tokenizing |
+| 6 | protected spans | ranges, `fy`, weeks, years, versions, longnum (5.1 rules) | detected and masked so steps 7 to 9 cannot touch them. Masks are private-use chars, restored before tokenizing |
 | 7 | money | `\d[\d.,]{0,20}\s?(?:€\|eur\|euro\|usd\|\$\|chf\|gbp\|£\|tsd\|mio\|mrd\|k€)E` and the reverse order `(?:€\|eur\|usd\|\$\|chf\|gbp\|£)\s?\d[\d.,]{0,20}E` | |
 | 8 | percent | `\d{1,6}(?:[.,]\d{1,4})?\s?%` | |
-| 9 | payment terms | `B(?:net(?:to)?\s?\d{1,3}\|\d{1,3}\s?(?:tage\|days)\s?(?:netto\|net))E` | `Net 60`, `30 Tage netto` |
+| 9 | (removed in rev 3) | - | the payment-term pattern (`Net 60`, `30 Tage netto`) was procurement only; such words now go through the normal rules |
 
-Tested in rev 2: `4500012345`, `2025 2026 2027`, `kw 12 2026 2027 2028`, `2026 / 2027 / 2028`, `kw12 2026 2027 2028`, `01/02/2026` and `Los 01 2026 2027` are not removed. `budget 500 € 2026`, `+49 89 1234567`, `089/12345678` and `DE89 3704 0044 0532 0130 00` are removed.
+Tested (rev 3.1 neutral strings): `1000012345`, `2025 2026 2027`, `kw 12 2026 2027 2028`, `2026 / 2027 / 2028`, `kw12 2026 2027 2028`, `01/02/2026` and `Teil 01 2026 2027` are not removed. `budget 500 € 2026`, `+49 89 1234567`, `089/12345678` and `DE89 3704 0044 0532 0130 00` are removed.
 
-All regexes MUST be linear (no nested quantifiers, every repeat bounded). One harness (`test/unit/redos.test.ts`) runs every regex in `src/` (noise, dates, tokens, markers) against a fixed set of 4096-char adversarial strings (`"a@" x 2048`, `"@" x 4096`, `"1 " x 2048`, `"0/1" x 1365`, `"de12" + " aaaa" x 1000`, `"1." x 2048 + "x"`, `"www." + "a" x 4092`, and more) and asserts < 50 ms per regex and input. A lint test fails if a regex in `src/` is not registered in the harness.
+All regexes MUST be linear (no nested quantifiers, every repeat bounded). One harness (`test/unit/redos.test.ts`) runs every regex in `src/` (noise, dates, tokens, markers, months, versions) against a fixed set of 4096-char adversarial strings (`"a@" x 2048`, `"@" x 4096`, `"1 " x 2048`, `"0/1" x 1365`, `"de12" + " aaaa" x 1000`, `"1." x 2048 + "x"`, `"www." + "a" x 4092`, and more) and asserts < 50 ms per regex and input. A lint test fails if a regex in `src/` is not registered in the harness.
 
 ### 4.4 Three forms per token
 
-| Form | Use | "Rahmenverträge" | "Muenchen" | "Straße" |
+| Form | Use | "Kindergärten" | "Muenchen" | "Straße" |
 |---|---|---|---|---|
-| `surface` | lexicon lookup (after fold), CISTEM input, language hints | `rahmenverträge` | `muenchen` | `straße` |
-| `ascii` | display and rungs | `rahmenvertraege` | `muenchen` | `strasse` |
-| `fold` | key fold for stemming (de tokens only) | `rahmenvertrage` | `munchen` | `strasse` |
+| `surface` | lexicon lookup (after fold), stemmer input, language hints | `kindergärten` | `muenchen` | `straße` |
+| `ascii` | display and rungs | `kindergaerten` | `muenchen` | `strasse` |
+| `fold` | key fold for stemming (pack `keyFold`; de tokens) | `kindergarten` | `munchen` | `strasse` |
 
 `keyFold(w)`: `ä|ae -> a`, `ö|oe -> o`, `ü|ue -> u`, `ß -> ss`, except `ae/oe/ue` directly after a vowel or `q` stays (`steuer`, `feuer`, `quelle`, `neue`). The fold is only used for keys, so rare wrong folds (`aktuell -> aktull`) are harmless.
 
 Lexicon lookup uses `ascii`. All lexicon keys and forms are stored in ascii form.
 
 Lookup order for a single token or compound part:
-1. Exact `ascii` match on key or form.
-2. Stem match. The lexicon map is also indexed by `stem(keyFold(form))` for every key and form, built at first use, with the entry's language stemmer (`de` CISTEM, `en` Porter2, `*` both). A token matches when `stem(keyFold(token))` equals an indexed stem of the same language. Only for tokens of 5+ chars. This finds `umzuege` (umzug), `kaesten` (kasten), `ausschreibungen`, `wartungsvertraege`, so "Ausschreibung X" and "Ausschreibungen X" give the same concept and the same rungs.
+0. **Upper-case known abbreviation** (rev 3.1). A token whose raw case is `upper` (2 to 6 letters, optionally followed by a lower-case `s`: `KPIs`, `APIs`), whose ascii (without that `s`) equals a `known` abbr of an entry, maps to that entry (`SEO` -> search engine optimization, `HR` -> the `hr` group, `KPI`, `AI`, `ML`, `UX`, `QA`, `ROI`, `PR`, `POC`). When several entries list the abbr, the first entry in data order whose `lang` equals the per-token or title language wins, else the first entry in data order (`PR` is `oeffentlichkeitsarbeit` in a `de` title, `pull request` in an `en` title; the display is `pr` either way).
+1. Exact `ascii` match on key or form. Entries whose case condition fails (`upperOnly`, `lowerOnly`, 15.1) are skipped; of the rest, the first in data order wins.
+2. Stem match. Not for entries of class `direction` (rev 3.1: `Rights` must not match `right`). The lexicon map is also indexed by `stem(keyFold(form))` for every key and form, built at first use, with the entry's language stemmer (`de` CISTEM, `en` Porter2, a user pack its `stem`, `*` all enabled). A token matches when `stem(keyFold(token))` equals an indexed stem of the same language. Only for tokens of 5+ chars. This finds `umzuege` (umzug), `kaesten` (kasten), `besprechungen`, `haeuser` (haus), so "Besprechung X" and "Besprechungen X" give the same concept and the same rungs. User packs (6.7) use their own `stem` and `keyFold`.
 3. If two entries share a stem, the earlier entry in data order wins. A unit test lists all stem clashes in the v1 data, and the list must be empty or explicitly allowed.
 
 ---
@@ -256,113 +336,214 @@ Lookup order for a single token or compound part:
 
 ### 5.1 Split
 
-1. Before splitting, detect on the normalized surface (in this order). Dates, ranges, `fy`, weeks, years and longnum are the protected spans of 4.3 (steps 4 and 6), so noise removal never eats them:
-   - dates `\d{1,2}[./]\d{1,2}[./](\d{4}|\d{2})` with Unicode edges -> `year` token (2-digit years mean 20xx)
+1. Before splitting, detect on the normalized surface (in this order). Dates, ranges, `fy`, weeks, years, versions and longnum are the protected spans of 4.3 (steps 4 and 6), so noise removal never eats them:
+   - dates `\d{1,2}[./]\d{1,2}[./](\d{4}|\d{2})` with Unicode edges -> `year` token (2-digit years mean 20xx). The month of a date is not used (a date is not a month mention).
    - ranges `\b((?:19|20)\d{2})\s*[/\u2013\u2014-]\s*((?:19|20)?\d{2})\b` -> `range` token (`2025/2026`, `2025/26`, `2026–2028`)
    - `fy\s?(\d{2}|\d{4})` -> `year` with fy flag
-   - weeks `(kw|cw|week|wk)\s?\d{1,2}`, years `(19|20)\d\d`, longnum `\d{5,}` (classes in 5.2)
-   - decimals `\d+[.,]\d+` -> `noise` (`42,5`, `v1.2`, `2,0`)
-1b. **Code runs.** On the `cased` text, a run of chars from `[A-Za-z0-9()/.-]` without spaces, or several such runs joined by `/`, that contains at least one uppercase letter and also a digit, a `/` or a `(`, becomes one `code` token. Its text is the run with all non-alphanumerics removed, lowercased (`NA2XS(F)2Y` -> `na2xsf2y`, `C30/37` -> `c3037`, `HEA/HEB` -> `heaheb`, `VOB/B` -> `vobb`). Dotted legal forms (`e.K.`, `Co.`), protected spans (4.3), and runs that alone match `quarter`, `week`, `fy` or a marker form (`Q1`, `KW12`, `FY26`, `Los2`) are not code runs. An all-caps token of 3 letters or fewer directly before or after a code run joins it (`CEM II/A-LL` -> one token `cemiiall`).
-2. Split on any char not in `[\p{L}\p{N}-]`. Also split on `-` when it has a space or the string edge on either side, and on `\u2013` and `\u2014` always.
-3. An inner hyphen between letters or digits marks an explicit compound boundary. Keep the token, record parts (`smart-meter-gateways` -> parts `smart|meter|gateways`).
-4. Lexicon check for hyphenated tokens: first the joined form (`e-procurement` -> `eprocurement`, `it-service-desk`), then phrase match over the parts, then each part as a word with a bond.
+   - weeks `(kw|cw|week|wk)\s?\d{1,2}`, years `(19|20)\d\d` and historic years `1[5-8]\d\d` (5.4), longnum `\d{5,}` (classes in 5.2)
+   - quantities (5.2): a number, also a decimal (`1,7 Liter`, `2.5 kg`), followed by a unit. Rev 3.1: this runs before the decimal rule, so a decimal quantity is not noise and its unit word does not become a topic
+   - versions (5.4), including decimal versions in a version position, before decimals
+   - decimals `\d+[.,]\d+` that are not part of a quantity or a version -> `noise` (`42,5`, `2,0`)
+1b. **Code runs.** On the `cased` text, a run of chars from `[A-Za-z0-9()/.-]` without spaces, or several such runs joined by `/`, that contains at least one uppercase letter, also a `-`, a `/` or a `(`, or a digit, and (rev 3.1) either a digit or only upper-case letters, becomes one `code` token. Its text is the run with all non-alphanumerics removed, lowercased (`PROJ-1234` -> `proj1234`, `COVID-19` -> `covid19`, `TCP/IP` -> `tcpip`, `USB-C` -> `usbc`, `SKU-4471` -> `sku4471`). `A/B-Test`, `Input/Output` and `Report(Final)` are not code runs (lower-case letters and no digit); they split into words by step 2. A run also ends at a hyphen that is followed by a word of 4+ letters with lower-case letters (`B2B-Marketing` -> code `b2b` + word `marketing`, `COVID-19-Impfung` -> `covid19` + `impfung`). Dotted legal forms (`e.K.`, `Co.`), protected spans (4.3), and runs that alone match `quarter`, `week`, `fy`, `version` or a marker form (`Q1`, `KW12`, `FY26`, `v2`, `Ep3`) are not code runs. An all-caps token of 3 letters or fewer directly before or after a code run joins it (`SKU A-4471` -> one token `skua4471`).
+2. Split on any char not in `[\p{L}\p{N}-]`. Also split on `-` when it has a space or the string edge on either side, and on `\u2013` and `\u2014` always. Exception: `§` and `§§` directly before a number are kept as a marker word (5.3).
+3. An inner hyphen between letters or digits marks an explicit compound boundary. Keep the token, record parts (`e-mail-vorlage` -> parts `e|mail|vorlage`). Rev 3.1: this holds in every language, also for `und` tokens (`Gluten-Free` -> parts `gluten|free`), because the hyphen is typed by the user. Parts of one letter are dropped (`B-Test` -> `test`).
+4. Lexicon check for hyphenated tokens: first the joined form (`e-mail` -> `email`, `e-learning` -> `elearning`), then phrase match over the parts, then the parts as a compound (7.3: one concept when two or more strong parts are left; in a language without compound data the parts are not split further).
+4b. **Number words** (rev 3.1). Each pack lists number words (`numberWords`, 6.7). Built in: `de` `eins zwei drei vier fuenf sechs sieben acht neun zehn elf zwoelf` and the ordinals `erst zweit dritt viert fuenft sechst siebt acht neunt zehnt elft zwoelft` with the endings `e er es en em`; `en` `one two three four five six seven eight nine ten eleven twelve first second third fourth fifth sixth seventh eighth ninth tenth eleventh twelfth`. The words `ein eine` are function words, not number words. A number word directly after a marker word is the marker's number (`Teil Zwei` -> `pt2`, `Part One` -> `pt1`). Everywhere else it is handled like `smallnum` (dropped), but only in titles of its language, like a conflict word (6.3), so `Elf on the Shelf` keeps `elf`. Phrases match before this step (`Erste Hilfe` -> `eh`).
+4c. **Model numbers** (rev 3.1). A bare number `\d{1,3}` (not a year, marker, quantity or other class) that directly follows a "model position" token becomes class `model`. A model position is a `name` or `acronym` token (6.6), or, in a title whose pack does not set `nounsCapitalized`, a capitalized word token without a lexicon entry (`Tavora Phone 8` -> `phone` + `8`, `Brightwave Pro 14`, `History 101`, `Top 10`). In `de` titles only names and acronyms are model positions, because all nouns are capitalized. The same position makes a decimal a version (5.4). Stop words between the two break the link.
 5. Each token records `case` (4.1), `translit: true` if any char came from a transliteration table or the user hook, and `lang` (6.1).
 
 ### 5.2 Classes
 
 | Class | Detection (on ascii) | Display rungs | Base score |
 |---|---|---|---|
-| `year` | `(19\|20)\d\d`, date, `fy..` | `26`, `2026` (cost 30); fy: `fy26` | 160 |
-| `range` | see 5.1 | `2526`, `2628` | 160 |
+| `year` | `(19\|20)\d\d`, date, `fy..`; historic `1[5-8]\d\d` (5.4) | `26`, `2026` (cost 30); fy: `fy26`; historic: `1789` only (cost 0) | 160 |
+| `range` | see 5.1 | span up to 9 years in one century: `2526`, `2628`; wider: two segments `1950-2020` (11.5) | 160 |
 | `quarter` | `q[1-4]` | `q1`. With a year in the chosen set: bonded into `26q1` | 140 |
-| `week` | `(kw\|cw\|week\|wk)\s?\d{1,2}` | `kw12` (de), `wk22` (en) | 140 |
-| `marker` | marker word (table 5.3) + optional `nr/no/#` + `\d{1,3}`, one letter `[a-z]`, or a Roman numeral `i..x` in upper case (`Phase II` -> `ph2`) | `los1`, `losa` (no zero-pad rung) | 180 |
+| `month` | month word of the token language (5.4) | `mar` / `mrz`. With a year in the chosen set: bonded into `26mar` / `26mrz` | 140 |
+| `week` | `(kw\|cw\|week\|wk)\s?\d{1,2}` | `kw12` (de), `wk22` (en and other packs, unless the pack sets `weekPrefix`) | 140 |
+| `weekday` | weekday word of the token language (5.4) | `fri` (en), `freitag` (de) | 100 |
+| `version` | 5.4 | `v2`, `v24` | 120 |
+| `marker` | marker word (5.3, built-in or lexicon class `marker`) + optional `nr/no/#` + `\d{1,3}`, a number word (5.1 step 4b), one letter `[a-z]`, or a Roman numeral `i..x` in upper case (`Phase II` -> `ph2`); markers that take a size also take `xs xl xxl xxxl`; `klasse/class/grade` also take `\d{1,2}[a-z]` (`Klasse 4b`); also `#` + `\d{1,6}` (`#4521` -> `nr4521`) | `pt1`, `pta`, `nr4521` (no zero-pad rung) | 180 |
+| `model` | 5.1 step 4c: `\d{1,3}` after a model position | only joined with its word: `phone8`, `pro14`, `hist101` (11.5) | 120 |
 | `longnum` | `\d{5,}` | last 4 digits | 120 |
-| `code` | a code run (5.1 step 1b), mixed letters and digits (`s355`, `c30`), or a norm prefix (`din en iso vds dguv vob hoai cea`) followed by a number | joined text (`din131`, `s355`, `c3037`) only if 6 chars or less and it has a digit, else noise | 100 |
-| `quantity` | number followed by a unit (`t kg mw mwh kva kw stk pcs units monate monaten wochen jahre jahren years tage tagen days stunden std h zoll`) | `50mw` | 50 (never in pool) |
-| `smallnum` | bare `\d{1,4}` not covered above | dropped | - |
-| `orgsuffix` | legal form (6.3, with the extra checks for ambiguous forms) | dropped, marks org | - |
-| `persontitle` | `herr frau dr prof mr mrs ms` | dropped, next 1 to 2 tokens dropped | - |
-| `noise` | single letter not after a marker; ordinal `\d+(st\|nd\|rd\|th)`; decimals; tokens mixing `[01]` with `[oli]` that are not lexicon codes; Roman numerals 1 to 39 (`^x{0,3}(?:ix|iv|v?i{0,3})$`, not empty) written in upper case, not a lexicon word and not after a marker word (`II`, `IV`, `XII`); tokens of 3 chars or less made only of `[ilo]` that are not lexicon words (`ii`, `ll`, `lo`); payment terms (4.3 step 9) | dropped | - |
-| `word` | everything else with 2+ letters | section 11 | by class |
+| `code` | a code run (5.1 step 1b), mixed letters and digits (`s3`, `a4`, `covid19`), or a standard prefix (`din en iso iec ieee rfc`) followed by a number | joined text (`iso9001` is 7, `rfc9110`, `proj1234`) only if 8 chars or less and it has a digit or comes from an all-caps code run (`usbc`), else noise | 100 |
+| `quantity` | number (integer or decimal) followed by a unit (table below) | integer: number + unit short form (`50mw`, `128gb`, `85m2`); decimal: no rung (key and stored stem only) | 50 (pool score 125, 10.4) |
+| `smallnum` | bare `\d{1,4}` not covered above; number words outside markers (5.1 step 4b) | dropped | - |
+| `noise` | single letter not after a marker; ordinal `\d+(st\|nd\|rd\|th)`; decimals; `am`/`pm` directly after a number 1 to 12 (`2 PM`, `9am` split as `9 am`); tokens mixing `[01]` with `[oli]` that are not lexicon codes; Roman numerals 1 to 39 (`^x{0,3}(?:ix\|iv\|v?i{0,3})$`, not empty) written in upper case, not a lexicon word and not after a marker word (`II`, `IV`, `XII`); tokens of 3 chars or less made only of `[ilo]` that are not lexicon words (`ii`, `ll`, `lo`) | dropped | - |
+| `word` | everything else with 2+ letters | section 11 | by class (10.1) |
 
-Year normalization: `2026` key `y2026`. Range key `r2025-2026`. Quarter key `q1`. Week key `kw12`. Marker key `<prefix><value>` (`los1`). Longnum key `n<digits>`. Code key `c<text>`.
+Units (first form of a row is the display short form; all ascii, after NFKC so `m²` is `m2`):
+
+```
+t tonne tonnen | kg kilo | g gramm gram grams | mg | km | m meter metre meters metres | cm | mm
+m2 qm sqm | m3 | l liter litre liters litres ltr | ml | w watt | kw | kwh | mw | mwh | v volt
+mah | gb | mb | tb | kb | ghz | mhz | px | h std stunde stunden hour hours hrs
+min minute minuten minutes mins | d tag tage tagen day days | wk woche wochen week weeks
+mo monat monate monaten month months | yr jahr jahre jahren year years
+pcs stk stueck pieces pc units | inch zoll
+```
+
+A unit word counts only directly after the number (`50 kg`, `85 m²`, `30 Minuten`). Rungs that break I8 are removed as usual (`10l` has the pair `0l`).
+
+Rev 3 changes in this table: `orgsuffix` is gone (legal forms are stop words, 6.3), `persontitle` is gone (person titles are function stop words and do not drop the next tokens), payment terms are gone (4.3), the norm prefixes are generic standards, the code display limit is 8 chars (rev 2: 6) so ticket keys like `proj1234` show, and `month` and `version` are new. Rev 3.1: `weekday` and `model` are new, quantities enter the pool, historic years and wide ranges have rungs, `am`/`pm` after a time are noise, number words are handled.
+
+Keys: year `y2026`, range `r2025-2026`, quarter `q1`, month `m03` (language-independent, so `März` and `March` merge), week `kw12`, weekday `wd5` (1 = Monday, language-independent), version `v2.4`, marker `<prefix><value>` (`pt1`), model `d<digits>` (`d8`), longnum `n<digits>`, code `c<text>`, quantity `q<number><unit short form>` (`q128gb`, `q1.7l`; decimal comma becomes `.`).
 
 ### 5.3 Markers (v1 data)
 
-The prefix must not create an I8 pair with the digits that follow. All prefixes below end in a safe letter.
+The prefix must not create an I8 pair with the digits that follow. All prefixes below end in a safe letter (not `l`, `i` or `o`).
 
 | Marker words | Prefix | Takes |
 |---|---|---|
-| `los`, `lot` | `los` (de), `lot` (en) | number or letter |
-| `nachtrag` | `nt` | number |
-| `amendment` | `amd` | number |
-| `sow`, `statement of work` | `sow` | number |
+| `teil`, `part` | `pt` | number or letter |
+| `kapitel`, `chapter` | `kap` (de), `ch` (en) | number |
+| `abschnitt`, `section` | `abs` (de), `sect` (en) | number |
+| `folge`, `episode`, `ep` | `ep` | number |
+| `staffel`, `season` | `s` | number |
+| `ausgabe`, `heft`, `issue`, `edition` | `nr` | number |
+| `sprint` | `sprint` | number |
 | `phase` | `ph` | number |
-| `wave` | `w` | number |
+| `runde`, `round` | `rd` | number |
+| `welle`, `wave` | `w` | number |
 | `batch` | `b` | number |
-| `tier` | `tier` | number |
+| `stufe`, `level`, `tier` | `stf` (de), `lv` (en), `tier` | number |
+| `lektion`, `lesson` | `ls` | number |
+| `modul`, `module` | `mod` | number |
+| `schritt`, `step` | `step` | number |
+| `meilenstein`, `milestone` | `ms` | number |
+| `gruppe`, `group` | `grp` | number or letter |
+| `raum`, `room` | `rm` | number or letter |
 | `halle`, `hall` | `h` | number or letter |
-| `bauabschnitt` | `ba` | number |
-| `anlage` (appendix, only when followed by a number) | `anlg` | number |
-| `change order` | `chg` | number |
-| `change request` | `cr` | number |
-| `plant`, `werk` (followed by a number) | `plant`, `werk` | number |
-| `site`, `building` | `site`, `bldg` | letter or number |
-| `verhandlungsrunde`, `round` | `rd` | number |
-| `level` (1st/2nd level is noise) | - | - |
+| `tag` (de), `day` (en) | `tag`, `day` | number |
+| `variante`, `variant` (rev 3.1) | `var` | number or letter |
+| `groesse`, `size` (rev 3.1) | `sz` | number, letter or size (`xs xl xxl xxxl`) |
+| `klasse` (de), `class`, `grade` (en) (rev 3.1) | `kla` (de), `cls`, `gr` (en) | number, or `\d{1,2}[a-z]` |
+| `einheit`, `unit` (rev 3.1) | `einh`, `unit` | number |
+| `typ`, `type` (rev 3.1) | `typ` | number or letter |
+| `modell`, `model` (rev 3.1) | `md` | number or letter |
+| `option` (rev 3.1) | `opt` | number or letter |
+| `artikel`, `art`, `article` (rev 3.1) | `art` | number |
+| `absatz`, `abs` (rev 3.1) | `abs` | number |
+| `§`, `§§` (rev 3.1) | `par` | number |
+| `#` (no word) | `nr` | `\d{1,6}` |
 
-A marker that reads `lot` + `1` (`lot1`) is fine: `t` next to `1`. Never generate `l1`, `co1`, `anl1`.
+Marker words count only when the number or letter follows (`Teil 2`, `Part B`, `Sprint 14`, `Größe M`, `Art. 28`). Without it they are normal words (`Teil` alone is a topic; `level` in `1st level` is noise, as in rev 2). A dot after the marker word is allowed (`Art. 28`, `Abs. 2`). A marker that reads `pt` + `1` (`pt1`) is fine: `t` next to `1`. Never generate `l1`, `o0`, `i1`. Rev 3.1 removed `Variante A` / `B`, `Größe M` / `L`, `Typ 2`, `Klasse 6`, `Unit 5` and `Art. 28` from the cases where the generic core lost the only difference between siblings.
+
+**Topic-to-marker merge** (rev 3.1). When a topic concept has the same key as the marker word of a marker in the same title (as text or as a compound part), the topic merges into the marker concept (tf adds up): `Sprintplanung Sprint 22` gives one concept `sprint22`, not a topic `sprint` that pushes the number out.
+
+**User markers.** A lexicon entry with `cls: 'marker'` (15.1) adds a marker word: its `key`, `forms` and `phrase` are the marker words, `abbr[0]` is the prefix, and it takes a number (`\d{1,3}`) or one letter. The prefix must match `^[a-z]{0,5}[a-hj-km-np-z]$` (ends in a letter other than `l i o`), else `ConfigError` reason `invalid-marker-prefix`. Example: `{ key: 'ticket', lang: '*', cls: 'marker', abbr: ['tkt'] }` gives `tkt42` for `Ticket 42`; the procurement recipe (15.8) adds `los`. Packs can add markers too (6.7).
+
+### 5.4 Months and versions
+
+**Months.** Built-in month words (ascii):
+
+| m | de | en | display de / en |
+|---|---|---|---|
+| 01 | januar, jan | january, jan | `jan` / `jan` |
+| 02 | februar, feb | february, feb | `feb` / `feb` |
+| 03 | maerz, mrz | march, mar | `mrz` / `mar` |
+| 04 | april, apr | april, apr | `apr` / `apr` |
+| 05 | mai | may | `mai` / `may` |
+| 06 | juni, jun | june, jun | `jun` / `jun` |
+| 07 | juli, jul | july, jul | `jul` / `jul` |
+| 08 | august, aug | august, aug | `aug` / `aug` |
+| 09 | september, sep, sept | september, sep, sept | `sep` / `sep` |
+| 10 | oktober, okt | october, oct | `okt` / `oct` |
+| 11 | november, nov | november, nov | `nov` / `nov` |
+| 12 | dezember, dez | december, dec | `dez` / `dec` |
+
+- A month word counts as a month only when the raw token is capitalized (case flags known) or it stands directly next to a year or a day number (`3. März`, `March 2026`). Otherwise it is a normal word (`may` the verb, `march` the verb, `August` the first name at title start with no year).
+- Display uses the per-token language. With a year concept in the same candidate, the two are bonded into one segment `<yy><mon>` (`26mrz`, `26mar`), like the quarter bond. Two different months in one title are two concepts; a month range (`März bis Mai`) is not special.
+- Month words and weekday words are never `name` by sentence case (6.6 signal 4).
+
+**Weekdays** (rev 3.1). Built-in weekday words (ascii), one row per day, row[0] is the display form:
+
+| d | de | en |
+|---|---|---|
+| 1 | montag, montags | monday, mon |
+| 2 | dienstag, dienstags | tuesday, tue, tues |
+| 3 | mittwoch, mittwochs | wednesday, wed |
+| 4 | donnerstag, donnerstags | thursday, thu, thur, thurs |
+| 5 | freitag, freitags | friday, fri |
+| 6 | samstag, samstags, sonnabend | saturday, sat |
+| 7 | sonntag, sonntags | sunday, sun |
+
+Rungs: `en` the 3-letter form (`fri`, plain, cost 0) and the full word; `de` the full word only (2-letter German forms are not used: `sa` is blocked, `so` and `do` read as other words). Short forms like `mon`, `sat`, `sun` count as weekdays only when the raw token is capitalized and stands next to a time, a date or another weekday; otherwise they are normal words. A weekday is a low-ranked time class (10.1): it shows when there is room and it separates siblings (`Team Lunch Friday` vs `Team Lunch Monday`).
+
+**Historic years** (rev 3.1). A bare `1[5-8]\d\d` is a `year` with only the 4-digit rung (`Paris 1889` -> `1889`). There is no 2-digit form, because `89` reads as 1989.
+
+**Versions.** A `version` token is one of:
+- `v` + `\d{1,3}` + optional `[._]\d{1,3}` up to two times, with word edges (`v2`, `v2.4`, `v1.10.3`, `V3`);
+- a version word (`version ver rev revision release rel` in en and de, the pack field `versionWords` in 6.7) followed by `\d{1,3}(?:\.\d{1,3}){0,2}` (`Version 2.4`, `Release 3`, `Rev. 2`). The version word is dropped; the number becomes the version;
+- (rev 3.1) a decimal `\d{1,2}\.\d{1,2}(?:\.\d{1,3})?` with a dot (not a comma), not followed by a unit and not part of a date, directly after a token whose ascii contains a version word of 5+ chars (`Versionshinweise 5.1`, `Releaseplan 2.0`) or after a model position (5.1 step 4c: `Python 3.12` in an `en` title). Other decimals stay noise.
+
+Display: `v` + major, plus minor if present, without the dot (`v2`, `v24`, `v1.10.3` -> `v110`). Patch levels are dropped. `v1.10` and `v11.0` both show `v110`; the full key differs, so the concept stays distinct and the tail separates a collision. The version word alone (no number) is a noise word (6.3), except `revision` and `release`, which are then normal words (`Interne Revision`, `Release Notes`).
 
 ---
 
-## 6. Language, phrases, stop words, orgs (steps 3 to 6)
+## 6. Language, phrases, stop words, names (steps 3 to 6)
 
 ### 6.1 Language detection
 
+Each enabled language pack (6.7) gives detection hints. The built-in packs:
+
+| Pack | `chars` (+2 once per title) | `suffixes` (+1 per token) | `weakSuffixes` (+1 per token of 5+ chars, only when no other pack's `chars` occur) |
+|---|---|---|---|
+| `de` | `äöüß` | `ung keit heit schaft lich isch` | - |
+| `en` | - | `tion ment ing ship ness ity` | `ed ers ies ly ware` |
+
+Rev 2 also had `vertrag` and `vereinbarung` as DE suffixes; rev 3 removes them (procurement words).
+
+Rev 3.1 adds three hints, because ASCII-folded German (`Sommerfest Gaertnerei Muenchen 2026`) and short titles were detected as `und`, which turned off compound splitting and stemming and broke Q8:
+- **Digraphs** (pack hint `digraphs`; `de`: `ae oe ue`): +1 per token of 5+ chars that contains one of them after a consonant other than `q` and before a consonant, when no other pack's `chars` occur. Skipped for tokens that are an EN lexicon form, an EN stop word or an EN weekday, and for tokens that end in `ues` or `ued` (`issues`, `values`, `continued`). `muenchen`, `gaertnerei` count; `blue`, `queue`, `steuer` do not.
+- **Parts hits**: a parts-only entry (15.7) of 6+ chars scores +1 for its language. Parts of 6+ chars that are also common English words have `lang: '*'` (15.7), so they give no score.
+- **Compound hint**: the `splitCompound` hit counts from 8 chars (rev 3: 12).
+
 ```ts
-function detect(tokens: Tok[], raw: string, cfg): 'de' | 'en' | 'und' {
-  if (cfg.lang) return cfg.lang                                     // per-call override
+function detect(tokens: Tok[], raw: string, cfg): DetectedLang {
+  if (cfg.lang) return cfg.lang                                       // per-call override
   const hook = cfg.detectLanguage?.(normalizedSurface)
-  if (hook === 'de' || hook === 'en') return hook
-  let de = 0, en = 0
-  const umlaut = /[äöüß]/i.test(raw)
-  if (umlaut) de += 2
+  if (hook !== undefined && cfg.languages.includes(hook)) return hook
+  const score = new Map(cfg.packs.map(p => [p.code, 0]))             // packs in cfg.languages order
+  const add = (code: string, n: number) => score.set(code, score.get(code)! + n)
+  const charHit = cfg.packs.filter(p => p.hints.chars && [...p.hints.chars].some(ch => raw.toLowerCase().includes(ch)))
+  for (const p of charHit) add(p.code, 2)
   for (const t of tokens.filter(t => t.cls === 'word' && !t.translit)) {
-    if (STOP_DE_ONLY.has(t.ascii)) de += 2
-    if (STOP_EN_ONLY.has(t.ascii)) en += 2
-    if (/(ung|keit|heit|schaft|lich|isch|vertrag|vereinbarung)$/.test(t.ascii)) de += 1
-    if (/(tion|ment|ing|ship|ness|ity)$/.test(t.ascii)) en += 1
-    if (!umlaut && /(ed|ers|ies|ly|ware)$/.test(t.ascii) && t.ascii.length >= 5) en += 1
-    const lx = lexiconLookup(t)                                    // exact, then stem (4.4)
-    if (lx?.lang === 'de') de += 1
-    if (lx?.lang === 'en') en += 1
-    if (t.ascii.length >= 12 && splitCompound(t) !== null) de += 1
+    for (const p of cfg.packs) {
+      if (p.onlyStop.has(t.ascii)) add(p.code, 2)                      // stop words of p that no other enabled pack has
+      if (p.hints.suffixes.some(s => t.ascii.endsWith(s))) add(p.code, 1)
+      if (charHit.length === 0 && t.ascii.length >= 5 && p.hints.weakSuffixes.some(s => t.ascii.endsWith(s))) add(p.code, 1)
+      if (charHit.length === 0 && p.hints.digraphs && digraphHit(t, p)) add(p.code, 1)      // rev 3.1, rules above
+      if (p.compound && t.ascii.length >= 8 && splitCompound(t, p) !== null) add(p.code, 1) // rev 3.1: 8 (was 12)
+    }
+    const lx = lexiconLookup(t)                                        // step 0, exact, then stem (4.4)
+    if (lx && lx.lang !== '*' && score.has(lx.lang) && (!lx.partOnly || t.ascii.length >= 6)) add(lx.lang, 1)   // rev 3.1: parts-only entries score from 6 chars
   }
-  if (de === 0 && en === 0) return 'und'
-  if (de === en) return cfg.defaultLang
-  return de > en ? 'de' : 'en'
+  const ranked = [...score].sort((a, b) => b[1] - a[1] || order(a[0]) - order(b[0]))
+  if (ranked[0][1] === 0) return 'und'
+  if (ranked.length > 1 && ranked[0][1] === ranked[1][1]) return cfg.defaultLang
+  return ranked[0][0]
 }
 ```
 
-`STOP_DE_ONLY` = DE function words not in the EN list. `STOP_EN_ONLY` likewise.
+`order(code)` is the index in `cfg.languages`. With only the built-in packs this gives the same result as rev 2 (minus the two removed suffixes).
 
-Every single-word lexicon entry carries its `lang`: all entries in 15.2 and 15.3 are `de`, all in 15.4 are `en`, places and words that are the same in both languages (`it`, `erp`, `cloud`, `catering`, `hardware`, `software`) are `*`. A unit test fails if a single-word entry has no explicit `lang`.
+Every single-word lexicon entry carries its `lang`: a pack code, or `*` for words with the same spelling and meaning in several languages (`marketing`, `software`, `team`, `international`). A unit test fails if a built-in single-word entry has no explicit `lang`.
 
 Per-token language:
 1. `und` if the token is `translit` (Cyrillic, Greek, user hook) or the title has no Latin letters.
-2. The lexicon entry `lang` if set and not `'*'`.
-3. `de` if the surface has `ä ö ü ß` or a DE suffix above. `en` if it has an EN suffix above.
-4. The title language if it was detected (`de` or `en`, not via `defaultLang`).
+2. The lexicon entry `lang` if set, not `'*'` and the entry is not parts-only.
+3. A pack whose `chars` occur in the token, or whose `suffixes` end the token (first pack in `cfg.languages` order wins).
+4. The title language if it was detected (not via `defaultLang`).
 5. Otherwise `und`.
 
-`und` tokens are never compound-split, use stem = ascii, the EN coda and onset tables (the wider set), and no week prefix. So `postavki` (t372) stays whole. The title language picks the conflict stop words and the week prefix; when the title is `und`, `cfg.defaultLang` picks them.
+`und` tokens are never compound-split (except at typed hyphens, 5.1 step 3), use the plain plural fold as stem (8.2), the EN coda and onset tables (the wider set), and the week prefix `wk`. So `postavki` stays whole. The title language picks the conflict stop words and the week prefix; when the title is `und`, `cfg.defaultLang` picks them.
 
-The language picks: the stemmer, the conflict stop words, the coda table for cuts, the week prefix.
+The language picks: the stemmer, the conflict stop words, the coda table for cuts, the week prefix, the month display form.
 
 ### 6.2 Phrase matching (before stop words)
 
-Walk tokens left to right. At each position try lexicon phrases of length 5 down to 2 (ascii tokens, exact match, stop words inside the phrase count). The longest match wins and becomes one token with the entry. `agreement`, `contract`, `vertrag` are only dropped as domain words when they are not part of a phrase.
+Walk tokens left to right. At each position try lexicon phrases of length 5 down to 2 (ascii tokens, exact match, stop words inside the phrase count). The longest match wins and becomes one token with the entry (`machine learning` -> `ml`, `frequently asked questions` -> `faq`, `künstliche Intelligenz` -> `ki`). Noise and weak words are only dropped or marked when they are not part of a phrase.
 
 ### 6.3 Stop word tiers (v1 data, full lists)
 
@@ -370,126 +551,187 @@ Walk tokens left to right. At each position try lexicon phrases of length 5 down
 
 ```
 ab aber alle allem allen aller alles als also am an andere anderem anderen anderer anderes auch
-auf aus bei beim bin binnen bis bzgl bzw bezueglich ca da damit dann das dass dem den denen der
-des dessen deshalb die dies diese diesem diesen dieser dieses doch dort durch ein eine einem einen
-einer eines einige einigen einschl einschliesslich er es etc etwas fast fuer gegen gem gemaess ggf
-hat hier hin hinter ihr ihre im in indem inkl inklusive ins ist je jede jedem jeden jeder jedes
-jetzt kein keine laut man mit nach neben nicht noch nur ob oder ohne per pro samt seit sehr sein
-seine sich sie sind so sowie ueber um und uns unter usw vom von vor waehrend war weil welche wenn
-wie wieder will wir wird wo zu zum zur zwar zwischen zzgl
+auf aus bei beim bin binnen bis bzgl bzw bezueglich ca da damit dann darf das dass dein deine dem den
+denen der des dessen deshalb die dies diese diesem diesen dieser dieses doch dort dr du durch duerfen
+ein eine einem einen einer eines einige einigen einschl einschliesslich er es etc etwas euer eure
+fast frau fuer gegen gem gemaess ggf habe haben hast hat hatte hatten herr hier hin hinter ich ihr
+ihre im immer in indem inkl inklusive ins ist je jede jedem jeden jeder jedes jetzt kann kein keine
+koennen laut man mehr mein meine meinem meinen meiner mit moechte muss muessen nach neben nicht nie
+noch nur ob oder ohne per pro prof samt schon seit sehr sein seine sich sie sind so soll sollen sowie
+ueber um und uns unser unsere unserem unseren unserer unter usw vom von vor waehrend wann war warum
+was weil welche wenn wer werden weshalb wie wieder wieso will wir wird worden wurde wurden wo zu zum
+zur zwar zwischen zzgl
 ```
 
-Rev 2 added `ab also bin binnen ca die fast hat man oder seit war will`. A unit test asserts that every conflict word is in the list of each language it is listed for.
+Rev 3 added the person titles `dr frau herr prof`. Rev 3.1 added pronouns, possessives, auxiliary and modal verbs, question words and the adverbs `immer mehr nie schon`. A unit test asserts that every conflict word is in the list of each language it is listed for.
 
 **Function words EN** (removed):
 
 ```
-a about above across after against all along also am among an and any are as at be because been
-before being below between both but by can could did do does during each either for from further
-had has have he her here his how i if in incl including into is it its just me more most my nor
-not of off on once only or other our out over own per regarding same she should so some such than
-that the their them then there these they this those through to too under until up upon very via
-was we were what when where which while who whom why will with within without would you your
+a about above across after against all along also am among an and any anything are aren as at be
+because been before being below between both but by can cannot could couldn did didn do does doesn
+don dr during each either ever every everything for from further had hadn has hasn have haven he her
+here his how i if in incl including into is isn it its just me more most mr mrs ms my never
+nobody nor not nothing of off on once only or other our out over own per prof regarding same she
+should shouldn so some something such than that the their them then there these they this those
+through to too under until up upon us ve very via was wasn we were weren what when where which while
+who whom why will with within without won would wouldn you your
 ```
 
-**Conflict words** (removed only when the title language matches): `die war hat bin man fast will also so an` are removed only in `de` titles when they are DE function words, and only in `en` titles when they are EN function words. Implementation: they are in the per-language list, and the union check skips them unless `lang` matches. `an also so will` are in both lists. `die war hat bin man fast` are DE-only and must survive in EN titles (`Die Casting`, `War Room`). In `und` titles, `cfg.defaultLang` decides.
+Rev 3 added the person titles `dr mr mrs ms prof`. Rev 3.1 added `ever every never cannot nobody nothing anything something everything us` and the contraction stems that remain after splitting on the apostrophe (`isn doesn don won aren wasn weren hasn haven hadn didn couldn shouldn wouldn ve`; the single `t`, `s`, `m`, `d` are noise anyway).
 
-**Domain words** (removed, configurable via `domainStopWords`):
+Person titles are language-bound: `herr frau` are in the DE list, `mr mrs ms` in the EN list, `dr prof` in both. All of them are removed only when the raw token is not all upper case, so `MS Teams` keeps `ms`. The same upper-case exception applies to every stop word that equals a key or form of an `upperOnly` lexicon entry (`US`, `IT`): the upper-case token goes to the lexicon, the lower-case token is a stop word.
 
-```
-de: vertrag vertraege vertrags vereinbarung vereinbarungen dokument dokumente nr nummer betreff
-    entwurf final finale kopie version rev revision datei docx pdf xlsx doc dringend aw wg fwd
-en: contract contracts agreement agreements document no number re fw fwd draft final copy version
-    rev urgent asap notice
-both: v\d+ (regex, e.g. v2), \d+ in parentheses after final
-```
+**Conflict words** (removed only when the title language matches): `die war hat bin man fast will also so an pro` are removed only in `de` titles when they are DE function words, and only in `en` titles when they are EN function words. Implementation: they are in the per-language list, and the union check skips them unless `lang` matches. `an also so will` are in both lists. `die war hat bin man fast pro` are DE-only and must survive in EN titles (`Die Casting`, `War Room`, `Brightwave Pro 14`). In `und` titles, `cfg.defaultLang` decides. Packs declare their own `conflictWords` (6.7).
 
-`neu` is not a domain word. It is a generic modifier (7.3).
+**Number words** (5.1 step 4b) are removed like conflict words: only in titles of their language, and never after a marker word.
 
-**Legal forms** (org suffix, removed, mark org): `gmbh ag kg kgaa se ug mbh mbb ek ohg gbr eg co ltd limited inc llc plc bv nv corp sa sarl spa` plus multi-token `e k` (`e.K.` after splitting), `gmbh co kg`.
-
-Ambiguous forms: `eg` (Erdgeschoss), `kg` (Kellergeschoss, kg), `ag` (Auftraggeber), `ug` (Untergeschoss), `se`, `sa`, `spa`, `limited`. They count as a legal form only when all of these hold:
-- the raw text is upper case (`AG`, `KG`, `SE`) or dotted (`e.G.`, `S.A.`); `Spa`, `Limited` also in title case;
-- the token is the last token, or is followed by `&`, `co`, another legal form, punctuation, a year, or a lower-case word;
-- it is not followed by a number (`EG 1`, `KG 2` are floors);
-- the previous token is capitalized and is not a persontitle, doctype, action, activity or place-marker word (`Umbau EG` is a floor).
-
-Otherwise the token is a normal word. `eg og ug kg` then match the floor entries in 15.5.
-
-**Weak words** (marked weak; see the rules below the list):
+**Noise words** (removed in every language; replaces the rev 2 domain words):
 
 ```
-de: lieferung lieferungen leistung leistungen dienstleistung dienstleistungen dienst dienste service
-    services beschaffung einkauf system systeme projekt standort standorte liegenschaft
-    liegenschaften team mitarbeitende allgemein jaehrlich material bedarf betrieb technik
-    management modul plattform loesung zentrum
-en: service services supply supplies purchase procurement management system systems project site
-    sites team general solution solutions platform program annual mutual
+de: dokument dokumente datei dateien kopie anhang nr nummer betreff aw wg
+en: document documents file files copy attachment no number re fw fwd
+both: version (alone, 5.4) doc docx pdf xls xlsx csv ppt pptx odt ods rtf txt md jpg jpeg png
+      zip msg eml
 ```
 
-Rules for weak concepts (a concept is weak when its word is in this list, its lexicon entry has `weak: true`, or it is a place-marker word of 15.5):
-- Weak concepts are **not in the pool** (10.4). So they are never a body segment and never add to `lost` in the fit cost. "Never filler" means exactly this.
+Rev 2 removed `vertrag vertraege vereinbarung contract agreement ...` as domain words. Rev 3 does not: in most fields these are normal topic words. `entwurf final draft dringend urgent asap` moved to the weak words (15.6).
+
+**Legal forms** (removed in every language, generic noise):
+- Always: `gmbh mbh ggmbh kgaa ohg gbr ltd llc llp plc inc corp bv nv sarl sas srl pty oy` plus multi-token `gmbh co kg`, `e v` (`e.V.` after splitting).
+- Ambiguous: `ag kg se ug eg ek sa spa co limited`. They count as a legal form only when the raw text is upper case or dotted (`AG`, `KG`, `S.A.`, `e.K.`, `Co.`; `Limited`, `Spa` also in title case after a capitalized word) and the token is the last token or is followed by `&`, `co`, another legal form, punctuation or a year. Otherwise the token is a normal word (`Limited Edition`, `Spa Weekend`, `50 kg` is a quantity anyway).
+
+Rev 2 had extra floor checks (`Umbau EG`, `KG 2`) because it had floor entries. Rev 3 has no floor entries, so the simpler rule above is enough. A legal form is still a name signal for the token directly before it (6.6).
+
+**Weak words** are built-in lexicon entries with `weak: true` (15.6), so users change them with the `lexicon` option (same key replaces). Rules for weak concepts (a concept is weak when its lexicon entry has `weak: true`, or it is a compound whose parts are all weak heads, generic modifiers or noise words, 7.3):
+- Weak concepts are **not in the pool** (10.4). So they are never a body segment and never add to `lost` in the fit cost.
 - They still give stems for storage (8.2), so df and re-pick diff can see them.
 - They come back only through the back-off in 6.5. Then they are normal concepts (no weak flag).
 - `explain()` lists them in the rank step as `excluded: weak`.
 
+**User stop words.** `stopWords` (16.2) changes the function and noise tiers. `add` entries are removed in every language. `remove` takes a built-in entry out of every tier and language. The function form gets the flat default list (function words of all enabled packs, then noise words, sorted, unique) and returns the new list; returned words that were in a language-specific list keep their language (conflict rules still apply), new words count for every language. Legal forms are not part of `stopWords`.
+
 ### 6.4 Attribute words (adjectives, verbs, participles)
 
-Free words in titles are often not topics: `falsch berechnet`, `abwehren`, `ausüben`, `fristgerecht`, `gefährlicher`, `ergonomisch`, `rot`. A non-lexicon `word` token becomes class `attr` when one of these holds:
-- **DE suffix** (token 6+ chars, per-token lang `de`): `-lich -ig -isch -bar -iert -los -haft` (any case), or `-et -end -er -es -en -em` when the raw case is `lower`. Compounds whose head is a known part are not checked (`netzgebiet`, `lieferanten`).
-- **DE lower case**: in a `de` title whose case flags are known, a token in `lower` case that is not at title start and not a stop word. German nouns are capitalized, so these are adjectives, verbs or adverbs (`rot`, `abwehren`).
+Free words in titles are often not topics: `falsch berechnet`, `verschoben`, `rechtzeitig`, `gefährlicher`, `ergonomisch`, `rot`, `quickly`. A non-lexicon `word` token that is not a `name` or `acronym` (6.6) becomes class `attr` when one of these holds:
+- **DE suffix** (token 6+ chars, per-token lang `de`): `-iert` (any case); `-lich -ig -isch -bar -los -haft` and `-et -end -er -es -en -em` only when the raw case is `lower` (rev 3.1). `-haft` never matches a token that ends in `-schaft`. So capitalized nouns and names (`Wirtschaft`, `Partnerschaft`, `Leipzig`, `Ludwig`, `Venedig`) are not attr. Compounds whose head is a known part are not checked (`netzwerk`, `kindergarten`).
+- **DE lower case**: in a `de` title whose case flags are known, a token in `lower` case that is not at title start and not a stop word. German nouns are capitalized, so these are adjectives, verbs or adverbs (`rot`, `verschoben`).
 - **EN suffix** (per-token lang `en`, token 6+ chars): `-ly -ive -ous -able -ible -ful -less`, or `-ed` when the token is not a lexicon form.
 
-`attr` concepts are slot T, have class weight 120 and prior 40, and get no position bonus (10). They can still enter the pool after the topics (`helm-rot-2345`). If only attr and weak words are left, the back-off restores them in title order.
+Packs other than `de` and `en` bring their own rules through the pack field `attr` (6.7); without it they have none.
+
+`attr` concepts are slot T, have class weight 120 and prior 40, and get no position bonus (10). They can still enter the pool after the topics (`tasse-rot-2345`). If only attr and weak words are left, the back-off restores them in title order.
 
 ### 6.5 Back-off when nothing is left
 
-Evaluated after stop words, org and person handling:
+Evaluated after stop words, deny tokens and name handling:
 
 | Left over | Action | Warning |
 |---|---|---|
-| nothing, raw empty or only noise | empty path (section 13.6) | `empty` |
+| nothing, raw empty, only noise tokens or only legal forms | empty path (section 13.6) | `empty` |
 | only function words were present | empty path | `empty` |
-| only domain words (and legal forms) | restore the first domain word (not legal forms) as a `topic` concept | `stopwords-relaxed` |
+| only noise words (and legal forms) | restore the first noise word (not legal forms) as a `topic` concept | `stopwords-relaxed` |
 | no non-weak word concept, but weak words | restore the weak words as normal concepts (numbers stay as they are) | `stopwords-relaxed` |
-| only numbers/markers | add fallback word `doc` as T concept | - |
+| only numbers, months, weekdays or markers | nothing here; 2.1 prepends the fallback word when the body would start with a digit | - |
 
-### 6.6 Orgs and persons
+Rev 2 said "only numbers/markers: add `doc`", which contradicted its own example `los1-los2-[t6]`. Rev 3 states the 2.1 rule as the only rule.
 
-**Org rule.** Proper names in titles mostly stand before a legal form, often with business words between (`Nordlicht Energie AG`, `Ostwind Stadtwerke AG`, `Mosel Bürobedarf GmbH`). Walk left from a legal-form token:
+Deny tokens (6.6) are never restored by the back-off. A title made only of deny tokens takes the empty path.
 
-1. **Line words.** Skip up to 3 tokens that are one of: a lexicon word of any class except doctype and action; a weak word; a token that ends in a `LINE_SUFFIXES` entry (15.7: `stadtwerke`, `netzbau`, `personaldienste`, `objekteinrichtung`); or one of the joiners `& und and` between two such tokens. Compound splitting is not used here, because names like `Nordlicht` (`nord` + `licht`) also split. Line words that are content words (a lexicon `topic` entry or an unknown word: `Beton`, `Metallbau`, `Analytics`) stay as normal concepts with weight -50. Weak words and joiners are dropped.
-2. **Name.** The next token to the left is the org name if it is a `word` with 2+ letters, capitalized in raw (or the title is all caps), not a stop word, not a doctype or action lexicon entry, not a marker, number or code, and no dash split lies between. It is taken even if it could split into known parts (`Nordlicht`, `Ostwind`).
-3. The org concept is that one token (class `org`). Tokens further left are not part of the org. If step 2 finds no name, or the org concept loses all rungs (blocked, t388 `Fickenscher`), there is no org and the line words keep their normal weight (no -50).
-4. Org tokens and proper-noun candidates (10.2) are never compound-split.
+### 6.6 Names, acronyms and deny tokens
 
-Checked against the corpus: t055 and t177 `Nordlicht`, t056 `Ostwind` (`Stadtwerke` is a line word), t107 `Grauwacke` (`Beton` is a line word), t109 `Müller`, t134 `Lindenhof` (`-einrichtung`), t135 `Mosel`, t140 `Silberfluss` (`IT-Services`), t146 `Hansekontor`, t152 `Kranich`, t154 `Edelweiss`, t095 `Ostwind`, t083 `Silverline`, t252 `Redwater`, t198 `Hagedorn` (`& Partner`), t186 `Vogt` (`& Söhne Gerüstbau`), t195 `Wendelin` (`Kälte- und Klimatechnik`), t012 `Fichtel` (needs lexicon `kran`).
+Rev 3 has no org rule and no person rule. One neutral class `name` covers proper nouns of every kind: company, product, project, team, place, person and code names. A name is usually the best discriminator between sibling titles, in every field.
 
-**Org rungs.** The full name is a rung when it has 10 chars or less (cost 0 up to 8 chars, 40 for 9 or 10). Cuts (11.3) are added, without the morpheme kind (org tokens are not split) and without skeletons. Org rungs are removed when they equal a stop word or a lexicon key or abbreviation of another class (`nord`, `ost`, `sand`, `nor`), so an org never reads as a direction, a material or a function word. An org with no rung left is dropped.
+**Name signals.** A `word` token without a lexicon entry becomes class `name` when one of these holds (case flags must be known, 4.1):
+1. **Inner capitals**: the raw token has an upper-case letter after a lower-case letter (`iPhone`, `GitHub`, `McKinsey`, `PostgreSQL`, `eBay`).
+2. (rev 3.1: moved to the class `acronym`, below.)
+3. **Before a legal form**: the token is capitalized and stands directly before a legal-form stop word (6.3): `Acme Inc`, `Bluefin Ltd`, `Isarwerk GmbH`. Only that one token. There is no walk to the left and there are no line words.
+4. **Sentence case**: the title language is `en` or `und` (or a pack without `nounsCapitalized`), the title is not Title Case, and the token is capitalized and is not the first word token (`Onboarding checklist for Acme`, `Trip report from Lisbon`). Title Case means every word token that is not a stop word is capitalized; then case gives no signal. The first word token is the first `word` token after leading codes, numbers and punctuation. Month and weekday words (5.4) never get this signal.
+5. **Lexicon**: an entry with `cls: 'name'` (user config, for example `{ key: 'kubernetes', cls: 'name', abbr: ['k8s'], known: ['k8s'] }`).
 
-**Persons.**
-- Tokens after a `persontitle` are dropped (up to 2).
-- **First names.** A capitalized token in `FIRST_NAMES` (15.8, about 400 common DE and EN first names, public name statistics, no real persons) is dropped together with the next token when that token is capitalized and not a lexicon word (`Gespräch Thomas Becker` -> both dropped). A first name before a legal form stays an org name candidate (`Becker GmbH` keeps `Becker`, the first name is dropped).
-- `cfg.denyTokens` (list) are always dropped. The README explains this option for surnames and internal code names.
-- `cfg.dropPersonNames: false` turns off the first-name rule.
-- `leak: 'minimal'` drops all org concepts.
+**Acronyms** (rev 3.1). A `word` token without a lexicon entry (after lookup step 0, 4.4) whose raw token is 2 to 6 letters, all upper case, in a title that is not all caps, becomes class `acronym` (`PM`, `RAM`, `SSD`, `CI`, `OG`, `NDA`, `AGB`, `MRT`, `VPN`, `GPS`, `NASA`, `DSGVO`). Excluded: stop words, legal forms, quarter, week, month, weekday, version and marker forms, Roman numerals, and `am`/`pm` after a time (noise, 5.2). Rev 3 made these tokens `name` (score 380, the top rank), so short technical acronyms beat the content words, and `leak: 'minimal'` dropped them (`AGB Version 3.1` gave an empty body). An acronym is a strong word, not a proper noun: slot T, class weight 240, prior `unknown`, kept in `minimal` (10.4). Rungs: the full word only (cost 0, plain). A known abbreviation typed in capitals (`SEO`, `HR`, `KPI`) is not an acronym concept: lookup step 0 maps it to its lexicon entry. `IT`, `EU`, `US` and `KI` are `upperOnly` lexicon entries.
+
+German titles (and packs with `nounsCapitalized: true`) use only name signals 1, 3 and 5, because all nouns are capitalized. Acronyms work in every language. So in a `de` title an unknown capitalized noun (`Kassel`, `Befund`, `Zimt`) is a plain `topic` (unknown word, 10.1). Its rarity comes from the store (10.2), which is the generic way to find specific words. Rev 2 marked such tokens as proper nouns when they could not be split and had no lexicon match; in a generic setting that turned most German nouns into names.
+
+Name and acronym tokens are never compound-split (7.2) and never become `attr` (6.4).
+
+**Name rungs.** The full word (cost 0 up to 8 chars, 40 for 9 to 12 chars), the lexicon abbreviations of a `cls: 'name'` entry, and the cuts of 11.3 without the morpheme kind. No skeletons. A name rung that equals a stop word or a key or abbreviation of another lexicon entry is removed (`nor`, `ost`, `it`), so a name never reads as a function word or another concept. A name with no rung left is dropped.
+
+**Deny tokens.** `cfg.denyTokens` (list, normalized like titles) are dropped right after tokenizing (pipeline step 2, before language detection and phrase match; rule B4 time, 9.2), in every leak level. They are never restored by the back-off and never stored as stems. Use them for person names, internal code names and words that must never show in an ID. Deny tokens match single tokens; a multi-word entry (`anna weber`) matches the token sequence.
+
+**Leak.** Names are allowed in `leak: 'normal'` (PO decision, Q3). `leak: 'minimal'` drops all `name` concepts (10.4). It keeps topics and acronyms.
+
+**Privacy note** (README, 18.9): an ID made from a title shows words of the title. The library does not know which words are person names. In `en` and `und` titles a person name in sentence case is usually a `name` concept, so `minimal` drops it. In `de` titles (and other packs with `nounsCapitalized`) a person or city name is a plain topic (only positive signals, Q12), so `minimal` keeps it: `Mitarbeitergespräch Anna Weber 2026` shows `anna` or `weber` in `minimal` too. **To keep names out of IDs, put them in `denyTokens`.** This is the only reliable tool in every language. IDs show up in URLs, logs and analytics, which matters under GDPR.
+
+### 6.7 Language packs
+
+The built-in languages are packs with the same interface as user packs (`src/lang/de.ts`, `src/lang/en.ts`). A user pack adds a language without a code change. `languagePacks` is **experimental** in v1: the interface may change before 1.0, and output for user packs is not under the 14.2 stability promise until it is declared stable.
+
+```ts
+export interface LanguagePack {
+  code: string                          // /^[a-z]{2,3}$/, not 'und', not a built-in code
+  id: string                            // version tag, recorded in the fingerprint, e.g. 'fr@1'
+  stopWords: readonly string[]          // function words; normalized like titles
+  conflictWords?: readonly string[]     // subset of stopWords removed only in titles of this language
+  noiseWords?: readonly string[]        // extra noise words (added to the shared noise tier)
+  lexicon?: readonly LexiconEntry[]     // entries without `lang` get lang = code
+  stem: (ascii: string) => string       // pure, deterministic; result is stored (8.2)
+  keyFold?: (ascii: string) => string   // fold before stemming (4.4); default identity
+  translit?: Readonly<Record<string, string>>   // extra single-char table, applied before the built-in ones
+  hints?: { chars?: string; suffixes?: readonly string[]; weakSuffixes?: readonly string[]
+            digraphs?: readonly string[] }   // 6.1
+  nounsCapitalized?: boolean            // true: name signal 4 is off, no model position after plain words (5.1, 6.6)
+  compound?: {                          // 7; omit for languages without closed compounds
+    parts: readonly string[]; linkers: readonly string[]
+    weakHeads?: readonly string[]; genericModifiers?: readonly string[]
+  }
+  phonology?: { codas: readonly string[]; onsets: readonly string[] }   // 11.3; default: the en tables
+  months?: readonly (readonly string[])[]   // 12 rows; row[0] is the 3-letter display form
+  weekdays?: readonly (readonly string[])[] // 7 rows, Monday first; row[0] is the display form (5.4)
+  weekPrefix?: string                   // default 'wk'; must end in a safe letter
+  markers?: readonly { words: readonly string[]; prefix: string; takes: 'number' | 'number-or-letter' }[]
+  units?: readonly (readonly string[])[]    // extra unit rows (5.2); row[0] is the display short form
+  versionWords?: readonly string[]      // words before a version number (5.4), e.g. fr 'version'
+  numberWords?: readonly (readonly string[])[]  // rows for 1..12; all forms of one number in a row (5.1 step 4b)
+  attr?: {                              // 6.4; omit for no attr rules
+    suffixes?: readonly string[]        // any case, token 6+ chars
+    lowerSuffixes?: readonly string[]   // only when the raw case is lower
+    lowerCaseRule?: boolean             // lower-case non-stop tokens are attr (use with nounsCapitalized)
+  }
+}
+```
+
+Rev 3.1 added `digraphs`, `weekdays`, `units`, `versionWords`, `numberWords` and `attr`, so a new language can reach the same level as `de` and `en`. The built-in packs fill every field with the data of sections 5 and 6.
+
+Rules:
+- `languages` lists the enabled codes in priority order (default `['de', 'en']`). A code must be built-in or come from `languagePacks`, else `ConfigError` reason `unknown-language`. `defaultLang` must be enabled.
+- A user pack cannot reuse a built-in code in v1 (`ConfigError` reason `builtin-pack`). To change German data, use `stopWords`, `lexicon` and `denyTokens`.
+- All lists are normalized like titles and must match `[a-z0-9]+` (phrases: words joined by single spaces). `stem` and `keyFold` must be functions.
+- `stem` output that does not match `[a-z0-9]+` is replaced by the ascii input (deterministic, no warning). The function is called once per token and part.
+- Only packs with `compound` data split compounds. Built in: `de`.
+- The fingerprint (14.2 item 9) records every pack's `code`, `id` and data; functions are recorded as `"fn"`. So `id` MUST change when `stem` or `keyFold` change.
+- Data size: a pack adds its lists to the config, not to the bundle.
 
 ---
 
 ## 7. Compound splitting (step 7)
 
+Compound splitting runs only for packs with `compound` data (6.7). The built-in data below is the `de` pack.
+
 ### 7.1 Data
 
-- `PARTS`: all single-word lexicon keys and forms with `part !== false`, plus the extra part list in section 15.6. Each part has an optional combining form without final `-e` (`schul` for `schule`), generated at build time of the lexicon map.
+- `PARTS`: all single-word lexicon keys and forms with `part !== false` and `lang` `de` or `*` (built-in and user entries), plus the generic part list in section 15.7. Each part has an optional combining form without final `-e` (`schul` for `schule`), generated at build time of the lexicon map.
 - `LINKERS = ['', 's', 'es', 'n', 'en', 'er', 'e', 'ens']`.
-- `WEAK_HEADS` (head dropped, modifier becomes the concept): `lieferung liefer vertrag vereinbarung anlage anlagen leistung leistungen dienst dienste dienstleistung versorgung system management technik wesen betrieb plattform`.
-- `GENERIC_MODIFIERS` (modifier dropped, head becomes the concept): `unterhalt haupt gesamt sonder neu alt zusatz einzel jahres`. (`ersatz` was removed in rev 2: `Ersatzteile` is its own lexicon entry.)
-- `WEAK_HEADS` is built at first use as the union of the list above, all weak words (6.3) and all domain words (6.3). So `strombeschaffung` -> `strom` (weak head `beschaffung`), same for `einkauf bedarf service material projekt`.
-- `isHeadPart(p)`: `p` is a known part and not a `GENERIC_MODIFIERS` entry. Weak heads are allowed: then 7.3 drops the head and the unknown modifier becomes the concept (`analyseplattform` -> `analyse`, `schraubenlieferung` -> `schrauben`).
+- `WEAK_HEADS` (head dropped, modifier becomes the concept), generic in rev 3: `wesen bereich thema frage bericht uebersicht liste plan planung prozess verfahren konzept system plattform projekt management leitfaden anleitung dokument vorlage sitzung besprechung protokoll information`.
+- `GENERIC_MODIFIERS` (modifier dropped, head becomes the concept): `haupt gesamt sonder neu alt zusatz einzel jahr monat`. Compared on the part text without linker (`jahres` = `jahr` + `es`).
+- `WEAK_HEADS` is built at first use as the union of the list above, all weak words (15.6) and all noise words (6.3).
+- `isHeadPart(p)`: `p` is a known part and not a `GENERIC_MODIFIERS` entry. Weak heads are allowed: then 7.3 drops the head and the modifier becomes the concept (`lernplattform` -> `lern`, `urlaubsplan` -> `urlaub`).
+
+Rev 2 weak heads and modifiers that were procurement words (`lieferung liefer vertrag vereinbarung anlage leistung dienst dienstleistung versorgung technik betrieb unterhalt`) are removed. `lieferung` and `vertrag` are normal parts now: `Pizzalieferung` -> `pizza` + `lieferung`.
 
 ### 7.2 DP split
 
-Only for tokens with per-token lang `de` (6.1). Never for `und` or `translit` tokens, org tokens or proper-noun candidates (6.6, 10.2). Input is `ascii`.
+Only for tokens with a per-token lang whose pack has `compound` data (6.1). Never for `und` or `translit` tokens or `name` tokens (6.6). Input is `ascii`.
 
 ```ts
 function split(w: string, lex: Lexicon): Part[] | null {
@@ -535,30 +777,41 @@ function splitKnown(w: string, lex: Lexicon): Part[] | null {
 }
 ```
 
-Rev 1 allowed an unknown part anywhere at -100, which beat keeping the word whole and gave `lebens+mittel+lager`, `post+avki`, `sand+haus`. Now: `lebensmittellager` -> `lebensmittel` + `lager`, `sandhaus` stays whole (`haus` is not a known part), `postavki` is never split (`und`).
+Rev 1 allowed an unknown part anywhere at -100, which beat keeping the word whole and gave `lebens+mittel+lager` and `post+avki`. Now: `lebensmittellager` -> `lebensmittel` + `lager`, `xantoplex` stays whole (no known head), `postavki` is never split (`und`).
 
 Integer scores, fixed loop order, so the result is deterministic. Cost is O(n^2 * 8), fine for 60 chars. Words longer than 64 chars are split on the first 64 only.
 
-Inflected heads: `hasPart` also accepts a known part plus a plural/case ending `e n en er s es` at the end of the word (`anlagen`, `fahrzeuge`, `gebaeude`).
+Inflected heads: `hasPart` also accepts a known part plus a plural/case ending `e n en er s es` at the end of the word (`kinder`, `fahrzeuge`, `gebaeuden`).
 
 ### 7.3 Parts to concepts
 
 | Case | Rule | Example |
 |---|---|---|
-| Lexicon has the whole word | one concept with its rungs | `brandmeldeanlage` -> `bma` |
-| Every part is in `WEAK_HEADS` or a domain word | the whole token is a domain stop word (6.3, so the 6.5 back-off can restore it) | `liefervertrag`, `leistungsvereinbarung`, `servicevertrag` |
-| Head in `WEAK_HEADS` | drop head, modifier(s) form the concept | `stromlieferung` -> `strom`, `strombeschaffung` -> `strom`, `winterdienst` -> `winter`, `aufzugsanlagen` -> `aufzug`, `mietvertrag` -> `miet`, `leasingvertrag` -> `leasing` |
-| Modifier in `GENERIC_MODIFIERS` | drop modifier, head is the concept | `unterhaltsreinigung` -> `reinigung` |
-| Both strong, 2 parts | two concepts with a bond (modifier, head) | `mittelspannungskabel` -> `ms` + `kabel`, `kantinenreinigung` -> `kantine` + `reinigung` |
-| 3+ parts | after weak/generic removal: first strong part and last strong part become concepts (bonded); middle strong parts become concepts with weight -50 | `stromlieferungsrahmenvertragsverlaengerungsvereinbarung` -> `strom`, `rahmenvertrag` (`rahmen`+`vertrag` re-joined because the pair is a lexicon word), `verlaengerung` |
-| Adjacent parts that form a lexicon word | re-join first | `rahmen` + `vertrag` -> `rahmenvertrag` |
-| Hyphenated token | split given; same rules | `smart-meter-gateways` -> lexicon `smgw` |
+| Lexicon has the whole word | one concept with its rungs | `kindertagesstaette` -> `kita` |
+| Every part is in `WEAK_HEADS`, `GENERIC_MODIFIERS` or a noise word | the whole token is a weak word (6.3, so the 6.5 back-off can restore it) | `jahresbericht`, `projektplan`, `themenliste`, `monatsbericht` |
+| Head in `WEAK_HEADS` | drop head, modifier(s) form the concept | `urlaubsplan` -> `urlaub`, `buchungssystem` -> `buchung`, `sicherheitskonzept` -> `sicherheit`, `steuerfrage` -> `steuer`, `marketingbericht` -> `marketing` |
+| Modifier in `GENERIC_MODIFIERS` | drop modifier, head is the concept | `hauptbahnhof` -> `bahnhof`, `jahresurlaub` -> `urlaub` |
+| Modifier is a `direction`, `region` or `qualifier` entry (rev 3.1) | the modifier becomes its own concept with its own class (slot Q); the rest of the token follows the other rows | `norddeutschland` -> `nord` (direction) + `deutschland` (region), `suedbahnhof` -> `sued` + `bahnhof`, `onlinekurs` -> `online` (qualifier) + `kurs` |
+| Adjacent parts that form a lexicon word | re-join first, then apply the rows above and below | `kinder` + `garten` -> `kindergarten` |
+| 2 or more strong parts left (rev 3) | **one concept for the whole token** (below) | `apfelkuchen`, `kundenportal`, `sommerfest`, `kinderbetreuungskosten` |
+| Hyphenated token | split given; same rules, in every language (5.1 step 3) | `e-mail-vorlage` -> `email` (joined lexicon form) + `vorlage` (weak head) -> `email`; `gluten-free` -> one concept `glutenfree` |
+| Hyphenated token with an unknown head (rev 3.1) | one concept; class `topic` with prior `unknown` (an unknown word), stems of every part | `mathe-arbeitsblatt`, `onboarding-checkliste` (head `checkliste` is a doc-kind entry, so its `weight` applies) |
 
-Bond display: if both bonded concepts are chosen by the fit, their rung texts are joined without a separator when the joined text is 7 chars or less (`mskabel`), else they are two adjacent segments. A joined bond counts as one segment.
+**One concept per compound (rev 3).** When two or more strong parts are left, the token stays one concept:
+- `key` = stem of the head (last strong) part; `stemKeys` = stems of every part (8.2), so df and the re-pick diff still see each part.
+- Class and prior come from the head part: a known part gives a lexicon `topic` with that entry's prior, and an entry `weight` of the head applies. A pass-2 split always has a known head. Only a typed hyphen can give an unknown head; then the concept is an unknown topic (row above).
+- Rungs (11.1): the full word (cost by length); every prefix that ends at a part boundary (`apfel`, `kinderbetreuung`) as a morph rung (60); the head part as typed (`kuchen`, `kosten`) as a head rung (60); a lexicon abbr of one part joined with the full form or abbr of the other parts when the result is 8 chars or less (`kindertagesstaettenfest` -> `kitafest`, cost of the abbr); the cuts and the skeleton of the whole word.
+- **Cryptic or plain** (rev 3.1). Morph and head rungs are cryptic (11.1), because each one drops a part that carries meaning (`fest` for `Sommerfest`, `eltern` for `Elternabend`, `miet` for `Mietvertrag`). Exception: the rung is a whole part of 5+ chars and every other part of the token is weak (a weak word or weak head), a noise word or a generic modifier (then nothing of meaning is dropped). A joined-abbr rung is plain only when every piece is a `known` abbr or a full part as typed (`kitafest`); otherwise it is cryptic.
 
-Unknown modifier parts (5+ chars, pass 2 only) are kept as concepts (often the real topic: `lebensmittel`).
+Rev 2 made two bonded concepts for 2 strong parts and up to three concepts for 3+ parts. With a procurement lexicon that was rare. With generic everyday parts it happens in most German titles, and a title like `Sommerfest Kindergarten Nordstadt Programm 2026` produced five or six compound concepts that pushed the direction and the year out of the pool. One concept per token keeps the pool at one concept per content word, as in English.
 
-Parts-only entries (15.6, `part: true`, no other data) that become concepts have `cls: 'topic'` and `prior: 'common'` (`miet`, `leasing`, `post`).
+Concept bonds (`Concept.bond`) remain only for the number bonds quarter + year and month + year (11.5), which are always joined into one segment, and (rev 3.1) the model bond word + number (5.1 step 4c, 11.5).
+
+Rev 2 used procurement words in this table. The weak-head and modifier rows work as before; only the lists changed. The rev 2 "bond display" rule for compound parts is gone with the part concepts.
+
+Unknown modifier parts (5+ chars, pass 2 only) count as strong parts. When the head is weak, they become the concept (often the real topic: `xantoplex` in `xantoplexplan`).
+
+Parts-only entries (15.7, `partOnly: true`, no other data) that become concepts have `cls: 'topic'` and `prior: 'common'`.
 
 ---
 
@@ -569,37 +822,38 @@ Parts-only entries (15.6, `part: true`, no other data) that become concepts have
 ```ts
 interface Concept {
   key: string            // identity: lexicon key (or group), or stem of the head part, or number key
-  cls: ConceptClass      // topic | attr | org | action | activity | doctype | place | direction | region | marker | year | range | quarter | week | longnum | code | quantity
+  cls: ConceptClass      // topic | name | acronym | attr | qualifier | place | direction | region | marker | year | range
+                         // | quarter | month | week | weekday | version | model | longnum | code | quantity
   weak: boolean
   verbatim: string[]     // ascii forms the user typed for this concept: full token and/or compound part
   pos: number            // index of the first source token
   tf: number             // number of merged occurrences
   lex?: LexiconEntry
   stemKeys: string[]     // lexicon-free stems of the source tokens/parts (8.2), for df and diff
-  bond?: { with: string; role: 'mod' | 'head' }
+  bond?: { with: string; kind: 'year' | 'word' }   // quarter/month + year, model number + word (11.5)
   score: number          // set in rank
   ladder: Rung[]         // set in ladders
 }
 ```
 
-Merge rule: concepts with the same `key` merge (tf adds up, pos = min). Lexicon `group` merges too (`fuhrpark` and `fahrzeug` share group `fzg`, counted once).
+Merge rule: concepts with the same `key` merge (tf adds up, pos = min). Lexicon `group` merges too (`technik` and `technology` share group `tech`, counted once). Rev 3.1: a topic whose key equals the marker word of a marker in the same title merges into the marker (5.3).
 
 ### 8.2 Stemming
 
-- **Vendored, not a dependency.**
+- **Vendored, not a dependency.** These are the stemmers of the built-in `de` and `en` packs; user packs bring their own `stem` (6.7).
   - `src/vendor/cistem.ts`: port of official `Cistem.js` (MIT, header kept). Fix the implicit global `upper` (make it `let`). Always call with `case_insensitive = true`. Input: `keyFold(surface)` of the part. Output lowercase.
   - `src/vendor/porter2.ts`: Snowball 3.2.0 generated JS for `english` (BSD-3, header kept), converted to TS with `// @ts-nocheck` only if needed. Input: ascii.
 - Stems are keys only, never displayed.
-- For `und` tokens: stem = ascii.
+- For `und` tokens (rev 3.1): stem = `pluralFold(ascii)`. `pluralFold` removes one final `s` when the word has 4+ chars and does not end in `ss`, `us`, `is` or `os` (`recipes` -> `recipe`, `registers` -> `register`, `bus`, `status`, `analysis` stay). So plural near-duplicates of short titles that get no language (`Chocolate Cake Recipes`) still share stems (Q14). Display is never affected.
 - Concept `key` for non-lexicon words: stem of the head part (or the whole token). For lexicon words: the lexicon `key` (or `group`). For numbers: the number key (5.2). `key` is only used inside one call (merge, sort, explain). It is never stored.
-- **Stored stems do not depend on the lexicon.** `stem(t)` = CISTEM (`de`) or Porter2 (`en`) of `keyFold(ascii)`, or `ascii` for `und`. The stored set is the sorted unique union of:
-  - `stem(t)` of every `word` token that survived stop words (weak and attr words included, function and domain words not),
+- **Stored stems do not depend on the lexicon.** `stem(t)` = the pack stemmer of the token language (CISTEM for `de`, Porter2 for `en`) of `keyFold(ascii)`, or `pluralFold(ascii)` for `und`. The stored set is the sorted unique union of:
+  - `stem(t)` of every `word` token that survived stop words (weak, attr, name and acronym words included; function, noise, legal-form and deny tokens not),
   - `stem(p)` of every compound part from 7.2 (splitting uses the lexicon parts, so a parts edit can change this; parts change rarely and only with a data digest change),
-  - number keys (`y2026`, `los1`, `n2345`, `c3037`), which come from tokenizer rules, not from the lexicon.
-- Phrase entries (`master service agreement`) store the stems of each word. Lexicon keys and groups (`rv`, `fzg`) are never stored.
+  - number keys (`y2026`, `m03`, `wd5`, `v2.4`, `pt1`, `d8`, `n2345`, `csku4471`, `q128gb`), which come from tokenizer rules, not from the lexicon. (User marker entries make marker keys depend on the lexicon; they change rarely and only with a config fingerprint change.)
+- Phrase entries (`machine learning`) store the stems of each word. Lexicon keys and groups (`ml`, `dev`) are never stored.
 - `concept.stemKeys` = the stems of its source tokens and parts. At read time a concept maps to stored rows like this:
   - df(concept) = **min** df over its `stemKeys` (a phrase or compound is at most as frequent as its rarest word);
-  - a concept is "in" another row when, for at least one of its source occurrences (merged concepts have several, e.g. `fuhrpark` and `fahrzeuge` in group `fzg`), **all** stems of that occurrence are in that row's stems. df of a merged concept is the max of its occurrences' df.
+  - a concept is "in" another row when, for at least one of its source occurrences (merged concepts have several, e.g. `technik` and `technology` in group `tech`), **all** stems of that occurrence are in that row's stems. df of a merged concept is the max of its occurrences' df.
 - `storedStem(s)`: identity for `storeStems: 'plain'`; `hex(siphash(K, 'stem\x1f' + s))` (16 hex chars) for `'hashed'`. `analyze()` applies it once and puts the result into `Analysis.storedStems` and each `concept.storedKeys`. Every store request and every compare in resolve uses only these stored forms. No other code calls `storedStem`, so plain and hashed modes cannot mix.
 - `SlugResult.stems` = `Analysis.storedStems`.
 
@@ -641,7 +895,7 @@ Expected behavior (tests):
 - `Cockpit` -> `cockpit` allowed, `cock` removed.
 - `Fickenscher` -> all rungs removed (hard), concept dropped.
 - `Scunthorpe` -> `scun` (syllable cut) allowed; `scunth` and `scunthorpe` removed (hard `cunt`).
-- `Assessment Center` -> lexicon `ac`. `Assessment` alone -> lexicon `asmt`.
+- `Assessment` -> `assessment` allowed (full word, verbatim); cuts starting with `ass` removed (B2). (Rev 2 used the removed procurement entries `ac` and `asmt` here.)
 - `Sexton` -> `sexton` allowed verbatim (soft), `sext` removed.
 - `Shiitake`, `Titanium`, `Kotflügel`, `Scheibenwischer`, `Hurtig`, `Kasse`, `Massnahme`, `Dokument` -> no false hits.
 - Süd is never `sd`. Hamburg is never `hh`.
@@ -650,6 +904,7 @@ Expected behavior (tests):
 
 Default `reserved`: `new edit admin api settings login logout auth create delete update search null undefined index help static assets`. Entries are normalized like titles.
 - `id` must not be in `reserved`.
+- Reserved words are checked against the whole ID (and the body in max mode). As one segment of a longer body they are fine (`admin-env-26`).
 - In max mode without tail, `body` must not be in `reserved`. If it is, a tail is forced (`new` -> `new-k3`).
 
 ---
@@ -662,23 +917,25 @@ All values are integers ("centi" units).
 
 | Class | Weight |
 |---|---|
-| topic (lexicon entry or parts-only entry) | 300 |
-| org | 240 |
-| action | 220 |
-| topic (unknown word, no lexicon entry) | 220 |
-| activity | 200 |
-| place | 200 |
+| topic (lexicon entry or parts-only entry) | 280 |
+| name (6.6) | 260 |
+| topic (unknown word, no lexicon entry) | 240 |
+| acronym (6.6, rev 3.1) | 240 |
+| place (user lexicon only) | 200 |
 | marker | 180 |
 | year, range | 160 |
-| direction, region, quarter, week | 140 |
+| direction, region, qualifier (rev 3.1), quarter, month, week | 140 |
 | attr (6.4) | 120 |
-| longnum | 120 |
-| doctype, code | 100 |
+| version, model (rev 3.1), longnum | 120 |
+| code | 100 |
+| weekday (rev 3.1) | 100 |
 | quantity | 50 |
 
-Unknown words get class `topic` with the lower weight 220, unless 6.4 makes them `attr`. Rev 1 gave them 300 plus prior 70, so adjectives and verbs beat lexicon words. Direction cancel: if the title has 3 or more different directions (`nord sued ost west mitte`), all direction concepts get score 0.
+Rev 3 changes: `org` (240), `action` (220), `activity` (200), `doctype` (100) are gone. Lexicon topics drop from 300 to 280 and unknown topics rise from 220 to 240, because the built-in lexicon is now made of common words (mostly `prior: 'common'`), not of strong domain terms. With priors this gives the order name (380) > user lexicon topic (355) > built-in lexicon topic (310) > unknown topic and acronym (300) > attr (180), before position and tf. Store df (10.2) then moves rare words up and frequent words down, which is the generic way to find what is specific in a scope. Doc-kind words (15.6) carry `weight: -60`, so they rank below the content words of the same title.
 
-Place markers (15.5) re-class only the next `word` token that has no lexicon class and is a proper-noun candidate (10.2): it becomes `place` (`Standort Kassel` if Kassel were not in the lexicon). A lexicon direction (`Standort Nord`), a number (`Standort 2026`) or a common word (`Warehouse Lease`) keeps its class.
+Unknown words get class `topic` with weight 240, unless 6.6 makes them `name` or `acronym` or 6.4 makes them `attr`. Direction cancel: if the title has 3 or more different concepts of class `direction` (rev 3.1: by class, so `nordost`, `links`, `northeast` and user directions count), all direction concepts get score 0.
+
+Rev 2 had place markers that re-classed the next word as a place. Rev 3 removes them (no built-in places). A user who needs places adds lexicon entries of class `place`.
 
 ### 10.2 Rarity
 
@@ -690,14 +947,13 @@ function ilog2q8(x: number): number {             // x >= 1, integer; returns ro
   const m = ((x << (31 - e)) >>> 27) & 15
   return e * 256 + LOG2_FRAC_Q8[m]
 }
-const NUMBER_CLASSES = new Set(['year', 'range', 'quarter', 'week', 'marker', 'longnum', 'code', 'quantity'])
+const NUMBER_CLASSES = new Set(['year', 'range', 'quarter', 'month', 'week', 'weekday', 'version', 'marker', 'model', 'longnum', 'code', 'quantity'])
 const RARITY_NUMBER = 50
 const BLEND_K = 200
 function prior(c: Concept): number {
-  if (c.lex?.prior) return PRIOR[c.lex.prior]
-  if (c.lex) return c.lex.partOnly ? PRIOR.common : PRIOR.medium            // parts-only entries (15.6): common
-  if (c.cls === 'attr') return PRIOR.unknown
-  return PRIOR[isProperNoun(c) ? 'proper' : 'unknown']
+  if (c.lex) return PRIOR[c.lex.prior]           // resolved: built-in default 'common', user default 'medium' (15.1)
+  if (c.cls === 'name') return PRIOR.proper
+  return PRIOR.unknown                             // unknown topic, acronym and attr
 }
 function rarity(c: Concept, df: number | undefined, N: number | undefined): number {   // 0..100
   if (NUMBER_CLASSES.has(c.cls)) return RARITY_NUMBER                      // fixed, no store
@@ -714,18 +970,15 @@ const PRIOR = { common: 20, medium: 50, rare: 70, unknown: 40, proper: 80 }
 
 The blend fixes the small-N swing of rev 1: at N = 1 a shared stem got 0 and a new stem got 100. Now at N = 1 the result is within 1 point of the prior, at N = 200 it is half prior and half store, at N = 2000 it is about 90% store.
 
-`isProperNoun(c)`:
-- Always true for `org` concepts.
-- Needs a case signal: case flags known, and the title is not all caps. In `en` titles also not Title Case (every non-stop word capitalized), because then case says nothing.
-- `en` (and `und`) titles: a capitalized token, not at title start, not a lexicon word.
-- `de` titles: all nouns are capitalized, so capitalization alone is not enough. True only when the token is next to an org or legal form, or when it is capitalized, not compound-splittable (7.2), and has no lexicon match by exact or stem lookup (4.4). Otherwise `unknown`.
+Rev 2's `isProperNoun(c)` is replaced by the name signals of 6.6. A concept has the `proper` prior exactly when it is of class `name` without a lexicon prior.
 
 ### 10.3 Score
 
 ```
 score = classWeight[cls]
       + floor(rarity * 3 / 2)                      // 0..150
-      + positionBonus                              // first topic-class concept +60, second +30 (topic only, not attr)
+      + positionBonus                              // T concepts (topic, name, acronym; not attr) in title order:
+                                                   // 60, 30, 15, 8, 4, then 0 (rev 3.1)
       + 40 * (tf - 1)
       + (lex.weight ?? 0)                          // -100..+100
       + (diffBoost ? 300 : 0)                      // re-pick, section 13.4
@@ -733,14 +986,16 @@ score = classWeight[cls]
 
 There is no weak term: weak concepts are not scored for the pool (6.3). Restored weak concepts (6.5 back-off) are scored as normal concepts.
 
+Rev 3 gave a bonus only to the first two T concepts, so every unknown word after position 2 scored exactly 300, and the fit broke ties by body text, which is alphabetical order (`eff-sleep-adults` beat `eff-sleep-memory`). The decreasing bonus keeps earlier words ahead, which matches how titles are written.
+
 Sort: score desc, pos asc, key asc (code-unit compare). Never use `localeCompare`. This rank order picks which concepts enter the pool and which are dropped first. The order of segments in the ID is slot order, then title position (2.1).
 
 ### 10.4 Pool
 
-`pool = concepts.filter(c => !c.weak && c.score >= 100 && c.ladder.length > 0).sort(rankOrder).slice(0, 6)`.
+`pool = concepts.filter(c => !c.weak && c.score >= 100 && c.ladder.length > 0).sort(rankOrder).slice(0, 6)`. A `model` concept counts as having a ladder (its rungs are the joined forms, 11.5). Quantities score 50 + 75 = 125 and so enter the pool at the lowest rank (rev 3.1; rev 3 said "never in pool", which its own formula contradicted); a decimal quantity has no rung and stays out.
 
 Leak filters apply before the pool:
-- `minimal`: keep only lexicon concepts of class `topic doctype action activity region direction` and `year range quarter`. Drop org, unknown words, city-level places, markers, codes, longnum. `maxSegments` becomes `min(maxSegments, 3)`.
+- `minimal`: drop concepts of class `name`, `attr`, `code`, `marker`, `model`, `version`, `longnum` and `quantity`. Keep `topic` (lexicon and unknown words), `acronym`, `qualifier`, `place`, `direction`, `region`, `year`, `range`, `quarter`, `month`, `week`, `weekday`. `maxSegments` becomes `min(maxSegments, 3)`. Rev 2 kept only lexicon concepts; with a generic lexicon that left most titles empty, so rev 3 keeps unknown topic words and drops the classes that most often carry names, numbers and identifiers. Rev 3.1 keeps acronyms (`AGB Version 3.1` gives `agb-[t12]`, not an empty body). `minimal` does not hide person names in `de` titles (6.6 privacy note).
 - `opaque`: pool is empty, empty path with no body.
 
 ---
@@ -751,23 +1006,24 @@ Leak filters apply before the pool:
 
 | Kind | Cost | Example |
 |---|---|---|
-| lexicon abbr | `15 * index` in the entry's `abbr` list (0, 15, 30, ...) | `rv` (0), `rvtr` (15); `muc` (0), `muen` (15) |
-| full ascii word, 6 chars or less | 0 | `strom`, `kassel`, `office` |
-| full ascii word, 7+ chars | 40 | `wartung`, `leasing`, `bargeld` |
-| org name, 10 chars or less (6.6) | 0 up to 8 chars, 40 for 9 or 10 | `isarwerk`, `hagedorn`, `northgate` |
+| lexicon abbr | `15 * index` in the entry's `abbr` list (0, 15, 30, ...) | `mktg` (0); `dev` (0), `entw` (15) |
+| full ascii word, 6 chars or less | 0 | `budget`, `kita`, `recipe` |
+| full ascii word, 7+ chars | 40 | `vertrieb`, `chocolate`, `release` |
+| name, 12 chars or less (6.6) | 0 up to 8 chars, 40 for 9 to 12 | `acme`, `github`, `bluefin` |
 | number long form (`2026`) | 30 | |
-| morpheme cut (prefix ending at a compound part boundary; not for org tokens) | 60 | `rueders` |
-| coda cut | 90 | `lief`, `rein`, `reinig`, `wart`, `stand`, `goett` |
-| syllable cut | 110 | `ener`, `scun`, `isar` |
-| consonant skeleton (not for org tokens) | 200 | `wtg`, `vtg`, `lfrt` |
+| morpheme cut (prefix ending at a compound part boundary; not for names); cryptic except as in 7.3 | 60 | `apfel` (from `apfelkuchen`), `kinder` (from the lexicon word `kindergarten`) |
+| head rung (the head part of a compound concept as typed, 7.3); cryptic except as in 7.3 | 60 | `kuchen` (from `apfelkuchen`) |
+| coda cut | 90 | `choc`, `chocol`, `rec`, `rel` |
+| syllable cut | 110 | `ver`, `vert`, `check`, `scun` |
+| consonant skeleton (not for names) | 200 | `vtb`, `wtg`, `lfrt` |
 
-**Plain and cryptic rungs.** A rung is *plain* when it is a full word, an org full name, a number form, a code, a lexicon abbr listed in the entry's `known` (15.1, for example `rv nda msa bma it erp hv muc kw`), or a lexicon abbr that equals a whole compound part of the source word (`winter` for `winterdienst`, `helm` for `schutzhelme`, `bargeld` for `bargeldversorgung`). All other rungs (unknown abbreviations, cuts, skeletons) are *cryptic*. The fit adds 40 per cryptic segment (12). So `bma-wtg-hv` beats a body made of four rare codes when both fit, and the choice between two spellings of one concept is made by readability, not only by length.
+**Plain and cryptic rungs.** A rung is *plain* when it is a full word, a name's or acronym's full word, a morph or head rung under the exception of 7.3 (a whole part of 5+ chars, every other part weak, noise or a generic modifier), a joined-abbr rung whose pieces are all `known` abbreviations or full parts (7.3), a number form, a code, a lexicon abbr listed in the entry's `known` (15.1, for example `mktg intl hr db faq kita`), or a lexicon abbr that equals a whole compound part of the source word (a user entry `sommerferien` with abbr `sommer`). All other rungs (unknown abbreviations, cuts, other morph and head rungs, skeletons) are *cryptic*. The fit adds 40 per cryptic segment (12). So a body of known abbreviations and full words beats a body of cuts when both fit, and the choice between two spellings of one concept is made by readability, not only by length.
 
 Build: collect all rungs, run B1, B2, B6, I8 on each, dedupe by text (keep lowest cost), sort by cost asc, then length asc, then text asc. Keep the first 4. Concepts with score < 150 keep only rungs with cost <= 110. Skeletons only for words of 7+ chars. A cut must be at least 2 chars shorter than the full word (so `mitte` has no cut `mitt`; lexicon abbreviations are explicit and exempt).
 
 **No pad-only rungs.** A rung must be a form a person would write. Rev 1 had zero-pad marker rungs (`los01`) that only existed to fill length; they are removed. The full year `2026` stays, because people write it.
 
-**`consistentRungs: true`** (option, default `false`): each concept keeps only its first rung (rung 0). The fit then fills missing length with the tail, so sibling IDs always spell a concept the same way (`kuend` in every Kündigung ID). Costs more tails; see Q9.
+**`consistentRungs: true`** (option, default `false`): each concept keeps only its first rung (rung 0). The fit then fills missing length with the tail, so sibling IDs always spell a concept the same way (`mktg` in every Marketing ID). Costs more tails; see Q9.
 
 ### 11.2 Graphemes
 
@@ -822,7 +1078,7 @@ function skeleton(ascii: string): string | null {
   const s = first + c
   return s.length >= 3 ? s : null
 }
-// wartung -> wtg, vertrag -> vtg, lieferant -> lfrt (checked by running the code)
+// zeitung -> ztg, vertrag -> vtg, kalender -> kldr (checked by running the code)
 ```
 
 ### 11.5 Number rungs
@@ -830,11 +1086,18 @@ function skeleton(ascii: string): string | null {
 | Concept | Rungs |
 |---|---|
 | year 2026 | `26` (0), `2026` (30). Blocked 2-digit forms (`18`, `88`) are removed |
+| historic year 1889 (rev 3.1) | `1889` (0) only |
 | fy year | `fy26` (0) |
-| range 2025/2026 | `2526` (0). Range over different decades `2029/2031` -> `2931` |
+| range 2025/2026 | `2526` (0). Range over different decades `2029/2031` -> `2931`. Only when the span is 9 years or less and both years are in one century |
+| wide range 1950–2020 (rev 3.1) | `1950-2020` (0): one rung that fills **two segments** (counted in `maxSegments` and `chunks`, each segment checked by B1 and I8). With separator `''` it reads `19502020`. Rev 3 gave `5020`, which a reader cannot read |
 | quarter + year bond | `26q1` when both chosen (joined, one segment) |
+| month | `mrz` / `mar` (0); month + year bond `26mrz` / `26mar` when both chosen (joined, one segment) |
 | week | `kw12` / `wk12` (0) |
-| marker | `los1` (0) only |
+| weekday (rev 3.1) | en `fri` (0), `friday` (cost by length); de `freitag` (cost by length) |
+| version | `v2`, `v24` (0) |
+| marker | `pt1`, `sprint14`, `nr4521`, `art28`, `sz` + `m` = `szm` (0) only |
+| model + word bond (rev 3.1) | joined `<word rung><digits>` (`phone8`, `pro14`, `hist101`) at the cost of the word rung, in the word's slot and position. The model concept has no rung alone: the fit can choose it only together with its word. A joined form that fails B1, B2 or I8 (`polo1`) is removed; then the model concept is lost |
+| quantity (rev 3.1) | `128gb`, `50mw`, `85m2` (0); decimal quantities have no rung |
 | longnum | last 4 digits (0) |
 
 ---
@@ -856,6 +1119,7 @@ function fit(pool: Concept[], cfg, constraint?: { minTail?: number; mustInclude?
   const subsets = subsetsByBitmask(pool, 1, maxSeg)
     .filter(s => !constraint?.mustInclude || s.some(c => constraint.mustInclude!.has(c.key)))
     .filter(s => !constraint?.onlyContent || contentKeyOf(s) === constraint.onlyContent)
+    .filter(s => s.every(c => c.cls !== 'model' || s.some(w => w.key === c.bond!.with)))   // rev 3.1: model only with its word
     .map(s => ({ s, lb: lostOf(s, pool) + 60 * Math.max(0, minSegs(s) - 2) }))
     .sort((a, b) => a.lb - b.lb || a.mask - b.mask)
   const best: Candidate[] = []                                        // best candidate per subset, kept sorted
@@ -863,7 +1127,8 @@ function fit(pool: Concept[], cfg, constraint?: { minTail?: number; mustInclude?
     if (best.length >= cfg.maxPlans && lb > best[cfg.maxPlans - 1].cost) break   // strict '>' keeps ties exact
     let top: Candidate | undefined
     for (const rungs of product(s.map(c => c.ladder))) {             // <= 4 rungs each
-      const segs = slotOrder(s, rungs, cfg)                           // T D Q N, title position inside a slot, bonds joined, fallback if first starts with digit
+      const segs = slotOrder(s, rungs, cfg)                           // T Q N, title position inside a slot, number and model bonds joined,
+                                                                      // a wide range rung gives two segments, fallback if first starts with digit
       if (segs.length > maxSeg) continue
       const body = segs.join(cfg.separator)
       for (const t of tailOptions(body.length, cfg, constraint?.minTail ?? 0)) {
@@ -899,8 +1164,8 @@ function cost(c): number {
 }
 ```
 
-- Per subset only the cheapest candidate is kept, so spelling variants (`muc` vs `muen`) never count as different candidates. Two different documents must not end up as `strom-rv-muc-26` and `strom-rv-muen-26`. (Rev 1 called this `dedupeByContent`.)
-- `byCostThenLen`: cost asc, then `id` length asc (matters in max mode), then body asc (code units).
+- Per subset only the cheapest candidate is kept, so spelling variants (`mktg` vs `marketing`) never count as different candidates. Two different documents must not end up as `mktg-budget-26q3` and `marketing-budget-26`. (Rev 1 called this `dedupeByContent`.)
+- `byCostThenLen`: cost asc, then `id` length asc (matters in max mode), then (rev 3) the rung costs of the candidate's concepts in rank order (10.3), compared as a list (lexicographic asc), then (rev 3.1) the content compared by rank (the candidate whose highest-ranked concept not shared with the other candidate ranks higher wins), then body asc (code units). The rung-cost step lets the higher-ranked concept keep its better form when costs tie (`firefox-rel-v132` beats `fir-release-v132`, both 230). Within one subset this step decides between rung combinations too.
 - With separator `''`, segments are joined without separator. The cross-boundary check B3 and the joined I8 check matter more there.
 - Size: `maxSegments` is limited to 1..5. Worst case pool 6 and `maxSegments` 5: 62 subsets x 1024 rung combos, about 63k string builds; with the default 4: 56 x 256, about 14k. The lower-bound cut skips most subsets in practice (typical titles have 3 to 5 concepts). Budget: p99 under 2 ms at the default, under 10 ms at 5 (bench in 19.6 Q12, with a gating test on the worst case).
 - If the result is empty (nothing fits), the fallback chain is: drop the `maxSegments` cap to 1 and retry, then the empty path with `fallbackWord`.
@@ -912,28 +1177,45 @@ With `tailMin` 2 and separator `-`, a body of length L-1 or L-2 (15 or 14) has n
 - No rung exists only to pad (11.1): no zero-pad markers, cuts must be 2+ chars shorter than the word, every cut and unknown abbr pays the cryptic cost.
 - So the fit prefers a short tail over an ugly fill. The padding-tail rate is measured (Q4) and reported to the PO with the Q1 question. `lengthMode: 'max'` stays the "readable" preset.
 
-### 12.2 Worked cost checks (rev 2 rules, hand-computed)
+### 12.2 Worked cost checks (rev 3 rules, hand-computed)
 
-Ranking for t001 `Rahmenvertrag Stromlieferung Standorte Nord 2026` (no store, priors only): `strom` 300 + 75 + 60 = 435, `y2026` 160 + 75 = 235, `nord` 140 + 75 = 215, `rahmenvertrag` 100 + 75 = 175. `standorte` is weak and not in the pool.
-
-| Candidate | Len | Cost |
-|---|---|---|
-| `strom-rv-nord-26` | 16 | rungs 0 + cryptic 0 + lost 0 + chunks 120 + tail 0 = **120** |
-| `strom-nord-2026` | 15 | no tail option in exact mode |
-| `strom-nord-26-<t2>` | 16 | lost rv 175 + chunks 60 + tail 250 = 485 |
-| `strom-rv-nord-<t2>` | 16 | lost y2026 235 + chunks 60 + tail 250 = 545 |
-| `strom-rv-26-<t4>` | 16 | lost nord 215 + chunks 60 + tail 350 = 625 |
-
-For t085 `Rahmenvertrag für Stromlieferung der Standorte 2026` (no direction): pool `strom`, `y2026`, `rahmenvertrag`.
+**A. `Jahresbericht Vertrieb Nord 2026`** (no store, priors only). Language `de` (lexicon hit `nord`, compound `jahresbericht`, parts hit `vertrieb` of 8 chars, 6.1). `jahresbericht` = `jahr` (generic modifier) + `es` + `bericht` (weak head): all parts weak or generic, so the token is a weak word and not in the pool. Ranking: `vertrieb` (parts-only entry, prior common) 280 + 30 + 60 = 370, `y2026` 160 + 75 = 235, `nord` (direction, prior medium) 140 + 75 = 215. Ladders: `vertrieb` 40, `ver` 110 (syll), `vert` 110 (syll), `vtb` 200; `nord` 0; `26` 0, `2026` 30.
 
 | Candidate | Len | Cost |
 |---|---|---|
-| `strom-rv-2026-<t2>` | 16 | rung `2026` 30 + chunks 60 + tail 250 = **340** |
-| `strom-rvtr-26-<t2>` | 16 | rung `rvtr` 15 + cryptic 40 + chunks 60 + tail 250 = 365 |
-| `strom-rv-26-<t4>` | 16 | chunks 60 + tail 350 = 410 |
-| `strom-2026-<t5>` | 16 | lost rv 175 + rung 30 + tail 400 = 605 |
+| `vertrieb-nord-26` | 16 | rungs 40 + cryptic 0 + lost 0 + chunks 60 + tail 0 = **100** |
+| `vertrieb-nord-2026` | 18 | too long |
+| `vert-nord-26-<t3>` | 16 | 110 + 40 + 60 + 300 = 510 (same subset, so not a separate candidate) |
+| `vertrieb-nord-<t2>` | 16 | 40 + lost y2026 235 + tail 250 = 525 |
+| `vertrieb-2026-<t2>` | 16 | 40 + 30 + lost nord 215 + tail 250 = 535 |
 
-Result `strom-rv-2026-<t2>`: body plus a 2-char tail, the shape the PO asked for (`strom-rvtr-26-k3`), with a plain spelling.
+**B. The same title again, after A** (memory store, tier C). `countBody('vertrieb-nord-26') = 1`, `findByBody` gives the same stems, so the diff is empty and the content stays. The body-only ID is taken, so `t = tailNeed(1) = 2` and `refitWithTail` keeps the same three concepts with room for a tail (body 13 or less):
+
+| Candidate | Len | Cost |
+|---|---|---|
+| `ver-nord-2026-<t2>` | 16 | rungs 110 + 0 + 30 + cryptic 40 + chunks 60 + tail 250 = **490** |
+| `vert-nord-26-<t3>` | 16 | 110 + 40 + 60 + 300 = 510 |
+| `ver-nord-26-<t4>` | 16 | 110 + 40 + 60 + 350 = 560 |
+| `vtb-nord-2026-<t2>` | 16 | 200 + 30 + 40 + 60 + 250 = 580 |
+
+Result `ver-nord-2026-<t2>`, reason `shared-body`, warning `tail-grown`. This is the exact-mode cost of Q1: the duplicate loses the readable spelling. In `max` mode the result is `ver-nord-26-<t2>` (460, 14 chars).
+
+**C. `Q3 2026 Marketing Budget Review`**. Language `en` (`-ing`). Title Case, so no name signal. Ranking: `marketing` (shared lexicon entry, prior common) 280 + 30 + 60 = 370, `budget` (shared part, prior common) 280 + 30 + 30 = 340, `review` (unknown, third T concept) 240 + 60 + 15 = 315, `y2026` 235, `q3` 215. Ladders: `mktg` 0 (known), `marketing` 40, `mark` 90, `market` 90; `budget` 0, `bud` 110; `review` 0, `rev` 90; `26`, `2026`; `q3` (bonded with the year to `26q3`).
+
+| Candidate | Len | Cost |
+|---|---|---|
+| any body with all five concepts | 17+ | too long (`mktg-bud-rev-26q3` is 17) |
+| `mktg-budget-26q3` | 16 | lost review 315 + chunks 60 = **375** |
+| `mktg-review-26q3` | 16 | lost budget 340 + chunks 60 = 400 |
+| `mktg-budget-2026` | 16 | rung 30 + lost q3 215 + review 315 + chunks 60 = 620 |
+
+**D. `Chocolate Cake Recipe`**. Language `und` (no hint), so no split and EN cut tables. Title Case, no name signal. Ranking: `chocolate` 240 + 60 + 60 = 360, `cake` 330, `recipe` 315. Ladders: `chocolate` 40, `choc` 90, `chocol` 90; `cake` 0; `recipe` 0, `rec` 90.
+
+| Candidate | Len | Cost |
+|---|---|---|
+| `choc-cake-recipe` | 16 | rungs 90 + cryptic 40 + chunks 60 = **190** |
+| `chocolate-recipe` | 16 | 40 + lost cake 330 = 370 |
+| `choc-cake-rec-<t2>` | 16 | 90 + 90 + 80 + 60 + 250 = 570 |
 
 ---
 
@@ -1140,8 +1422,8 @@ function* resolve(doc: Analysis, cfg: ResolvedConfig, exclude: ReadonlySet<strin
 ```
 
 What changed against rev 1, and why:
-- Rev 1 took the first free candidate before it looked at what differs (t010 got `reinig-verw-los1`, which does not show "Süd"). Now the best body is checked first. If it is taken, `findByBody` gives the diff, the diff concepts get +300, and only candidates that contain a diff concept are tried. For t010 after t007 the diff is `{sued}`, so the ID shows `sued`.
-- Rev 1 re-picked identical or same-stem titles to a body with less content (t086, t327, t337). Now an empty diff keeps the body and only the tail differs.
+- Rev 1 took the first free candidate before it looked at what differs (a "Süd" sibling of a "Nord" title got an ID without `sued`). Now the best body is checked first. If it is taken, `findByBody` gives the diff, the diff concepts get +300, and only candidates that contain a diff concept are tried. For the "Süd" sibling the diff is `{sued}`, so the ID shows `sued`.
+- Rev 1 re-picked identical or same-stem titles to a body with less content. Now an empty diff keeps the body and only the tail differs.
 - Rev 1 had a different order for exists-only stores (re-pick first). Now every tier keeps the best body and adds a tail; only tier C re-picks, and only with a non-empty diff.
 - `n` (rows sharing the best body) sets the first tail length. The tail length and the start index are then counted again on the **final** body (after `refitWithTail`), minus a body-only row with the same text. So in tier B and C the n-th identical title starts at the first unused index, which is the index the tier A walk also reaches.
 - After a re-pick to a free body, `n = 0`.
@@ -1190,9 +1472,9 @@ for (let r = 0; r < 5; r++) {
   let last = ''
   try {
     return await prisma.$transaction(async tx => {
-      const res = await slugger.generate(title, { store: prismaStore({ delegate: tx.contract, ... }), scope, exclude: tried })
+      const res = await slugger.generate(title, { store: prismaStore({ delegate: tx.document, ... }), scope, exclude: tried })
       last = res.id
-      return tx.contract.create({ data: { tenantId: scope, title, slug: res.id, slugBody: res.body, slugStems: [...res.stems] } })
+      return tx.document.create({ data: { tenantId: scope, title, slug: res.id, slugBody: res.body, slugStems: [...res.stems] } })
     })
   } catch (e) { if (isUniqueViolation(e, 'slug')) { tried.add(last); continue } throw e }
 }
@@ -1206,7 +1488,7 @@ for (let r = 0; r < 5; r++) {
 | empty title (`onEmpty: 'fallback'`, default) | `cfg.fallbackWord` (`doc`) | exact: `L - len(body) - sep`; max: `tailMin` |
 | empty title, `onEmpty: 'throw'` | - | `InputError` |
 
-`body` stored as `''` for opaque, `doc` for empty. The tail index starts at `countBody(body)` (tier B, C) or 0 (tier A), as in 13.4. Hash input uses the canonical title (or `raw:` hex for scripts that were dropped), so `t373` and `t374` differ.
+`body` stored as `''` for opaque, `doc` for empty. The tail index starts at `countBody(body)` (tier B, C) or 0 (tier A), as in 13.4. Hash input uses the canonical title (or `raw:` hex for scripts that were dropped), so a CJK title and an Arabic title differ.
 
 **Why opaque needs `secret`.** `K_V1` is public. Without a secret, anyone with a list of likely titles can compute the opaque ID of each and confirm a guess. With a secret this is not possible. So `leak: 'opaque'` without `secret` is a `ConfigError` (reason `opaque-needs-secret`). The same holds for `storeStems: 'hashed'` (stems are dictionary words, so unkeyed hashes are easy to reverse): `ConfigError` reason `hashed-needs-secret`. `titleKey` is keyed with `secret` when one is set; without it, `titleKey` is a plain title check and the README says to keep it server-side. Normal-mode tails without a secret are 2 to 6 chars, so they confirm a guessed title only weakly (at t = 2 a wrong guess also matches with chance 1/560); the README states this.
 
@@ -1218,7 +1500,7 @@ for (let r = 0; r < 5; r++) {
 
 - Banned in `src/**` (except `src/cli.ts`): `Math.random`, `Date`, `crypto`, `Intl`, `localeCompare`, `toLocaleLowerCase`, `toLocaleUpperCase`, `toUpperCase` (`ß` -> `SS`), `Intl.Segmenter`, `BigInt`, `TextEncoder`, `process`, `Buffer`, `require`, `node:*` imports. Enforced in two ways:
   - Biome `noRestrictedGlobals` / `noRestrictedImports` on the source (identifiers, not strings).
-  - `test/dist-sandbox.test.ts`: loads `dist/index.cjs` and `dist/adapters/memory.cjs` with `node:vm` in a fresh context that has only `module`, `exports` and the ES globals. In that context `process`, `Buffer`, `require`, `crypto`, `TextEncoder`, `Intl`, `Date`, `BigInt` and `Math.random` are getters that throw. Then it runs the golden subset through `slug()` and a memory store. A text grep is not used, because strings like "data processing agreement" would match.
+  - `test/dist-sandbox.test.ts`: loads `dist/index.cjs` and `dist/adapters/memory.cjs` with `node:vm` in a fresh context that has only `module`, `exports` and the ES globals. In that context `process`, `Buffer`, `require`, `crypto`, `TextEncoder`, `Intl`, `Date`, `BigInt` and `Math.random` are getters that throw. Then it runs the golden subset through `slug()` and a memory store. A text grep is not used, because data strings like "processing" or "date" would match.
 - No floats in decisions. All scores and costs are integers.
 - Every sort has full tie-breakers ending in a code-unit string compare.
 - Store results are looked up by key, never used by iteration order.
@@ -1228,13 +1510,13 @@ for (let r = 0; r < 5; r++) {
 
 1. IDs are generated once and stored. A title edit keeps the ID. Rows are retired, never deleted, so an ID is never handed out twice.
 2. `ALGORITHM_VERSION = 1`. Stored with every row and returned in `SlugResult.algorithm`.
-3. Everything that affects output lives in `src/data/v1/` (normalization tables, stop words, domain/weak lists, lexicon, places, markers, linkers, coda/onset tables, blocklists, tail alphabets, ranking constants, `LOG2_FRAC_Q8`, `K_V1`) or is vendored (stemmers).
+3. Everything that affects output lives in `src/data/v1/` (normalization tables, stop words, number words, noise, weak and doc-kind lists, legal forms, lexicon, qualifiers, compound parts, markers, months, weekdays, units, linkers, coda/onset tables, blocklists, tail alphabets, ranking constants, `LOG2_FRAC_Q8`, `K_V1`), in the built-in packs `src/lang/de.ts` and `src/lang/en.ts`, or is vendored (stemmers). User config (lexicon, stop words, deny tokens, packs) is covered by the config fingerprint, not by the data digest.
 4. `V1_DATA_DIGEST` (hex SipHash of the canonical JSON of the v1 profile) is a constant in `src/data/v1/digest.ts`. A test recomputes it. Any edit to v1 data fails CI until the digest is updated on purpose.
-5. Golden files `test/golden/v1.{exact,max,minimal,opaque,len24,underscore}.{independent,sequential}.json`: all fixtures, once each alone (empty memory store) and once through one memory store in fixture order, scope `'golden'`. The `opaque` goldens use the fixed test secret `golden-secret-0123456789`. Format `{ "t001": "strom-rv-nord-26", ... }`.
+5. Golden files `test/golden/v1.{exact,max,minimal,opaque,len24,underscore}.{independent,sequential}.json`: all fixtures, once each alone (empty memory store) and once through one memory store in fixture order, scope `'golden'`. The `opaque` goldens use the fixed test secret `golden-secret-0123456789`. Format `{ "<fixture id>": "<id>", ... }`.
 6. Before 1.0: a minor version may change output. The changeset must say "ID output changed".
 7. From 1.0: a change to the default output for the same input/config/store state is a **major** release, or ships as opt-in `algorithm: 2` in a minor release. v1 stays in the bundle for at least one more major. A CI script (`scripts/check-golden-changeset.ts`) fails a PR that changes `test/golden/v1.*` without a major changeset.
 8. Exception: adding words to the v1 blocklist is allowed in a minor release. In the independent goldens (each fixture alone) the diff may only change IDs that contain the new word. In the sequential goldens (one store, fixture order) later IDs may change as a cascade, because one changed ID changes body counts for later titles; the check script only requires that the first changed ID in fixture order contains the new word.
-9. `SlugResult.configFingerprint` = 16 hex chars of SipHash over the canonical JSON of the resolved config (functions are recorded as `"fn"`).
+9. `SlugResult.configFingerprint` = 16 hex chars of SipHash over the canonical JSON of the resolved config (functions are recorded as `"fn"`; language packs as their `code`, `id` and data, 6.7).
 
 ---
 
@@ -1243,451 +1525,316 @@ for (let r = 0; r < 5; r++) {
 ### 15.1 Entry type
 
 ```ts
-export type ConceptClass = 'topic' | 'attr' | 'org' | 'action' | 'activity' | 'doctype' | 'place' | 'direction' | 'region'
-  | 'marker' | 'year' | 'range' | 'quarter' | 'week' | 'longnum' | 'code' | 'quantity'
+export type ConceptClass = 'topic' | 'name' | 'acronym' | 'attr' | 'qualifier' | 'place' | 'direction' | 'region'
+  | 'marker' | 'year' | 'range' | 'quarter' | 'month' | 'week' | 'weekday' | 'version' | 'model'
+  | 'longnum' | 'code' | 'quantity'
+export type LexiconClass = 'topic' | 'name' | 'qualifier' | 'place' | 'direction' | 'region' | 'marker'
 
 export interface LexiconEntry {
-  key: string                       // ascii lemma: 'rahmenvertrag', 'master service agreement'
-  lang: 'de' | 'en' | '*'           // required for built-in entries (6.1); user entries default '*'
+  key: string                       // ascii lemma: 'abteilung', 'machine learning'
+  lang: Lang | '*'                  // required for built-in entries (6.1); user entries default '*'
   phrase?: readonly string[]        // multi-word match on ascii tokens
   forms?: readonly string[]         // extra ascii forms: plurals, combining forms
-  abbr?: readonly string[]          // display rungs; cost 15 * index (11.1)
+  abbr?: readonly string[]          // display rungs; cost 15 * index (11.1); for 'marker': abbr[0] is the prefix (5.3)
   known?: readonly string[]         // the subset of abbr that is well known (plain rung, no cryptic cost)
-  cls: ConceptClass                 // 'attr' is not allowed in the lexicon
-  weak?: boolean
+  cls: LexiconClass                 // 'attr', 'acronym' and the number classes are not allowed in the lexicon
+  weak?: boolean                    // weak word (6.3): never in the pool, back-off only
+  upperOnly?: boolean               // match only when the raw token is upper case ('IT', 'EU', 'US', 'DACH')
+  lowerOnly?: boolean               // rev 3.1: match only when the raw token is lower case ('links', 'rechts')
   weight?: number                   // -100..100
-  prior?: 'common' | 'medium' | 'rare'   // default 'medium'
+  prior?: 'common' | 'medium' | 'rare'   // built-in default 'common', user default 'medium'
   part?: boolean                    // usable as compound part, default true for single words
-  partOnly?: boolean                // 15.6 entries: cls 'topic', prior 'common'
+  partOnly?: boolean                // 15.7 entries: cls 'topic', prior 'common'
   group?: string                    // merge key for synonyms
+  pair?: string                     // rev 3.1, built-in weak and doc-kind entries only: key of the entry
+                                    // with the same meaning in the other built-in language (15.6)
 }
 ```
 
-The built-in lexicon targets about 600 entries at 1.0 (350 DE, 150 EN, 100 places). The tables below are the required starting set for M2. Rungs list short to long, and the order sets the cost. A full word of 6 chars or less is always an extra rung and need not be listed.
+Rev 3 changes: `cls` uses the smaller `LexiconClass` (`org`, `doctype`, `action`, `activity` are gone; `name` and `marker` are new), `upperOnly` replaces the rev 2 note "`dach`, `us`, `eu` only in upper case", and built-in entries default to `prior: 'common'` (they are everyday words), while user entries default to `medium` (a user's domain words are usually more specific than everyday words). Rev 3.1: class `qualifier`, flag `lowerOnly`, field `pair`. `upperOnly` and `lowerOnly` together give `ConfigError` reason `invalid-lexicon`.
 
-**Known abbreviations (v1).** These are marked `known` in their entries. Everything else in an `abbr` list is cryptic (11.1). Rule for adding: the abbreviation is used in German or English procurement text without explanation.
+Rungs list short to long, and the order sets the cost. A full word of 6 chars or less is always an extra rung and need not be listed. Lookup by stem (4.4) uses the same entries; no extra data.
+
+**Merge with user entries.** `cfg.lexicon` is merged over the built-ins by `key`: the same key replaces the built-in entry completely (so `{ key: 'team', lang: '*', cls: 'topic' }` makes `team` a normal word, not weak). New keys are added. Pack lexicons (6.7) merge the same way, before user entries.
+
+### 15.2 Rules for built-in entries
+
+The built-in lexicon is small on purpose. Every entry must pass the **cross-domain test**:
+1. The word is general language (a word a general reader of that language uses), or an abbreviation that is used without explanation in at least three unrelated fields (checked against the `kind` values of the corpus).
+2. No brand, product, person, company or city names. Regions only at country or continent level (15.5).
+3. `known` only for abbreviations that a general reader of that language knows (`faq`, `hr`, `ki`, `kita`, `intl`). Office, club and company jargon (`va`, `ma`, `mv`, `jhv`, `gf`, `br`, `abt`) is not `known`: a reader outside that office cannot expand it. Every other `abbr` is cryptic (11.1).
+4. Every entry has an explicit `lang` (6.1).
+5. Every `abbr` passes B1, B2 and I8 (a unit test runs them on the data).
+6. A group merges words with the same meaning in every field. A word whose compounds often mean something else does not join a group (`entwicklung` is not in group `dev`: `Stadtentwicklung` is urban planning, not software).
+7. Data changes follow 14.2 (digest, goldens, changeset).
+
+**Size.** The starting set below has about 250 entries (15.3 to 15.6, counting each key of a grouped row; forms are not counted). The target at 1.0 is about 400. Growth is driven by the corpus report (19.6): words that appear in at least three domains and get poor rungs or wrong classes. No single field drives growth. Field-specific words go into the README recipes (15.8), not into the core.
+
+**Known abbreviations (v1).** These are marked `known` in their entries (bold in the tables below). A unit test checks that this list and the `known` fields agree.
 
 ```
-rv lv nda msa sla po rfq rfp rfi loi mou dpa avv qbr ppa sow banf it hw sw erp rz cloud bma bhkw
-usv pv ms h2 hlk psa fm hv kfz fzg wtg ih gs gaa pgk lksg dsgvo kw muc ffm hbg nbg emea apac dach eu uk us
+admin agm ai allhands api apac app arch at auth ch config crm dach db de dept dev docs doku emea eng
+env erp eu faq fin gov hr hw infra info intl intro it kickoff ki kita kpi lab latam mail mgmt ml
+mktg mtg oss ops org perf poc pr prod qa retro roi sec seo spec stats sw tech ui uk uni us ux wip
 ```
 
-Lookup by stem (4.4) uses the same entries; no extra data.
+Rev 3.1 removed `abt br gf jhv ma mv va` from this list (rule 3). Lookup step 0 (4.4) uses this list: an upper-case token equal to one of these abbreviations maps to its entry.
 
-### 15.2 DE document types and actions
+### 15.3 DE entries (`lang: 'de'`)
 
-All entries in 15.2 and 15.3 have `lang: 'de'`, except `it`, `erp`, `cloud`, `catering`, `hardware`, `software`, `firewall`, `toner`, `monitor`, `notebook` (`lang: '*'`).
+Prior `common` unless noted. `abbr` in rung order; `known` abbreviations in bold.
 
-| key (forms) | cls | abbr | notes |
+| key (forms) | cls | abbr | flags |
 |---|---|---|---|
-| rahmenvertrag (rahmenvertraege, rahmenvertrags) | doctype | rv, rvtr | group `rv` |
-| rahmenvereinbarung (rahmenvereinbarungen) | doctype | rv, rvtr | group `rv` (open question Q5) |
-| leistungsverzeichnis | doctype | lv | `liefervertrag` must never become `lv` |
-| dienstleistungsvertrag | doctype, weak | dl | |
-| werkvertrag | doctype | wv | |
-| bauvertrag | doctype | bauv | |
-| ingenieurvertrag | doctype | ingv | |
-| generalunternehmervertrag | doctype | guv | |
-| betreibervertrag | doctype | betr | |
-| auslagerungsvertrag | doctype | ausl | |
-| datenschutzvereinbarung | doctype | dsv | |
-| auftragsverarbeitungsvertrag, avv | doctype | avv | |
-| vertraulichkeitsvereinbarung, geheimhaltungsvereinbarung | doctype | nda | group `nda` |
-| aenderungsvereinbarung | doctype | aend | |
-| zusatzvereinbarung | doctype | zusatz | |
-| angebot (angebote) | doctype | ang | |
-| gegenangebot | doctype | gegang | |
-| bestellung (bestellungen) | doctype, weak | best | |
-| einzelbestellung | doctype, weak | best | |
-| bestellanforderung, banf | doctype | banf | |
-| abruf | doctype | abruf | |
-| leistungsbeschreibung | doctype | lb | |
-| lastenheft | doctype | lh | |
-| pflichtenheft | doctype | pfh | |
-| ausschreibung | action | ausschr | |
-| vergabeverfahren | action | vergabe | |
-| markterkundung | action | mke | |
-| kuendigung (kuendigungs) | action | kuend, kdg | readable form first (rev 2) |
-| verlaengerung, verlaengerungsoption | action | verl | |
-| anpassung | action | anp | |
-| aenderung | action | aend | |
-| verhandlung (verhandlungs) | action | verh | |
-| nachverhandlung | action | nverh | |
-| preisverhandlung | action | preisverh | never `pv` |
-| jahresverhandlung, jahresgespraech | action | jg | |
-| konditionsgespraech | action | kond | |
-| lieferantengespraech | action | lfgespr | |
-| verhandlungsstrategie | action | vstrat | |
-| eskalation | action | eskal | |
-| rueckforderung | action | rueckf | |
-| gutschrift | action | gs | |
-| pruefung | action | pruef | |
-| einfuehrung | action | einf | |
-| umstellung | action | umst | |
-| umzug | action | umzug | |
-| sanierung | action | san | |
-| erweiterung | action | erw | |
-| neubau | action | neubau | |
-| umbau | action | umbau | |
-| kick off, kickoff | action | kickoff | |
-| vorbereitung | action, weak | vorb | |
-| preiserhoehung | action | preiserh | |
-| bewertung | activity | bew | |
-| qualifizierung, praequalifikation | activity | quali | |
-| risikoanalyse | activity | risiko | |
-| make or buy | activity | mob | |
+| abteilung (abteilungen) | topic | abt | |
+| geschaeftsfuehrung | topic | gf | |
+| verwaltung | topic | verw | |
+| personalabteilung, personalwesen | topic | **hr** | group `hr` |
+| buchhaltung | topic | buha | |
+| entwicklung (entwicklungen) | topic | entw | no group (rule 15.2.6) |
+| dokumentation | topic | **doku**, **docs** | group `docs` |
+| veranstaltung (veranstaltungen) | topic | va | |
+| weiterbildung | topic | wb | |
+| universitaet | topic | **uni** | group `uni` |
+| hochschule | topic | hs | |
+| kindertagesstaette, kita | topic | **kita** | |
+| kindergarten (kindergaerten) | topic | kiga | |
+| krankenhaus (krankenhaeuser) | topic | kh | |
+| mitarbeiter (mitarbeitende, mitarbeiterin, mitarbeiterinnen) | topic | ma | |
+| betriebsrat | topic | br | |
+| mitgliederversammlung | topic | mv | |
+| jahreshauptversammlung | topic | jhv | |
+| oeffentlichkeitsarbeit | topic | **pr** | |
+| wissenschaft (wissenschaften) | topic | wiss | |
+| gesellschaft | topic | ges | |
+| technik | topic | **tech** | group `tech` |
+| technologie (technologien) | topic | **tech** | group `tech` |
+| kuenstliche intelligenz (phrase), ki | topic | **ki** | group `ai`, `upperOnly` for the single form `ki` |
+| haeufig gestellte fragen (phrase) | topic | **faq** | group `faq` |
+| erste hilfe (phrase) | topic | eh | |
+| retrospektive (retrospektiven) | topic | **retro** | group `retro` (rev 3.1) |
+| nord, sued, ost, mitte | direction | | prior medium (`west` is shared, 15.5) |
+| nordost, nordwest, suedost, suedwest | direction | | prior medium |
+| links, rechts | direction | | prior medium, `lowerOnly` (rev 3.1: `Knie links` is a direction, `Nützliche Links` is a noun) |
+| deutschland | region | **de** | prior medium |
+| oesterreich | region | **at** | prior medium |
+| schweiz | region | **ch** | prior medium |
+| europa (europaeisch, europaeische, europaeischen) | region | **eu** | prior medium, group `eu` |
 
-### 15.3 DE topics and activities (excerpt for M2, extend to ~300)
+### 15.4 EN entries (`lang: 'en'`)
 
-| key | cls | abbr |
+| key (forms) | cls | abbr | flags |
+|---|---|---|---|
+| management | topic | **mgmt** | |
+| development | topic | **dev** | group `dev` |
+| documentation, docs | topic | **docs** | group `docs` |
+| application (applications) | topic | **app** | group `app` |
+| configuration, config | topic | **config** | |
+| administration | topic | **admin** | `admin` is a reserved word (9.3); as one segment of a longer body it is fine |
+| environment (environments) | topic | **env** | |
+| production | topic | **prod** | |
+| infrastructure | topic | **infra** | |
+| technology (technologies), technical | topic | **tech** | group `tech` |
+| department, dept | topic | **dept** | |
+| human resources (phrase) | topic | **hr** | group `hr` |
+| operations | topic | **ops** | |
+| introduction | topic | **intro** | |
+| specification (specifications), spec | topic | **spec** | |
+| requirements | topic | reqs | |
+| architecture | topic | **arch** | |
+| database (databases) | topic | **db** | |
+| authentication | topic | **auth** | `auth` is reserved as a whole ID (9.3) |
+| performance | topic | **perf** | |
+| security | topic | **sec** | |
+| statistics | topic | **stats** | |
+| laboratory | topic | **lab** | |
+| university (universities) | topic | **uni** | group `uni` |
+| government | topic | **gov** | |
+| organization, organisation | topic | **org** | |
+| association | topic | assoc | |
+| artificial intelligence (phrase) | topic | **ai** | group `ai` |
+| machine learning (phrase) | topic | **ml** | |
+| user interface (phrase) | topic | **ui** | |
+| user experience (phrase) | topic | **ux** | |
+| frequently asked questions (phrase) | topic | **faq** | group `faq` |
+| proof of concept (phrase) | topic | **poc** | |
+| quality assurance (phrase) | topic | **qa** | |
+| customer relationship management (phrase) | topic | **crm** | group `crm` |
+| search engine optimization, search engine optimisation (phrase) | topic | **seo** | |
+| key performance indicator, key performance indicators (phrase) | topic | **kpi** | |
+| return on investment (phrase) | topic | **roi** | |
+| pull request (phrase) | topic | **pr** | |
+| open source (phrase) | topic | **oss** | |
+| work in progress (phrase) | topic | **wip** | weak |
+| all hands (phrase) | topic | **allhands** | |
+| annual general meeting (phrase) | topic | **agm** | |
+| retrospective, retro | topic | **retro** | group `retro` |
+| finance, financial | topic | **fin** | |
+| accounting | topic | acct | |
+| engineering | topic | **eng** | |
+| customer (customers) | topic | cust | |
+| meeting (meetings) | topic | **mtg** | weak (15.6), pair `besprechung` |
+| north, south, east, central | direction | | prior medium (`west` is shared, 15.5) |
+| northeast, northwest, southeast, southwest | direction | | prior medium |
+| left, right | direction | | prior medium (no stem lookup for directions, 4.4, so `Rights` stays a word) |
+| united states (phrase), usa | region | **us** | prior medium, group `us` |
+| united kingdom, great britain (phrase) | region | **uk** | prior medium, group `uk` |
+| europe, european | region | **eu** | prior medium, group `eu` |
+
+### 15.5 Shared entries (`lang: '*'`) and qualifiers
+
+Same spelling and meaning in German and English. They add no language score (6.1).
+
+| key (forms) | cls | abbr | flags |
+|---|---|---|---|
+| international (internationale, internationalen, internationaler) | topic | **intl** | |
+| information (informationen, info, infos) | topic | **info** | weak |
+| marketing | topic | **mktg** | |
+| software | topic | **sw** | |
+| hardware | topic | **hw** | |
+| it | topic | **it** | `upperOnly` (`it` is an EN function word) |
+| erp | topic | **erp** | |
+| crm | topic | **crm** | group `crm` |
+| api (apis) | topic | **api** | `api` is reserved as a whole ID (9.3) |
+| app (apps) | topic | **app** | group `app` |
+| email, e-mail, mail | topic | **mail** | |
+| onboarding | topic | onb | |
+| kick off, kickoff, kick-off | topic | **kickoff** | |
+| workshop (workshops), webinar, newsletter, podcast | topic | | full word only; listed for `lang` and as parts |
+| west | direction | | prior medium (rev 3.1: one entry for de and en) |
+| emea, apac, latam | region | **emea**, **apac**, **latam** | prior medium |
+| dachregion (dach) | region | **dach** | prior medium, `upperOnly`, `part: false` (rev 3.1: the key differs from the part `dach`, roof, 15.7; only upper-case `DACH` matches this entry) |
+| eu | region | **eu** | prior medium, `upperOnly`, group `eu` |
+| us | region | **us** | prior medium, `upperOnly` (`us` is a pronoun and an EN function word, 6.3), group `us` |
+| uk | region | **uk** | prior medium, group `uk` |
+
+**Qualifiers** (rev 3.1, class `qualifier`, slot Q, class weight 140, prior medium, kept in `minimal`). Generic words that say which kind of a thing a title is about. Full word only, no abbr.
+
+| key (forms) | lang | group |
 |---|---|---|
-| strom (strompreis, strompreise as forms via split) | topic | strom |
-| oekostrom | topic | oeko |
-| erdgas | topic | erdgas, gas |
-| gas | topic | gas |
-| waerme | topic | waerme |
-| fernwaerme | topic | fernw |
-| energie | topic | ener, energie |
-| wasserstoff | topic | h2 |
-| blockheizkraftwerk | topic | bhkw |
-| netzersatzanlage | topic | nea |
-| notstromaggregat | topic | nsa |
-| usv, usv-anlage | topic | usv |
-| umspannwerk | topic | uw |
-| ortsnetzstation | topic | ons |
-| transformator (transformatoren) | topic | trafo |
-| mittelspannung | topic | ms |
-| mittelspannungsschaltanlage | topic | msanl |
-| kabel | topic | kabel |
-| kabelschutzrohr | topic | ksr |
-| kabelverlegung | activity | kabel |
-| smart meter gateway (smart-meter-gateways) | topic | smgw |
-| zaehler, zaehlertechnik | topic | zaehler |
-| zaehlerablesung | activity | ablesung |
-| ladeinfrastruktur | topic | lis |
-| windpark | topic | windpark |
-| photovoltaik, pv-anlage, freiflaechen-pv | topic | pv |
-| direktvermarktung | topic | dvm |
-| brandmeldeanlage | topic | bma |
-| sprinkleranlage | topic | sprinkler |
-| aufzug (aufzugs, aufzuege) | topic | aufz, aufzug |
-| rolltor, schnelllauftor | topic | tore |
-| klimaanlage, klima | topic | klima |
-| heizung lueftung klima (phrase) | topic | hlk |
-| heizung | topic | heizung |
-| kaelteanlage, kaeltetechnik | topic | kaelte |
-| wartung (wartungs) | activity | wtg, wart, wartung |
-| instandhaltung | activity | ih |
-| reinigung | activity | rein, reinig |
-| gebaeudereinigung | activity | gebrein |
-| glasreinigung | activity | glasrein |
-| winterdienst | topic | winter |
-| hausmeisterdienst (hausmeisterdienste) | topic | hausm |
-| pfoertnerdienst | topic | pfoertner |
-| sicherheitsdienst | topic | sid, sicherh |
-| werttransport (werttransporte) | topic | wt |
-| bargeld, bargeldversorgung | topic | bargeld |
-| geldautomat (geldautomaten) | topic | gaa |
-| kontoauszugsdrucker, kontoauszugsdruck | topic | kad |
-| tresor, tresoranlage | topic | tresor |
-| kernbankensystem | topic | kbs |
-| wertpapierabwicklung | topic | wpa |
-| kartenproduktion | topic | karten |
-| kantine, betriebsrestaurant | topic | kantine |
-| catering | topic | catering |
-| fuhrpark | topic | fzg, fuhrpark (group `fzg`) |
-| fahrzeug (fahrzeuge), servicefahrzeug | topic | fzg (group `fzg`) |
-| e-fahrzeug | topic | efzg |
-| tankkarte | topic | tank |
-| gabelstapler | topic | stapler |
-| kran (krane, kraene), krantechnik | topic | kran |
-| ersatzteil (ersatzteile) | topic | ersatz, etl |
-| hubarbeitsbuehne | topic | hubb |
-| logistik | topic | log, logistik |
-| kontraktlogistik, lagerlogistik | topic | kontrlog |
-| spedition, speditionsleistung | topic | sped |
-| fracht, frachtkosten | topic | fracht |
-| kurier, kurierdienst, expressdienst | topic | kurier |
-| stueckgut | topic | stkg |
-| komplettladung | topic | ftl |
-| wechselbruecke | topic | wbr |
-| palette (paletten), europalette | topic | pal |
-| it | topic | it |
-| hardware | topic | hw |
-| software, softwarewartung | topic | sw |
-| erp, erp-system | topic | erp |
-| it-service-desk, service desk | topic | sdesk |
-| mobilfunk | topic | mofu |
-| firewall | topic | fwall |
-| netzwerk, netzwerkkomponenten | topic | netz |
-| druckerflotte, drucker | topic | druck |
-| managed print services (phrase) | topic | mps |
-| penetrationstest | topic | pentest |
-| rechenzentrum (rechenzentrums) | topic | rz |
-| cloud | topic | cloud |
-| lizenz (lizenzen), volumenlizenz | topic | liz |
-| buero | topic | buero |
-| bueromaterial | topic | bmat |
-| bueromoebel | topic | moebel |
-| buerostuhl (buerostuehle) | topic | stuhl |
-| notebook (notebooks) | topic | nb, notebook |
-| monitor (monitore) | topic | monitor |
-| toner, druckerpatronen | topic | toner |
-| visitenkarte | topic | visik |
-| beton | topic | beton |
-| transportbeton | topic | tbeton |
-| betonfertigteil (betonfertigteile) | topic | bft |
-| betonstahl | topic | bst, bstahl |
-| stahl | topic | stahl |
-| stahlbau | topic | stahlbau |
-| stahltraeger | topic | traeger |
-| zement | topic | zement |
-| kalksandstein | topic | ks |
-| kies, sand | topic | kies, sand |
-| gipskartonplatte (gipskartonplatten) | topic | gk |
-| daemmstoff (daemmstoffe), mineralwolle | topic | daemm |
-| bitumenbahn (bitumenbahnen) | topic | bitumen |
-| pflasterstein (pflastersteine) | topic | pflaster |
-| kupfer | topic | kupfer |
-| streusalz | topic | salz |
-| geruest, geruestbau | topic | geruest |
-| tiefbau, tiefbauleistung | topic | tiefbau |
-| tiefgarage | topic | tg |
-| baustoff (baustoffe) | topic | baustoff |
-| arbeitsschutzkleidung, psa | topic | psa |
-| schutzhelm (schutzhelme) | topic | helm |
-| arbeitsschuh (arbeitsschuhe) | topic | schuhe |
-| erste hilfe kasten | topic | ehk |
-| absperrgitter | topic | gitter |
-| entsorgung | activity | entsorg |
-| abfall (abfaelle) | topic | abfall |
-| altpapier | topic | altpap |
-| aktenvernichtung | topic | akten |
-| schaedlingsbekaempfung | topic | schaedl |
-| gruenflaechenpflege | topic | gruen |
-| zeitarbeit | topic | zeitarb |
-| beratung, unternehmensberatung, beratungsleistung | topic | berat |
-| uebersetzung, uebersetzungsdienstleistung | topic | uebers |
-| weiterbildung, schulung | topic | schulung |
-| geschaeftsreise, reisebuero | topic | reise |
-| hotelkontingent | topic | hotel |
-| marketingagentur, marketing | topic | mkt |
-| messe, messeauftritt | topic | messe |
-| versicherung | topic | vers |
-| preisgleitklausel | topic | pgk, preisgl |
-| skonto, skontoabzug | topic | skonto |
-| bonus, bonusstaffel, mengenbonus | topic | bonus |
-| rabatt, rabattstaffel | topic | rabatt |
-| zahlungsziel | topic | zz |
-| laufzeit | topic | lfz |
-| kuendigungsfrist | topic | kfrist |
-| indexierung | topic | index |
-| lohnkosten | topic | lohn |
-| mengenanpassung | topic | menge |
-| spend-analyse | topic | spend |
-| lieferkettengesetz, lksg | topic | lksg |
-| dora, marisk, dsgvo | topic | dora, marisk, dsgvo |
-| facility management | topic | fm |
-| lieferant (lieferanten) | topic, weak | lief, lfr |
-| lieferantenbewertung | activity | lfbew |
-| leitstellensoftware | topic | lstsw |
-| katalogbeschaffung | topic | katalog |
-| claim management | topic | claim |
-| value recovery | topic | vr |
-| ueberzahlung | topic | uezahl |
+| intern (interne, interner, internes, internen) | de | `intern` |
+| internal | en | `intern` |
+| extern (externe, externer, externes, externen) | de | `extern` |
+| external | en | `extern` |
+| privat (private, privater, privates, privaten) | `*` (the DE form `private` is the EN word) | |
+| oeffentlich (oeffentliche, oeffentlicher, oeffentliches, oeffentlichen) | de | `public` |
+| public | en | `public` |
+| klein (kleine, kleiner, kleines, kleinen) | de | `small` |
+| small | en | `small` |
+| gross (grosse, grosser, grosses, grossen) | de | `large` |
+| large, big | en | `large` |
+| online, offline, junior, senior, basic, premium | `*` | |
 
-### 15.4 EN entries
+A qualifier as a compound modifier becomes its own concept (7.3: `Onlinekurs` -> `online` + `kurs`).
 
-All entries in 15.4 have `lang: 'en'` (except `erp`, `hvac`, `it`-like shared words, which are `'*'`). Rev 1 left them untagged, so many EN titles scored de = en = 0 and got German splitting and CISTEM.
+### 15.6 Weak words (`weak: true`) and doc-kind words
 
-| key / phrase | cls | abbr |
-|---|---|---|
-| oil, lubricants | topic | oil |
-| master service agreement, master services agreement, msa | doctype | msa |
-| non disclosure agreement, nda, one way nda, mutual nda | doctype | nda |
-| statement of work, sow | marker | sow + number |
-| framework agreement | doctype | fwa |
-| service level agreement, sla | doctype | sla |
-| power purchase agreement, ppa | doctype | ppa |
-| purchase order, po | doctype | po |
-| release order | doctype | relo |
-| purchase agreement | doctype | pa |
-| supply agreement | doctype | supa |
-| software license agreement | doctype | swla |
-| saas subscription agreement | doctype | saas |
-| data processing agreement, dpa | doctype | dpa |
-| letter of intent, loi | doctype | loi |
-| memorandum of understanding, mou | doctype | mou |
-| request for quotation, rfq | doctype | rfq |
-| request for proposal, rfp | doctype | rfp |
-| request for information, rfi | doctype | rfi |
-| quarterly business review, qbr | doctype | qbr |
-| addendum | doctype | add |
-| amendment | marker | amd + number |
-| change order | marker | chg + number |
-| change request | marker | cr + number |
-| renewal, auto renewal | action | renew, ren |
-| termination, termination notice | action | term |
-| termination for convenience | action | tfc |
-| negotiation | action | neg |
-| price negotiation | action | priceneg |
-| price review, annual price review | action | prev |
-| rate card review | action | rcard |
-| counter offer | action | counter |
-| claim | action | claim |
-| onboarding, supplier onboarding | activity | onb |
-| migration | activity | mig, migr |
-| implementation | activity | impl |
-| rollout | activity | rollout |
-| assessment | activity | asmt |
-| remediation | activity | remed |
-| calibration | activity | calib |
-| maintenance | activity | mnt, maint |
-| cleaning, industrial cleaning | activity | clean |
-| assessment center | topic | ac |
-| facility management, facility services | topic | fm |
-| security, security services | topic | sec, security |
-| cybersecurity | topic | cyber |
-| hvac | topic | hvac |
-| temporary staffing, staffing | topic | staff |
-| engineering, engineering services | topic | eng |
-| consulting | topic | consult |
-| freight forwarding | topic | frtfwd |
-| air freight | topic | air |
-| ocean freight, ocean containers | topic | ocean |
-| freight rates | topic | freight |
-| logistics, logistics hub | topic | log |
-| warehouse | place | wh |
-| warehouse automation | topic | whauto |
-| pallet racking | topic | racking |
-| telecom, telecom services | topic | telco |
-| cloud hosting | topic | hosting |
-| cloud storage | topic | storage |
-| data center | topic | dc |
-| colocation | topic | colo |
-| server rack | topic | rack |
-| data platform | topic | dataplat |
-| laptop, laptops | topic | laptop |
-| office supplies | topic | office |
-| office chairs | topic | chairs |
-| laboratory equipment | topic | lab |
-| av equipment | topic | av |
-| spare parts | topic | parts |
-| steel coils | topic | coils |
-| diesel surcharge, fuel surcharges | topic | fuel |
-| solar farm | topic | solar |
-| battery storage, battery storage systems | topic | bess |
-| waste management | topic | waste |
-| corporate travel, travel management | topic | travel |
-| fleet, fleet management | topic | fleet |
-| forklifts | topic | forklift |
-| packaging material | topic | pack |
-| safety gloves | topic | gloves |
-| managed it services | topic | mits |
-| managed print services | topic | mps |
-| erp | topic | erp |
-| rebate, volume tiers | topic | rebate |
-| volume discount | topic | voldisc |
-| payment terms | topic | payterms |
-| indemnity | topic | indem |
-| liability cap | topic | lcap |
-| escrow, source code escrow | topic | escrow |
-| category plan, category strategy | topic | catplan |
-| spend cube | topic | spend |
-| sourcing event | topic | sourcing |
-| tender | action | tender |
-| indirect spend, indirect procurement | topic, weak | indir |
-| procurement | topic, weak | proc |
-| supplier, suppliers | topic, weak | supp |
-| head office | place | hq |
-| production environment | topic | prod |
-
-### 15.5 Places, directions, regions
-
-Order of choice: full name if 6 chars or less, else common written short form, else Kfz code with 2+ letters that is not blocked.
-
-| key | cls | abbr |
-|---|---|---|
-| muenchen | place | muc, muen, muenchen |
-| frankfurt | place | ffm, frankf |
-| hamburg | place | hbg (never `hh`) |
-| nuernberg | place | nbg |
-| stuttgart | place | stgt |
-| leipzig | place | lpz, leipzig |
-| duesseldorf | place | ddorf |
-| koeln | place | koeln |
-| duisburg | place | du, duisb |
-| goettingen | place | goe, goett |
-| bielefeld | place | bielef, bielefeld |
-| ingolstadt | place | ingol |
-| offenbach | place | offb |
-| eschborn | place | eschb |
-| ruedersdorf | place | rued, rueders |
-| berlin, bremen, bochum, erfurt, kassel, fulda, bonn, hamm, london, dublin | place | full name |
-| hauptverwaltung | place | hv |
-| verwaltungsgebaeude | place, prior common | verw |
-| zentrale | place, prior common | zentr |
-| logistikzentrum | place, prior common | logz |
-| campus | place, prior common | campus |
-| niederlassung | place, weak | nl |
-| filiale (filialen), filialnetz | place, weak | fil |
-| betriebshof (betriebshoefe) | place, prior common | bhof |
-| lager | place, prior common | lager |
-| baustelle | place, prior common | baust |
-| nord, sued, ost, west, mitte | direction | nord/nrd, sued, ost, west, mitte |
-| nordhessen | region | nhessen |
-| bayern, hessen | region | by, hessen |
-| emea, apac, dach, eu, uk, us, europe | region | emea, apac, dach, eu, uk, us, eu (`dach`, `us`, `eu` only when raw upper case: `Dach` is a roof, `us` a pronoun) |
-| eu west, eu central | region | euw, euc |
-| deutschland | region | de |
-| erdgeschoss, eg | place | eg |
-| obergeschoss, og (1. og -> og1) | place | og |
-| untergeschoss, ug | place | ug |
-| kellergeschoss, keller, kg | place | kg, keller |
-
-The short floor forms `eg og ug kg` match only when the legal-form checks in 6.3 say the token is not a legal form.
-
-Building-type places have `prior: 'common'`, so a city or a direction beats them when both cannot fit (`reinig-muen-los1`, not `reinig-verw-los1`).
-
-Place-marker words (weak, re-class the next unknown word as a place, 10.1): `standort werk filiale region campus lager niederlassung netzgebiet site plant office warehouse betriebshof liegenschaft`.
-
-### 15.6 Extra compound parts (no abbr, `part: true`, `partOnly: true`)
-
-When one of these becomes a concept (for example the modifier of a weak head: `mietvertrag` -> `miet`), it has `cls: 'topic'`, `prior: 'common'` and `lang: 'de'` (rev 1 left class and prior open).
+**Weak words.** Generic words that carry no topic in most fields. They are lexicon entries (cls `topic`, prior `common`, `weak: true`), so users override them by key.
 
 ```
-rahmen vertrag liefer lieferung leistung dienst wartung instandhaltung reinigung gebaeude
-standort bau stoff beton zement stahl logistik fracht transport versicherung beratung lizenz
-software hardware miete miet leasing fuhrpark kfz buero bedarf material preis gleit klausel
-kuendigung frist verhandlung ausschreibung angebot bestellung rechnung skonto bonus rabatt
-quartal jahr jahres anlage anlagen system technik netz kabel strom gas waerme energie wasser
-licht schutz helm kleidung arbeit sicherheit dienstleistung personal zeit karte karten druck
-drucker papier daten bank geld konto auszug schalter halle lager platz park dach fassade glas
-garten gruen flaeche pflege post kurier kantine restaurant betrieb betriebs verwaltung haupt
-unterhalt zusatz ersatz teil teile notstrom aggregat spannung mittel nieder hoch schalt
-station orts umspann werk zaehler ablesung lade infrastruktur wind solar sonne kraft heiz
-heizung klima kaelte lueftung aufzug brand melde sprinkler tor roll fenster tuer moebel
-stuhl tisch tiefgarage tief garage sanierung umbau neubau erweiterung plan planung trag
-ingenieur general unternehmer mengen anpassung index lohn kosten zahlung ziel lauf
+de: bericht berichte uebersicht entwurf entwuerfe neu neue neuer neues neuen aktualisierung aktuell
+    aktuelle aktueller aktuelles aktuellen allgemein allgemeine allgemeines sonstiges sonstige
+    diverses thema themen notiz notizen hinweis hinweise zusammenfassung liste listen projekt
+    projekte planung besprechung besprechungen sitzung sitzungen protokoll protokolle wichtig
+    dringend woechentlich monatlich jaehrlich taeglich quartalsweise weltweit
+en: report reports overview draft drafts new notes note summary general misc miscellaneous item items
+    list lists topic topics project projects planning minutes session sessions current weekly
+    monthly quarterly annual yearly daily global various important urgent
+*:  update updates final team teams plan plans status asap
 ```
 
-### 15.7 Line suffixes (org rule, 6.6)
+(Each line is a group of entries; inflected forms are `forms` of one entry, for example `neu` with forms `neue neuer neues neuen`. Weak entries with abbreviations are in the tables above: `meeting` (`mtg`, 15.4), `information` (`info`, 15.5), `work in progress` (`wip`, 15.4). `projekt` and `project` have the cryptic abbr `proj` for when the back-off restores them.)
 
-Business words that stand between an org name and its legal form. A token ending in one of these (or equal to it) is a line word.
+Rev 3.1 changes: `hinweis hinweise` (pair of `notes`), `planning` (pair of `planung`), `minutes` (pair of `protokoll`), `session sessions` (pair of `sitzung`) and `current` (pair of `aktuell`) are new; `vorlage vorlagen` moved to the doc-kind words (with `template`); `asap` is shared; `other` is removed (it is an EN function word, so the weak entry never matched).
+
+**Doc-kind words** (rev 3.1). Words that name the kind of text, not its topic. They are lexicon entries (cls `topic`, prior `common`, `weight: -60`, not weak): they stay in the pool and show when there is room, but the content words of the same title rank above them. Rev 3 had none, so with the position bonus `best`, `guide`, `tips`, `effects` or `checklist` often took the first segment.
 
 ```
-de: technik bau werke dienst dienste bedarf handel einrichtung steine systeme service services
-    partner soehne logistik transporte transport beratung vertrieb versand verwaltung holding gruppe
-    industrie
-(not `werk` or `haus`: names like `Isarwerk` and `Sandhaus` end in them)
-en: analytics solutions systems services technologies technology tech group holding holdings
-    partners consulting logistics industries international global software labs trading supply
-    networks media
+de: leitfaden ratgeber anleitung anleitungen tipps tipp checkliste checklisten vorlage vorlagen
+    formular formulare handbuch handbuecher beste besten bester bestes auswirkung auswirkungen
+en: guide guides tips tip checklist checklists template templates form forms handbook handbooks
+    manual manuals howto tutorial tutorials best ultimate effect effects
 ```
 
-### 15.8 First names (person rule, 6.6)
+**Pairs.** Every built-in weak and doc-kind entry with `lang` `de` or `en` names its counterpart in the other language with `pair` (`vorlage` <-> `template`, `protokoll` <-> `minutes`, `planung` <-> `planning`, `hinweis` <-> `note`, `retrospektive` and `retrospective` share group `retro`). A unit test checks that every `pair` key exists, has the other language and the same kind (weak or doc-kind), and that every entry without `pair` is on the exception list with a reason. Exceptions in v1: `item items` (German titles use `Punkt`, which is too broad to be weak), `ultimate` (no common German title word), `ratgeber` (a second German word for `guide`), `misc miscellaneous various` and `sonstiges sonstige diverses` (three words on each side for one meaning; `misc` pairs with `sonstiges`, the rest are listed). `*` entries need no pair.
 
-`src/data/v1/first-names.ts`: about 400 common first names from public name statistics (DE and EN, for example `thomas michael andreas stefan anna julia maria sabine john david sarah emma`). No surnames, no real persons. Names that are also common title words are left out (`mark frank will grant rose max art bill`). A unit test asserts that no first name is also a lexicon key, place, stop word or line suffix.
+Rev 2 weak words that were procurement terms (`lieferung leistung dienstleistung beschaffung einkauf standort liegenschaft material bedarf supply purchase procurement site`) are gone.
+
+### 15.7 Generic compound parts (no abbr, `part: true`, `partOnly: true`)
+
+When one of these becomes a concept (for example the modifier of a weak head: `urlaubsplan` -> `urlaub`), it has `cls: 'topic'` and `prior: 'common'`. Words in the `de` lines have `lang: 'de'`; words in the `*` line have the same spelling and meaning in English and `lang: '*'`. 240 parts in rev 3.1 (rev 3 said "about 300"; its list had 248), chosen as everyday, business and tech words. No field-specific jargon.
+
+```
+de (home and living): haus wohnung miete zimmer kueche bad garten balkon keller dach fenster tuer
+    wand boden moebel tisch stuhl bett schrank licht lampe strom wasser gas heizung waerme energie
+    muell abfall nachbar umzug
+de (mobility and places): auto fahrrad rad bahn zug flug flughafen hafen bahnhof strasse weg platz
+    stadt dorf land kreis bezirk gemeinde ort reise urlaub ferien karte fahrt verkehr
+de (food): essen speise kuchen brot apfel obst gemuese fleisch fisch milch kaffee tee wein bier
+    rezept getraenk lebensmittel mittag abendessen fruehstueck
+de (family, school, research): kind kinder eltern familie schule schueler lehrer klasse unterricht
+    kurs lern lehr studium pruefung noten forschung studie labor wissen bildung buch
+de (health and sport): arzt praxis klinik kranken pflege gesundheit medizin therapie
+    notfall impf sport verein spiel mannschaft lauf turnier
+de (work and everyday life): arbeit beruf stelle gruppe leitung fuehrung kunde kunden
+    markt vertrieb verkauf handel laden produkt ware preis kosten geld bank konto zahlung
+    rechnung steuer finanz haushalt vertrag recht gesetz gericht antrag brief post paket
+    lager lieferung versand logistik reinigung reparatur hilfe beratung
+    sicherheit schutz versicherung bau gespraech idee ziel loesung erfolg
+de (tech and media): daten netz netzwerk seite rechner drucker telefon handy passwort zugang
+    nutzer benutzer programm fehler schnittstelle speicher datenbank bild foto musik nachricht
+    zeitung
+de (time and events): zeit tag woche monat jahr morgen abend nacht sommer winter fruehling herbst
+    fest feier geburtstag hochzeit messe ausstellung konzert termin kalender
+de (nature): umwelt klima natur tier baum blume wald see berg meer wetter
+*:  web server system service portal cloud test code film hotel ticket shop job budget fitness
+    training video park bus student patient transport region
+```
+
+Rev 3.1 changes: removed `personal einkauf liefer wartung neubau umbau sanierung` (procurement and facility words, or a stem that is no word), `formular` (now a doc-kind entry), and `app software marketing team online` (duplicates of entries in 15.5 and 15.6, or now a qualifier); added `gespraech idee ziel loesung erfolg`; moved `student patient transport region` to the `*` line, because they are also English words and must not count as German in language detection (6.1).
+
+Parts that are lexicon single words (15.3 to 15.6, including weak words, doc-kind words and qualifiers) are parts too, and `WEAK_HEADS` (7.1) are known parts. Parts-only entries of 6+ chars add a language score (6.1, rev 3.1); shorter ones add none, because many short German parts are also English words (`see`, `bad`, `tag`, `kind`). A unit test checks: no part is in the blocklist, no part makes an I8 pair, every part has a `lang`, no two built-in entries share a key (over 15.3 to 15.7), and no `de` part of 6+ chars is an EN stop word or an EN lexicon key or form.
+
+**Frequency check** (rev 3.1, review step, not a CI gate). `scripts/check-parts-frequency.ts <list.txt>` checks that every `de` part is in the top 10,000 words of a general German word-frequency list (for example a news or web frequency list; the list is passed by path and not committed, because of its license). Allowed exceptions are the combining stems `lern lehr impf kranken finanz`. The PR template asks for the script output when a data PR adds parts.
+
+Rev 2 parts that were procurement or building-trade jargon (`rahmen gleit klausel frist schalt umspann melde sprinkler trag aggregat ...`) are gone.
+
+### 15.8 Domain recipes (README, not shipped)
+
+The README shows how a field adds its own knowledge with generic config. These snippets are documentation only: they are not exported, not in the package, and not part of the v1 data digest. A test runs each snippet against a few synthetic titles so the README stays correct.
+
+```ts
+// Procurement (one field among many)
+const procurement = createSlugger({
+  lexicon: [
+    { key: 'rahmenvertrag', lang: 'de', cls: 'topic', forms: ['rahmenvertraege'], abbr: ['rv'], known: ['rv'] },
+    { key: 'leistungsverzeichnis', lang: 'de', cls: 'topic', abbr: ['lv'], known: ['lv'] },
+    { key: 'lieferung', lang: 'de', cls: 'topic', weak: true },
+    { key: 'standort', lang: 'de', cls: 'topic', forms: ['standorte'], weak: true },
+    { key: 'los', lang: 'de', cls: 'marker', abbr: ['los'] },
+  ],
+})
+procurement.slug('Rahmenvertrag Stromlieferung Standorte Nord 2026')   // 'rv-strom-nord-26'
+
+// Software
+const software = createSlugger({
+  lexicon: [
+    { key: 'kubernetes', cls: 'name', abbr: ['k8s'], known: ['k8s'] },
+    { key: 'epic', lang: 'en', cls: 'topic', weak: true },
+  ],
+  reserved: { add: ['tickets', 'board'] },
+})
+
+// Medicine
+const medicine = createSlugger({
+  lexicon: [{ key: 'magnetresonanztomographie', lang: 'de', cls: 'topic', abbr: ['mrt'], known: ['mrt'] }],
+  denyTokens: ['patient', 'patientin'],
+})
+```
+
+### 15.9 Removed data (rev 2 sections 15.2 to 15.8)
+
+The rev 2 tables "DE document types and actions", "DE topics and activities", "EN entries", "Places, directions, regions", "Extra compound parts", "Line suffixes" and "First names" are removed. Their content was procurement-specific (or, for first names, a person rule). Directions and regions moved to 15.3 to 15.5; everything else is gone. `src/data/v1/first-names.ts` and `line-suffixes` are never created.
 
 ---
 
@@ -1712,16 +1859,18 @@ en: analytics solutions systems services technologies technology tech group hold
 | `DEFAULTS` | const | Frozen default config. |
 | `ALGORITHM_VERSION` | const | `1` |
 | errors + `isSluggerError` | | section 16.5 |
-| types | | `SluggerConfig`, `ResolvedConfig`, `SuggestOptions`, `GenerateOptions`, `CreateUniqueOptions`, `SlugResult`, `Segment`, `Explanation`, `Step`, `Analysis`, `SlugStore`, `StoreContext`, `SlugRecord`, `LexiconEntry`, `ConceptClass`, `Lang`, `DetectedLang`, `MaybePromise`, `AbortSignalLike` |
+| types | | `SluggerConfig`, `ResolvedConfig`, `SuggestOptions`, `GenerateOptions`, `CreateUniqueOptions`, `SlugResult`, `Segment`, `Explanation`, `Step`, `Analysis`, `SlugStore`, `StoreContext`, `SlugRecord`, `LexiconEntry`, `LexiconClass`, `ConceptClass`, `LanguagePack` (experimental), `Lang`, `DetectedLang`, `MaybePromise`, `AbortSignalLike` |
 
 `Slugger` instance: `slug`, `suggest`, `explain`, `analyze`, `slugMany`, `generate`, `createUnique`, `candidates`, `isValid`, `config: ResolvedConfig`, `pattern: RegExp`, `fingerprint: string`.
 
 Nothing runs at module top level. The default slugger and compiled data are built on first use (lazy), so `sideEffects: false` holds.
 
+`semantic-slugger/data` exports the frozen v1 data (stop words, number words, noise words, legal forms, weak and doc-kind words, lexicon, qualifiers, parts, markers, months, weekdays, units, blocklists, reserved words, tail alphabets) for inspection and for building custom lists. It exports no domain packs.
+
 ### 16.2 Config
 
 ```ts
-export type Lang = 'de' | 'en'
+export type Lang = 'de' | 'en' | (string & {})        // built-in codes; more through languagePacks
 export type DetectedLang = Lang | 'und'
 export type ListOption = { add?: readonly string[]; remove?: readonly string[] } | ((defaults: readonly string[]) => readonly string[])
 
@@ -1733,18 +1882,16 @@ export interface SluggerConfig {
   tailMin?: number                   // 2; 1..(length-3)
   tailAlphabet?: 'safe' | 'strict' | string   // 'safe' (screen); 'strict' (phone, print), 2.2
   consistentRungs?: boolean          // false; true = one spelling per concept, length filled by the tail (11.1)
-  languages?: readonly Lang[]        // ['de','en']
-  defaultLang?: Lang                 // 'de'
+  languages?: readonly Lang[]        // ['de','en']; enabled pack codes in priority order (6.1, 6.7)
+  defaultLang?: Lang                 // 'de'; must be in languages
+  languagePacks?: readonly LanguagePack[]   // experimental (6.7); extra languages
   detectLanguage?: (normalized: string) => DetectedLang | undefined
   transliterate?: (input: string) => string
-  stopWords?: ListOption
-  domainStopWords?: ListOption
-  weakWords?: ListOption
+  stopWords?: ListOption             // function and noise tiers (6.3)
   reserved?: ListOption
   blocklist?: { hard?: ListOption; soft?: ListOption }
-  lexicon?: readonly LexiconEntry[]  // merged over built-ins by key; same key replaces
-  denyTokens?: readonly string[]     // always dropped (e.g. surnames, code names)
-  dropPersonNames?: boolean          // true; first-name rule (6.6)
+  lexicon?: readonly LexiconEntry[]  // merged over built-ins by key; same key replaces (15.1)
+  denyTokens?: readonly string[]     // always dropped (person names, code names), 6.6
   leak?: 'normal' | 'minimal' | 'opaque'   // 'normal'; 'opaque' requires secret
   secret?: string                    // >= 16 chars; keys the hash, titleKey and hashed stems. Use one per tenant
   storeStems?: 'plain' | 'hashed'    // 'plain'; 'hashed' requires secret
@@ -1768,7 +1915,27 @@ export interface CreateUniqueOptions<T> extends GenerateOptions {
 }
 ```
 
-Config validation (`ConfigError` with `details: { field, value, reason }`): range checks above, unknown keys rejected, only own enumerable keys read (no prototype pollution), list entries normalized and checked against `[a-z0-9]+`, `secret` length, `secret` required for `leak: 'opaque'` and `storeStems: 'hashed'` (13.6), `fallbackWord` not blocked or reserved, custom alphabet rules (2.2), `String.prototype.normalize` present (4.1).
+Rev 3 removed `domainStopWords` (use `stopWords`), `weakWords` (use lexicon entries with `weak: true`) and `dropPersonNames` (no person rule; use `denyTokens`). They are unknown keys now (`ConfigError` reason `unknown-key`); there is no compatibility shim before 1.0.
+
+**Where domain knowledge goes.** All of it goes through five generic options (`lexicon`, `stopWords`, `denyTokens`, `reserved`, `languagePacks`). The library has no field-specific option.
+
+| Need | Option |
+|---|---|
+| a word with a known short form (`Rahmenvertrag` -> `rv`, `Kubernetes` -> `k8s`) | `lexicon` entry with `abbr` and `known` |
+| a word that should count less or more | `lexicon` entry with `weight`, or `weak: true` |
+| synonyms that should merge | `lexicon` entries with the same `group` |
+| a product, company or project name the signals miss | `lexicon` entry with `cls: 'name'` |
+| a place | `lexicon` entry with `cls: 'place'` |
+| a word that says which kind (`intern`, `premium`, a field's own qualifiers) | `lexicon` entry with `cls: 'qualifier'` |
+| a word that names the kind of text (`Merkblatt`, `Datasheet`) | `lexicon` entry with `weight: -60` (like the doc-kind words, 15.6) |
+| a word that only counts in lower or upper case | `lexicon` entry with `lowerOnly` or `upperOnly` |
+| a numbered part (`Los 3`, `Lot 2`) | `lexicon` entry with `cls: 'marker'` |
+| words to drop | `stopWords` (`add`) |
+| words that must never show (person names, code names) | `denyTokens` |
+| words that must never be an ID | `reserved` |
+| another language | `languagePacks` (experimental) |
+
+Config validation (`ConfigError` with `details: { field, value, reason }`): range checks above, unknown keys rejected, only own enumerable keys read (no prototype pollution), list entries normalized and checked against `[a-z0-9]+`, `secret` length, `secret` required for `leak: 'opaque'` and `storeStems: 'hashed'` (13.6), `fallbackWord` not blocked or reserved, custom alphabet rules (2.2), `String.prototype.normalize` present (4.1), lexicon `cls` in `LexiconClass`, not both `upperOnly` and `lowerOnly` (reason `invalid-lexicon`), marker prefix rule (5.3, reason `invalid-marker-prefix`), lexicon `lang` is `*` or an enabled code (reason `unknown-language`), language codes and packs (6.7, reasons `unknown-language`, `builtin-pack`, `invalid-language-pack`).
 
 Multi-tenant use: the scope is not hashed (C4), so the same title gives the same ID in every tenant when no tail is needed, and the same tail when one is. The README recommends one `secret` per tenant (for example derived from a server key and the tenant id) so tails, opaque IDs and `titleKey` differ between tenants. The body still shows the topic, which is the purpose of the library.
 
@@ -1779,7 +1946,7 @@ export interface Segment {
   text: string
   kind: 'word' | 'number' | 'code' | 'fallback' | 'tail'
   cls?: ConceptClass
-  source?: string                    // ascii source word, e.g. 'standorte'
+  source?: string                    // ascii source word, e.g. 'vertrieb'
   rung?: 'lexicon' | 'full' | 'morph' | 'coda' | 'syll' | 'skeleton' | 'number'
   verbatim: boolean
 }
@@ -1808,10 +1975,11 @@ export interface SlugResult {
 ```ts
 export type Step =
   | { stage: 'normalize'; input: string; surface: string; canonical: string; removed: string[] }
-  | { stage: 'language'; lang: DetectedLang; source: 'option' | 'hook' | 'heuristic' | 'default'; scores: { de: number; en: number }; reasons: string[] }
+  | { stage: 'language'; lang: DetectedLang; source: 'option' | 'hook' | 'heuristic' | 'default'; scores: Readonly<Record<string, number>>; reasons: string[] }
   | { stage: 'tokens'; tokens: { text: string; cls: string; lang: DetectedLang }[] }
   | { stage: 'phrases'; matches: { tokens: string[]; key: string }[] }
-  | { stage: 'stopwords'; removed: { word: string; list: 'function' | 'conflict' | 'domain' | 'legal' | 'custom' }[]; weak: string[]; backoff?: string }
+  | { stage: 'stopwords'; removed: { word: string; list: 'function' | 'conflict' | 'noise' | 'legal' | 'custom' | 'deny' }[]; weak: string[]; backoff?: string }
+  | { stage: 'names'; names: { word: string; signal: 'inner-caps' | 'acronym' | 'legal-form' | 'sentence-case' | 'lexicon' }[] }
   | { stage: 'compounds'; splits: { word: string; parts: string[]; linkers: string[]; kept: string[] }[] }
   | { stage: 'concepts'; rows: { key: string; cls: ConceptClass; stems: string[]; tf: number; pos: number }[] }
   | { stage: 'rank'; df: 'store' | 'static'; N?: number; rows: { key: string; cls: string; base: number; rarity: number; pos: number; tf: number; lex: number; diff: number; score: number }[]; excluded: { key: string; why: 'weak' | 'below-100' | 'no-rung' | 'leak' | 'pool-full' }[] }
@@ -1822,24 +1990,26 @@ export type Step =
 export interface Explanation { input: string; config: ResolvedConfig; steps: readonly Step[]; result: SlugResult; toString(): string; toJSON(): object }
 ```
 
+Rev 3: `scores` is keyed by pack code (not fixed `de`/`en`), the stop word list `domain` is now `noise`, deny tokens show as `deny`, and the new `names` stage lists the name signals.
+
 `toString()` example:
 
 ```
 semantic-slugger v1 | length 16 exact | sep "-" | leak normal | fp 3f9a1c0e8b2d4a71
-normalize   rahmenvertrag stromlieferung standorte nord 2026
-language    de (heuristic)  de 4 / en 0   suffix:-vertrag suffix:-ung lex:rahmenvertrag compound:stromlieferung
-stopwords   weak:standorte
-compounds   stromlieferung = strom + lieferung (head weak, kept strom)
+normalize   jahresbericht vertrieb nord 2026
+language    de (heuristic)  de 2 / en 0   lex:nord compound:jahresbericht
+stopwords   weak:jahresbericht
+names       -
+compounds   jahresbericht = jahr + es + bericht (all weak/generic: weak word)
 rank        key             cls        base  rar  pos  tf  lex  diff  score
-            strom           topic       300   75   60   0    0     0    435
+            vertrieb        topic       280   30   60   0    0     0    370
             y2026           year        160   75    0   0    0     0    235
             nord            direction   140   75    0   0    0     0    215
-            rahmenvertrag   doctype     100   75    0   0    0     0    175
-            excluded: standorte (weak)
-ladders     strom: strom(0)  nord: nord(0) nrd(15*)  y2026: 26(0) 2026(30)  rahmenvertrag: rv(0) rvtr(15*)   (* = cryptic)
-fit         strom-rv-nord-26 120 | strom-nord-26-<t2> 485 | strom-rv-nord-<t2> 545 | strom-rv-2026-<t2> 555 | ...
-resolve     strom-rv-nord-26 ok (tier C, countBody 0)
-result      strom-rv-nord-26  reason base  tail none
+            excluded: jahresbericht (weak)
+ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(200*)  nord: nord(0)  y2026: 26(0) 2026(30)   (* = cryptic)
+fit         vertrieb-nord-26 100 | vertrieb-nord-<t2> 525 | vertrieb-2026-<t2> 535 | ...
+resolve     vertrieb-nord-26 ok (tier C, countBody 0)
+result      vertrieb-nord-26  reason base  tail none
 ```
 
 ### 16.5 Errors
@@ -1848,7 +2018,7 @@ All extend `SluggerError` with `code: string`. `isSluggerError(e, code?)` checks
 
 | Class | code | When |
 |---|---|---|
-| `ConfigError` | `E_CONFIG` | invalid config at `createSlugger`, or `createUnique` without an insert path |
+| `ConfigError` | `E_CONFIG` | invalid config at `createSlugger` (incl. lexicon, marker and language pack checks), or `createUnique` without an insert path |
 | `InputError` | `E_INPUT` | title not a string; empty title with `onEmpty: 'throw'` |
 | `ExhaustedError` | `E_EXHAUSTED` | all tail indexes tried are taken; `details: { body, tailIndex, tries }` |
 | `ConflictError` | `E_CONFLICT` | `createUnique` lost more than `maxInsertRetries` races; `details: { tried }` |
@@ -1992,26 +2162,30 @@ src/
   errors.ts
   result.ts                  SlugResult builder, Explanation + toString
   core/
-    normalize.ts translit.ts tokenize.ts lang.ts phrase.ts stopwords.ts org.ts
+    normalize.ts translit.ts tokenize.ts lang.ts phrase.ts stopwords.ts names.ts
     compound.ts concepts.ts stem.ts rank.ts graphemes.ts cuts.ts skeleton.ts ladder.ts
     fit.ts resolve.ts tail.ts safety.ts invariants.ts empty.ts drivers.ts
+  lang/
+    pack.ts                  LanguagePack type, validation, resolve (6.7)
+    de.ts en.ts              built-in packs (stop words, conflicts, hints, stemmer, compound data, months)
   hash/ siphash.ts encode.ts
   data/
     index.ts                 re-exports for "semantic-slugger/data"
-    v1/ stop-de.ts stop-en.ts conflict.ts domain.ts legal.ts weak.ts lexicon-de.ts lexicon-en.ts
-        places.ts markers.ts parts.ts blocklist.ts reserved.ts translit.ts phonology.ts
-        constants.ts digest.ts
+    v1/ stop-de.ts stop-en.ts conflict.ts noise.ts legal.ts weak.ts dockind.ts lexicon-de.ts lexicon-en.ts
+        lexicon-shared.ts qualifiers.ts markers.ts months.ts weekdays.ts units.ts number-words.ts
+        parts-de.ts blocklist.ts reserved.ts translit.ts phonology.ts constants.ts digest.ts
   vendor/ cistem.ts (MIT header) porter2.ts (BSD-3 header)
   adapters/ memory.ts prisma.ts sql.ts
   cli.ts                     Node only, node:util parseArgs
 examples/ prisma/schema.prisma  sql/schema.sql  express-route.ts
+          recipes/procurement.ts recipes/software.ts recipes/medicine.ts   (15.8; repo only, not in the package)
 playground/ index.html app.js style.css
 scripts/ corpus-report.ts smoke.ts check-golden-changeset.ts update-digest.ts update-golden.ts serve-playground.ts
-         clean.ts ref-acceptance.ts
+         clean.ts ref-acceptance.ts check-parts-frequency.ts
 test/
   fixtures/titles.json
   unit/*.test.ts  unit/redos.test.ts  corpus.test.ts  golden.test.ts  props.test.ts  parity.test.ts
-  safety.test.ts  quality.test.ts  expect.test.ts  dist-sandbox.test.ts  bench/slug.bench.ts
+  safety.test.ts  quality.test.ts  expect.test.ts  recipes.test.ts  dist-sandbox.test.ts  bench/slug.bench.ts
   browser/golden.browser.test.ts
   integration/ pglite-sql.test.ts pglite-prisma-shape.test.ts race.test.ts
   types/api.test-d.ts
@@ -2023,6 +2197,8 @@ biome.json tsconfig.json tsconfig.node.json tsdown.config.ts vitest.config.ts vi
 .changeset/config.json
 .github/ workflows/{ci,release,pages}.yml ISSUE_TEMPLATE/{bad-id.yml,bug.yml} pull_request_template.md dependabot.yml
 ```
+
+Rev 3: `core/org.ts` is now `core/names.ts`; `data/v1/domain.ts`, `places.ts`, `parts.ts` are replaced by `noise.ts`, `lexicon-shared.ts`, `parts-de.ts`, `markers.ts`, `months.ts`; there is no `first-names.ts` and no line-suffix file; `src/lang/` is new.
 
 ### 18.2 Tooling (exact pins)
 
@@ -2056,14 +2232,14 @@ Hand-written part. `main`, `module`, `types` and `exports` are **not** written b
 {
   "name": "semantic-slugger",
   "version": "0.0.0",
-  "description": "Short, readable, unique IDs from titles. German + English. Zero dependencies.",
+  "description": "Short, readable, unique IDs from any title. German + English built in. Zero dependencies.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
   "repository": { "type": "git", "url": "git+https://github.com/heikotroetsch/semantic-slugger.git" },
   "homepage": "https://heikotroetsch.github.io/semantic-slugger/",
   "bugs": "https://github.com/heikotroetsch/semantic-slugger/issues",
-  "keywords": ["slug", "id", "short-id", "german", "abbreviation", "procurement", "unique"],
+  "keywords": ["slug", "id", "short-id", "readable-id", "german", "english", "abbreviation", "unique"],
   "engines": { "node": ">=22" },
   "devEngines": {
     "runtime": { "name": "node", "version": ">=22.18", "onFail": "error" },
@@ -2129,7 +2305,7 @@ export default defineConfig([
 
 Legal comments (`/*! ... */`) of vendored files are kept in `dist`.
 
-`.size-limit.json`: `dist/index.js` (import `{ slug }`) <= 30 KB min+gz including data; `dist/adapters/memory.js` <= 1 KB; `prisma.js` <= 1.5 KB; `sql.js` <= 1.5 KB.
+`.size-limit.json`: `dist/index.js` (import `{ slug }`) <= 30 KB min+gz including data and the `de`/`en` packs; `dist/adapters/memory.js` <= 1 KB; `prisma.js` <= 1.5 KB; `sql.js` <= 1.5 KB.
 
 ### 18.4 CI (`.github/workflows/ci.yml`)
 
@@ -2229,47 +2405,51 @@ On push to `main` (paths `src/**`, `playground/**`): `pnpm build`, copy `playgro
 ### 18.7 Playground
 
 - No framework, no bundler. `index.html` + `app.js` (`// @ts-check`, JSDoc) + `style.css`. Imports `./dist/index.js` and `./dist/adapters/memory.js`. `serve-playground.ts` serves the repo root the same way, so local and Pages paths match.
-- Left: textarea, one title per line, prefilled with 20 corpus titles. Controls: length (8 to 32), lengthMode, separator, leak (opaque uses a visible demo secret), tailAlphabet, consistentRungs, languages, custom stop words, reserved words, "simulate DB".
+- Left: textarea, one title per line, prefilled with 24 corpus titles from at least 10 domains (blog, news, product, ticket, meeting, recipe, research, event, HR, medical, education, software, procurement, ...), DE and EN mixed. Controls: length (8 to 32), lengthMode, separator, leak (opaque uses a visible demo secret), tailAlphabet, consistentRungs, languages, custom stop words, deny tokens, reserved words, a lexicon JSON box (with the three recipes of 15.8 as presets), "simulate DB".
 - Right: table with title, ID, lang, reason, tail yes/no. "Simulate DB" runs `createUnique` in order against `memoryStore()`.
 - Click a row: `explain().toString()` and the rank table.
 - State in `location.hash` so links can be shared (also the bug report format).
-- Banner: "Runs fully in your browser. Do not paste real contract data."
+- Banner: "Runs fully in your browser. Do not paste confidential data."
 
 ### 18.8 CLI
 
 ```
-npx semantic-slugger "Rahmenvertrag Stromlieferung Standorte Nord 2026"
+npx semantic-slugger "Jahresbericht Vertrieb Nord 2026"
 npx semantic-slugger --explain --length 20 --leak minimal "..."
 cat titles.txt | npx semantic-slugger --unique --json     # one title per line, unique within the batch
+npx semantic-slugger --lexicon ./my-lexicon.json "..."    # JSON array of LexiconEntry
 ```
 
-Flags: `--length --mode --sep --leak --lang --explain --json --unique --secret-env <VAR>`.
+Flags: `--length --mode --sep --leak --lang --explain --json --unique --secret-env <VAR> --lexicon <file> --deny <file>`.
 
 ### 18.9 README outline
 
-1. Name, one-liner, badges (npm, CI, size, provenance).
-2. Before/after table: 8 synthetic titles (DE, EN, mixed, duplicate, non-Latin).
+1. Name, one-liner ("Short, readable, unique IDs from any title"), badges (npm, CI, size, provenance).
+2. Before/after table: 10 synthetic titles from at least 8 fields (DE, EN, mixed, duplicate, non-Latin).
 3. Install.
 4. Quick start: `slug()` in 3 lines.
 5. Uniqueness: `suggest({ taken })`, `generate` with a store, `createUnique` with Prisma (schema snippet), transaction recipe.
 6. Config table (field, type, default, effect), generated from `DEFAULTS` by a script.
-7. How it works: pipeline diagram, slot order, fit, collision order (same content: same body + tail; different content: re-pick in tier C).
-8. `explain()` example. CLI.
-9. Collisions and races: UNIQUE constraint, retry, deterministic order, tail index, store tiers A/B/C and what changes between them.
-10. Privacy: leak levels, `secret` (required for `opaque` and `hashed`; one per tenant for multi-tenant use), `storeStems: 'hashed'`, what the `stems` column and `titleKey` hold, person names (first-name rule, `denyTokens`). IDs show up in URLs, logs and analytics, which matters under GDPR.
-11. Browser and CDN use (`https://cdn.jsdelivr.net/npm/semantic-slugger@<ver>/+esm`). Playground link.
-12. Writing your own adapter (only `exists` is required; the tier table of 13.3 says which features each optional method enables).
-13. Edge cases table.
-14. Stability and versioning policy.
-15. FAQ: why not slugify/nanoid/sqids; why no `-2`; hyphen and double-click (use `_` or a copy button); `safe` vs `strict` alphabet (screen vs phone, spell with NATO alphabet).
-16. Limits: de/en only, non-Latin needs the hook, lexicon is procurement-heavy.
-17. Credits and licenses: CISTEM (MIT), Snowball (BSD-3), sqids-blocklist (MIT), LDNOOBW (CC-BY-4.0).
-18. Contributing: lexicon entry -> `pnpm test:update` -> review `corpus.*.md` and golden diff. Only synthetic titles.
+7. Teach it your field: the "where domain knowledge goes" table of 16.2 and the recipes of 15.8 (procurement, software, medicine). Clear statement: the core is generic, no domain packs ship.
+8. How it works: pipeline diagram, slot order, fit, collision order (same content: same body + tail; different content: re-pick in tier C).
+9. `explain()` example. CLI.
+10. Collisions and races: UNIQUE constraint, retry, deterministic order, tail index, store tiers A/B/C and what changes between them.
+11. Privacy: leak levels, `secret` (required for `opaque` and `hashed`; one per tenant for multi-tenant use), `storeStems: 'hashed'`, what the `stems` column and `titleKey` hold, names in IDs (6.6: names are kept in `normal`; `minimal` drops `name` concepts, but in German titles person and city names are plain topics and stay; use `denyTokens` for every name that must not show, in every language). IDs show up in URLs, logs and analytics, which matters under GDPR.
+12. Browser and CDN use (`https://cdn.jsdelivr.net/npm/semantic-slugger@<ver>/+esm`). Playground link.
+13. Writing your own adapter (only `exists` is required; the tier table of 13.3 says which features each optional method enables).
+14. Other languages: `languagePacks` (experimental), with a short skeleton of a pack.
+15. Edge cases table.
+16. Stability and versioning policy.
+17. FAQ: why not slugify/nanoid/sqids; why no `-2`; hyphen and double-click (use `_` or a copy button); `safe` vs `strict` alphabet (screen vs phone, spell with NATO alphabet); why a 16-char ID sometimes has a short tail (12.1).
+18. Limits: de/en built in, non-Latin needs the hook or a pack, the built-in lexicon is small and generic (add your field's words with `lexicon`).
+19. Credits and licenses: CISTEM (MIT), Snowball (BSD-3), sqids-blocklist (MIT), LDNOOBW (CC-BY-4.0).
+20. Contributing: lexicon entry (cross-domain test, 15.2) -> `pnpm test:update` -> review `corpus.*.md` and golden diff. Only synthetic titles.
 
 ### 18.10 Repo hygiene
 
-- PR template checkbox: "All new titles and lexicon entries are synthetic. No customer or real contract data."
-- Issue template "Bad or ugly ID": synthetic title, config, ID, expected ID, playground link, same warning.
+- PR template checkbox: "All new titles, names and lexicon entries are synthetic. No customer, patient, employee or other confidential data."
+- PR template checkbox for data changes: "New built-in lexicon entries pass the cross-domain test (SPEC 15.2)."
+- Issue template "Bad or ugly ID": synthetic title, field (domain), config, ID, expected ID, playground link, same warning.
 - `SECURITY.md`: input cap, linear regexes, known-key config merge.
 - `NOTICE`: all vendored sources and licenses.
 
@@ -2279,29 +2459,33 @@ Flags: `--length --mode --sep --leak --lang --explain --json --unique --secret-e
 
 ### 19.1 Unit (one file per stage)
 
+Rev 3: unit tests describe their cases by content, not by fixture id. Where a case comes from the corpus, the test selects it by `group` or by the `expect` field (19.7), so a new corpus does not break the unit tests.
+
 | Area | Cases |
 |---|---|
-| normalize | t399 to t403 (umlauts, ẞ, Łódź, ZWSP), t395 to t397 (markup, entities), t360 to t362 (emoji), t369 (C++/C#), noise removal with the rev 2 cases of 4.3 (PO numbers, year lists, `kw12 2026 2027 2028`, `500 €`, phone, IBAN), case flags, `normalize` feature check, own `utf8()` against `TextEncoder` output (test only) |
+| normalize | umlauts, `ẞ`, `Łódź`, zero-width chars, markup and entities, emoji, `C++`/`C#`/`.NET`, noise removal with the cases of 4.3 (long order numbers, year lists, `kw12 2026 2027 2028`, `500 €`, phone, IBAN, email, URL), case flags, `normalize` feature check, own `utf8()` against `TextEncoder` output (test only) |
 | redos | every regex in `src/` against the adversarial set of 4.3, < 50 ms each; unregistered regex fails |
-| translit | t372, t375, t377 |
-| tokenize | years, dates (t355), ranges (t018, t092, t168), quarters, KW (t038), markers incl. `Los #2`, `SOW Nr. 7`, `Amendment No. 2`, `Halle B`, `Phase II`, quantities (t093, t236, t259, `10 Tagen`, `60 Tage`), longnum (t215, t300, t354), codes (t042, t258), code runs (`NA2XS(F)2Y`, `CEM II/A-LL`, `HEA/HEB`, `VOB/B`, `C30/37`), Roman numerals and `[ilo]` tokens as noise, payment terms (t264, t294) |
-| lang | all mixed titles t314 to t325, EN titles t280 to t291, t385, t390 detected `en`, conflict words (`Die Casting` stays), t372 tokens are `und` and not split, every single-word lexicon entry has `lang` |
-| phrases | msa, fwa, sla, po, hq, statement of work, heizung lüftung klima |
-| stopwords | back-off t345 to t350, t368; each conflict word is in the list of each language it belongs to; weak words never in the pool; attr detection (t051, t163, t166, t202, t213, t321) |
-| org/person | the org table of 6.6 (t055, t056, t083, t095, t107, t109, t134, t135, t140, t146, t152, t154, t186, t195, t198, t252), t011, t012, t035 to t037, t176 to t199; ambiguous legal forms (`Umbau EG`, `KG 2`, `Nordlicht Energie AG abwehren`); org rungs never equal another class (`nord`, `ost`); `Herr Dr. Muster` dropped; first-name rule (new fixtures 19.7) |
-| compound | table 7.3 rows, t404, t405, linkers, no linker before first part, pass 2 rules (`lebensmittellager`, `sandhaus`, `postavki`), `WEAK_HEADS` union, all-weak compounds become domain words, stem lookup (`umzuege`, `kaesten`, `ausschreibungen`) |
-| stem | CISTEM reference pairs from the paper/NLTK tests, Porter2 Snowball voc/output sample (500 words) |
-| rank | integer formula, `ilog2q8` against `256 * Math.log2` within 23 units for 1..1e6, monotonic, tie-breakers, blend at N = 1, 200, 2000, fixed number rarity, `isProperNoun` DE/EN rules, place-marker re-class only for unknown words |
-| cuts/skeleton | ladder table 11 and section 12 examples, coda/onset rules, never end on vowel, `skeleton('lieferant') === 'lfrt'`, abbr cost by index, plain vs cryptic, no zero-pad rung, `consistentRungs` |
-| safety | section 9.2 expected behaviors, every B rule, I8 (also joined with `''`), B5 with soft words and `v->u` (`s3x`, `f4g`, `4ss`, `k4ck3`, `fvck`), B7 across body and tail (`...fo` + `tz3`), full enumeration of 2- and 3-char `safe` tails against a committed list |
-| fit | t001 and t085 cost tables (12.2), one candidate per subset, max mode tie-break, lower-bound cut gives the same result as a full search (property over random pools), worst case under 10 ms with `maxSegments` 5 |
+| translit | Cyrillic and Greek titles, a user `transliterate` hook, a pack `translit` table |
+| tokenize | years, historic years (`1889`), dates, ranges (`2025/2026`, `2025/26`, `2026–2028`, wide `1950–2020` as two segments), quarters, KW/week, months (5.4: capitalized, next to a year, `may` the verb stays a word), weekdays (`Friday`, `Freitag`, `sat` alone stays a word), versions (`v2`, `v2.4`, `Version 2.4`, `Release 3`, `Release Notes` stays words, `Versionshinweise 5.1`, `Python 3.12` in an EN title, `42,5` stays noise), markers (`Teil 2`, `Part B`, `Part One`, `Sprint 14`, `Phase II`, `#4521`, `Größe M`, `Variante B`, `Klasse 4b`, `Art. 28`, `§ 5`, a user marker `Ticket 42`), topic-to-marker merge (`Sprintplanung Sprint 22`), model numbers (`Tavora Phone 8`, `Brightwave Pro 14`, none after a plain noun in a `de` title), number words (dropped; `Elf on the Shelf` keeps `elf`), quantities (`50 kg`, `10 Tagen`, `128 GB`, `85 m²`, `1,7 Liter` with no rung and no topic `liter`), `2 PM` (noise), longnum, codes and code runs (`PROJ-1234`, `COVID-19`, `TCP/IP`, `USB-C`, `ISO 9001`, `SKU A-4471`; `A/B-Test`, `Input/Output`, `Report(Final)` are words), Roman numerals and `[ilo]` tokens as noise |
+| lang | mixed DE/EN titles, EN titles without function words, Title Case EN, conflict words (`Die Casting`, `Brightwave Pro 14` stay), Cyrillic tokens are `und` and not split, every built-in single-word entry has `lang`, a user pack (6.7) wins detection with its hints; ASCII-folded German gets `de` (`Sommerfest Gaertnerei Muenchen 2026` and the umlaut form give the same language), digraph exclusions (`blue`, `issues`, `Tuesday`, `steuer`), parts hits from 6 chars, compound hint from 8 chars, `und` plural fold (`Recipes` and `Recipe` share stems) |
+| phrases | `machine learning`, `user experience`, `frequently asked questions`, `künstliche Intelligenz`, `kick off`, a user phrase entry |
+| stopwords | back-off rows of 6.5; each conflict word is in the list of each language it belongs to; weak words never in the pool; weak and doc-kind pairs (15.6); doc-kind weight; noise words; legal forms (always and ambiguous: `Acme AG` vs `Limited Edition`, `Spa Weekend`); person titles dropped without the next token (`Dr. Weber` keeps `weber`); `MS Teams` keeps `ms`, `US` and `IT` reach the lexicon, `us` is a stop word; pronouns and contraction stems (`Mein erstes Jahr`, `Cannot reset password`, `Best Ever Banana Bread`); `stopWords` add/remove/function forms; attr detection (DE suffix only in lower case, `Wirtschaft`, `Leipzig` are not attr, DE lower case, EN suffix) |
+| names | each signal of 6.6 (`iPhone`, `Acme Inc`, `Onboarding checklist for Acme`), no signal in Title Case EN, no signal 4 in `de` titles (`Befund` stays topic) or for weekdays and months, name rungs never equal a stop word or another entry, lexicon `cls: 'name'`; acronyms (`NASA`, `RAM`, `AGB` are class `acronym`, kept in `minimal`; exclusions `Q1`, `II`, `2 PM`); lookup step 0 (`SEO Keyword Research` keeps `seo`, `KPIs`, `PR` by title language); `denyTokens` single and multi-word, removed before phrase match, never restored by back-off, never in stems |
+| compound | table 7.3 rows, linkers, no linker before first part, pass 2 rules (`lebensmittellager`, `xantoplex`, `postavki`), `WEAK_HEADS` union, all-weak compounds become weak words, generic modifiers on the part text (`jahres`), one concept per compound with morph and head rungs (`apfelkuchen` -> `apfelkuchen`, `apfel`, `kuchen`), morph and head rungs cryptic (`sommer`, `fest`) except the 7.3 case, joined abbr plain only with known pieces (`kitafest`), direction, region and qualifier modifiers as own concepts (`Norddeutschland`, `Süddeutschland`, `Onlinekurs`), hyphen tokens in EN and `und` (`Gluten-Free`), unknown hyphen head (`Mathe-Arbeitsblatt`), stem lookup (`umzuege`, `kaesten`, `besprechungen`), no stem lookup for directions (`Rights`), `lowerOnly` (`Nützliche Links`) |
+| stem | CISTEM reference pairs from the paper/NLTK tests, Porter2 Snowball voc/output sample (500 words), pack stem output that is not `[a-z0-9]+` falls back to ascii |
+| rank | integer formula, `ilog2q8` against `256 * Math.log2` within 23 units for 1..1e6, monotonic, tie-breakers, blend at N = 1, 200, 2000, fixed number rarity, class weights of 10.1, built-in vs user default prior, position bonus 60/30/15/8/4 for T concepts only (not attr), direction cancel by class (`nordost`, `links`), quantity in the pool at 125 |
+| cuts/skeleton | ladder table 11 and section 12 examples, coda/onset rules, never end on vowel, `skeleton('kalender') === 'kldr'`, `skeleton('vertrieb') === 'vtb'`, abbr cost by index, plain vs cryptic, no zero-pad rung, `consistentRungs`, model bond (`phone8`; `polo1` removed by I8), wide range rung counts two segments |
+| safety | section 9.2 expected behaviors, every B rule, I8 (also joined with `''`), B5 with soft words and `v->u` (`s3x`, `f4g`, `4ss`, `k4ck3`, `fvck`), B7 across body and tail (`...fo` + `tz3`), full enumeration of 2- and 3-char `safe` tails against a committed list; every built-in `abbr`, part and marker prefix passes B1, B2 and I8 |
+| fit | the cost tables of 12.2, one candidate per subset, tie-break by rung cost in rank order (`firefox-rel-v132`), then by content rank, max mode tie-break, a model concept only with its word, lower-bound cut gives the same result as a full search (property over random pools), worst case under 10 ms with `maxSegments` 5 |
 | siphash | 64 reference vectors on the 32-bit implementation; `divSmall` against a test-only BigInt reference; `makeTail` pinned outputs for 20 keys |
-| resolve | each branch: base, repick (findByBody diff), shared-body with empty diff (t086 after t085, t327 after t326, t337 after t336), shared-body in tier B, tier A walk, tail-grown via `refitWithTail`, exhausted (tier A after `maxScan`), exclude, reserved in max mode; t010 after t007 shows `sued`; hashed stems compare (`storeStems: 'hashed'`) |
-| config | every `ConfigError` reason (incl. `opaque-needs-secret`, `hashed-needs-secret`, `runtime-no-normalize`, alphabet rules), unknown keys, prototype keys ignored |
+| resolve | each branch: base, repick (findByBody diff), shared-body with empty diff (identical title, case variant, plural variant), shared-body in tier B, tier A walk, tail-grown via `refitWithTail` (12.2 B), exhausted (tier A after `maxScan`), exclude, reserved in max mode; a sibling that differs in one direction word shows that word after re-pick; hashed stems compare (`storeStems: 'hashed'`) |
+| config | every `ConfigError` reason (incl. `opaque-needs-secret`, `hashed-needs-secret`, `runtime-no-normalize`, alphabet rules, `invalid-marker-prefix`, `unknown-language`, `builtin-pack`, `invalid-language-pack`), unknown keys (incl. the removed `domainStopWords`, `weakWords`, `dropPersonNames`), lexicon `cls: 'org'` and `cls: 'acronym'` rejected, `cls: 'qualifier'` accepted, `upperOnly` with `lowerOnly` rejected, prototype keys ignored |
+| recipes | each README recipe of 15.8 gives its documented output; the procurement recipe separates `Los 1` and `Los 2` (the Q6 case skipped in default config, 19.7) |
+| data | no two built-in entries share a key (15.3 to 15.7); `known` list equals the `known` fields; weak and doc-kind pairs (15.6); every abbr, part, unit short form and marker prefix passes B1, B2, I8 |
 
 ### 19.2 Corpus snapshots
 
-- `corpus.independent.md` (`toMatchFileSnapshot`): every fixture alone, empty store, exact 16. Markdown table `id | lang | title | slug | reason | rungs`.
+- `corpus.independent.md` (`toMatchFileSnapshot`): every fixture alone, empty store, exact 16. Markdown table `id | lang | kind | title | slug | reason | rungs`, grouped by `kind`.
 - `corpus.sequential.md`: all fixtures through `createUnique` with one `memoryStore`, in fixture order.
 - `expect.test.ts`: every fixture with an `expect` field (19.7) is checked: body equal, tail length equal, in the stated mode (alone or after the listed fixtures).
 - Golden JSON files (14.2) for exact, max, minimal, opaque, length 24, separator `_`.
@@ -2309,7 +2493,7 @@ Flags: `--length --mode --sep --leak --lang --explain --json --unique --secret-e
 ### 19.3 Property tests (fast-check, 1000 runs in CI, seed printed)
 
 ```ts
-const word = fc.constantFrom(...lexiconWords, ...stopWords, 'München', 'Süd', '2026', 'Los', '🚚', 'Москва', 'ß', 'Analyse', 'Fickenscher')
+const word = fc.constantFrom(...lexiconWords, ...partWords, ...stopWords, 'München', 'Süd', '2026', 'März', 'v2.4', 'Teil', 'iPhone', 'NASA', 'GmbH', '🚚', 'Москва', 'ß', 'Analyse', 'Fickenscher')
 const title = fc.oneof(fc.string({ unit: 'grapheme', maxLength: 300 }), fc.array(word, { maxLength: 12 }).map(w => w.join(' ')))
 const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.constantFrom('exact', 'max'),
   separator: fc.constantFrom('-', '_', ''), leak: fc.constantFrom('normal', 'minimal', 'opaque'),
@@ -2332,7 +2516,7 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 
 ### 19.4 Collision and race tests
 
-- Memory (tier C): insert `Bestellung Büromaterial` 2,000 times. All IDs unique, at most 3 tail indexes tried per insert, tail grows at n = 35 (t=3) and n = 980 (t=4).
+- Memory (tier C): insert `Chocolate Cake Recipe` 2,000 times. All IDs unique, at most 3 tail indexes tried per insert, tail grows at n = 35 (t=3) and n = 980 (t=4).
 - Exists-only store (tier A): the same title 64 times works, the 65th throws `ExhaustedError` with a hint to use a counting store.
 - pglite + SQL adapter: 50 parallel `createUnique` with the same title. All succeed, all unique, <= 5 retries each.
 - pglite + Prisma-shaped delegate (a small fake that implements the delegate on SQL): conflict inside a transaction is retried, no `25P02`. A real `@prisma/client` test runs only in an optional CI job.
@@ -2340,47 +2524,60 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 ### 19.5 Package and runtime tests
 
 - publint + attw (inside tsdown), `git diff --exit-code package.json`.
-- `scripts/smoke.ts`: `pnpm pack`, install the tarball into 4 fixtures (ESM Node, CJS `require`, TS `node16`, TS `bundler`). Each runs `slug('Rahmenvertrag Stromlieferung Standorte Nord 2026')` and compares to the golden value. It also runs the installed bin (`npx semantic-slugger "Rahmenvertrag Stromlieferung Standorte Nord 2026"` and `--json`), checks the output, checks the shebang of `dist/cli.js`, and checks `sourcesContent` in the maps.
-- Browser parity (`test/browser/golden.browser.test.ts`, vitest browser mode with the Playwright provider, chromium, firefox and webkit): the golden subset (independent goldens of all `edge` fixtures plus 60 content titles) gives the same IDs as in Node. happy-dom is not used, because it runs in Node's V8 and does not test ICU, `\p{Extended_Pictographic}` data or Safari.
+- `scripts/smoke.ts`: `pnpm pack`, install the tarball into 4 fixtures (ESM Node, CJS `require`, TS `node16`, TS `bundler`). Each runs `slug('Jahresbericht Vertrieb Nord 2026')` and compares to the golden value. It also runs the installed bin (`npx semantic-slugger "Jahresbericht Vertrieb Nord 2026"` and `--json`), checks the output, checks the shebang of `dist/cli.js`, and checks `sourcesContent` in the maps.
+- Browser parity (`test/browser/golden.browser.test.ts`, vitest browser mode with the Playwright provider, chromium, firefox and webkit): the golden subset (independent goldens of all `edge` fixtures plus 60 content titles from at least 10 domains) gives the same IDs as in Node. happy-dom is not used, because it runs in Node's V8 and does not test ICU, `\p{Extended_Pictographic}` data or Safari.
 - `dist-sandbox.test.ts` (14.1): the CJS builds run in a `node:vm` context where `process`, `Buffer`, `require`, `crypto`, `TextEncoder`, `Intl`, `Date`, `BigInt` and `Math.random` throw.
 - Data digest test.
 - Type tests (`expectTypeOf`): `createUnique<T>` returns `record: T | undefined`, config keys are strict, `ListOption` forms.
 
 ### 19.6 Quality metrics (`scripts/corpus-report.ts`, gated in `quality.test.ts`)
 
-"Content titles" = fixtures with `kind !== 'edge'` (340). Default config unless noted.
+"Content titles" = fixtures with `kind !== 'edge'`. "Domain" = the fixture `kind`. Default config unless noted. All gates are computed over the multi-domain corpus of 19.7; the report also prints every metric per domain. Rev 3.1: Q1 and Q2 check the ranker against itself, so the readability gate is Q19, which checks the ID against words a native reader expects (fixture field `keep`).
 
 | # | Metric | Definition | Target (gate) |
 |---|---|---|---|
-| Q1 | Recognizable token | ID has at least one segment that is a lexicon abbr of a title concept, or a prefix (3+ chars) of a title word or compound part (ascii) | >= 95% (gate), aim 98% |
-| Q2 | Top concept kept | top-ranked pool concept appears in the ID | >= 90% (gate) |
+| Q1 | Recognizable token | ID has at least one segment that is a lexicon abbr of a title concept, or a prefix (3+ chars) of a title word or compound part (ascii) | >= 95% (gate), aim 98%. A sanity check only: it passes for bodies a reader cannot use; Q19 is the readability gate |
+| Q2 | Top concept kept | top-ranked pool concept appears in the ID | report (rev 3.1: it measures the fit against the ranker, not the result against a reader) |
 | Q3 | Skeleton share | segments with rung `skeleton` / all body segments | <= 5% (gate) |
-| Q4 | Padding tail rate | exact, independent: IDs with a tail that is not caused by a collision | report; <= 45% (gate) |
-| Q5 | Collision fallback rate | sequential: titles with `reason: 'shared-body'` whose stems differ from the rows on that body (a content collision that re-pick did not solve). Same-stem titles (`dup-*`, `norm-variants`, `near` pairs) are not counted, because sharing the body is the wanted result for them | <= 3% (gate) |
-| Q6 | Sibling distinguishability | sequential, per `group` and per `org` link: for each sibling pair whose titles differ in content, the IDs differ in at least one body segment whose concept is in one title and not in the other (`muen` vs `verw` does not count for Nord vs Süd) | >= 90% (gate) |
+| Q4 | Padding tail rate | exact, independent: IDs with a tail that is not caused by a collision, overall and per domain | report until M4. At M4 the gate is set from the measured value (overall and per domain, rounded up to the next 5%) and written into this table; it may only go down later. Rev 3 had a 45% gate copied from the rev 2 procurement corpus; on the new corpus 23% of content titles have 2 or fewer content words and always get a padding tail |
+| Q5 | Collision fallback rate | sequential: titles with `reason: 'shared-body'` whose stems differ from the rows on that body (a content collision that re-pick did not solve). Same-stem titles (`dup-*` and `norm-*` groups and real `near` pairs, 19.7) are not counted, because sharing the body is the wanted result for them. Group siblings (rows with `vary`) are counted | <= 3% (gate) |
+| Q6 | Sibling distinguishability | sequential, per sibling `group` (19.7): for each pair of siblings whose **canonical titles** (4.1) differ, the IDs differ in at least one body segment whose concept is in one title and not in the other. A pair whose only difference is a token the core drops by design counts as a failure, unless the group has `skip.Q6` (19.7) | >= 90% (gate); skipped pairs at most 3% of all sibling pairs |
 | Q7 | Avg semantic segments | mean body segments over content titles | 2.5 to 3.5 (gate); max = `maxSegments` |
-| Q8 | Normalization | `norm-variants` alone: identical IDs | 100% (gate) |
+| Q8 | Normalization | each `norm-*` group (for example `norm-variants`) alone: identical IDs | 100% (gate) |
 | Q9 | Uniqueness | sequential: all IDs distinct | 100% (gate) |
 | Q10 | Bad words | full blocklist scan, hard words with no exceptions | 0 hits (gate) |
 | Q11 | Re-pick share | sequential: `reason: 'repick'` / collisions | report |
 | Q12 | Speed | `suggest()` median and p99 on Node 22 | median < 200 µs, p99 < 2 ms (bench, not gating); worst-case fit with pool 6 and `maxSegments` 5 < 10 ms (gate) |
-| Q13 | Human review | a native German procurement user rates every ID of the full report: 1 = know it, 2 = can guess, 3 = no idea | >= 85% rated 1 before 1.0 (manual) |
-| Q14 | Same title, same content | sequential: rows with identical canonical titles, and `near` pairs with the same stems, have the same content key; if the first row's body has a tail, the bodies are equal | 100% (gate) |
+| Q13 | Human review | for each language of the corpus, a native reader of the title's language (not necessarily an expert of the title's field) rates every ID of the full report: 1 = know it, 2 = can guess, 3 = no idea. Mixed titles are rated by a native reader of the title's detected language | >= 85% rated 1 before 1.0, and >= 75% rated 1 in every domain (manual) |
+| Q14 | Same title, same content | sequential: rows with identical canonical titles, and real `near` pairs (19.7) with the same stems, have the same content key; if the first row's body has a tail, the bodies are equal | 100% (gate) |
 | Q15 | Expected outputs | fixtures with `expect` (19.7) match | 100% (gate) |
-| Q16 | Org consistency | sequential, per `org` link: the org segment (if present) is spelled the same in every ID | >= 95% (gate) |
-| Q17 | Spelling consistency | per concept over the corpus: share of IDs that use the concept's most common rung | report (input for Q9) |
+| Q16 | (removed in rev 3) | was "org consistency"; there is no org class | - |
+| Q17 | Spelling consistency | per concept over the corpus: share of IDs that use the concept's most common rung | report (input for Q9 of section 22) |
+| Q18 | Domain balance | Q1 per domain with at least 15 content titles; Q19 per domain with at least 10 `keep` titles | Q1 >= 90% and Q19 >= 75% in every such domain (gate) |
+| Q19 | Expected word kept (rev 3.1) | exact, independent, over content titles with `keep` (19.7): at least one `keep` word is visible in the ID. A word is visible when a body segment (or one part of a joined segment, for example `phone` in `phone8`) equals its ascii form, equals a lexicon abbr of its entry (`mktg` for `Marketing`), is a prefix of 3+ chars of it (`choc` for `chocolate`), or contains it as a whole compound part (`sommerfest` for `sommer`). A head or morph rung of another part does not count (`fest` does not show `sommer`) | >= 85% overall and >= 75% per domain with 10+ `keep` titles (gate from M4) |
 
-The report also lists: rung kind mix, % plain rungs, IDs per reason, IDs per store tier, and the 20 worst IDs by fit cost.
+The report also lists: rung kind mix, % plain rungs, IDs per reason, IDs per store tier, IDs per class mix (how often `name`, `code`, `month`, `version` show), and the 20 worst IDs by fit cost, overall and per domain.
 
-### 19.7 Fixture changes (M2, all synthetic)
+### 19.7 Fixture corpus (rev 3, all synthetic)
 
-Rev 1 fixtures had no expected outputs and no links between near-duplicates or same-supplier titles. New optional fields in `test/fixtures/titles.json`:
+The rev 2 corpus (407 titles, mostly procurement) is replaced by a multi-domain corpus in the same file `test/fixtures/titles.json`, written by a teammate in parallel to this revision. The schema is the rev 2 schema minus the `org` field, plus (rev 3.1) the fields `vary`, `keep` and `skip`:
 
 ```ts
 interface Fixture {
-  id: string; lang: 'de' | 'en' | 'mixed'; kind: string; title: string; group?: string
-  org?: string                        // same-supplier link, e.g. 'grauwacke'
-  near?: string                       // id of a near-duplicate (same stems), e.g. t086.near = 't085'
+  id: string                          // unique; tests never depend on specific ids
+  lang: 'de' | 'en' | 'mixed'
+  kind: string                        // the domain, e.g. 'blog' | 'news' | 'product' | 'ticket' | 'meeting' | 'recipe'
+                                      // | 'research' | 'event' | 'legal' | 'hr' | 'medical' | 'education'
+                                      // | 'software' | 'procurement' | ... ; 'edge' for edge cases
+  title: string
+  group?: string                      // sibling or variant group (conventions below)
+  vary?: string                       // rev 3.1: what differs between the siblings of the group, a free label
+                                      // ('year' | 'part' | 'edition' | 'variant' | 'direction' | 'city' | ...); report only
+  near?: string                       // ONLY the id of another fixture that is a near-duplicate with the same stems
+                                      // (plural, case, word order); never a label
+  keep?: string[]                     // rev 3.1: title words (or compound parts) a native reader expects to see
+                                      // in the ID, as typed in the title; Q19
+  skip?: { Q6?: string }              // rev 3.1: the gate is not checked for this group; the value is the reason
   expect?: {                          // checked by expect.test.ts (Q15)
     body: string; tail: number        // tail = tail length (0 = none)
     after?: string[]                  // ids inserted before, in this order (default: alone)
@@ -2389,119 +2586,123 @@ interface Fixture {
 }
 ```
 
-Links to add:
-- `near`: t086 -> t085, t327 -> t326, t337 to t340 -> t336.
-- `org: 'grauwacke'`: t037, t107, t182, t213. `org: 'nordlicht'`: t055, t177, t202, t315. `org: 'mueller'`: t035, t109, t176. `org: 'hansekontor'`: t146, t180, t204, t325. More by a scan for repeated org names.
-- `expect`: the rows of section 20 that are marked `ref` after M4.
+Rev 3 used `near` for labels (`'year'`, `'part'`, `'variant'`, `'norm'`, ...) on all 121 group rows. Then the check "every `near` id exists" fails, Q5 excluded every sibling and tested nothing, and Q14 compared siblings that are not near-duplicates. Rev 3.1 moves the labels to `vary`; `near` holds only ids.
 
-New fixtures (t408 onward, all invented):
+At the time of writing the corpus has 533 titles: 450 content titles in 19 domains (blog, news, product, ticket, meeting, recipe, research, event, legal, HR, medical, education, software, finance, marketing, real estate, procurement, travel, project) and 83 edge cases; about 44% `de`, 44% `en`, 11% `mixed`. These numbers are information, not gates.
 
-| Purpose | Titles |
+Corpus requirements (checked by `test/fixtures.test.ts`, which replaces the rev 2 count checks of 407 and 340):
+- At least 12 content domains. No domain has more than 15% of the content titles. `procurement` has at most 10%.
+- Languages: at least 35% `de`, at least 35% `en`, at least 5% `mixed`.
+- Ids are unique. Every `near` and every `expect.after` id exists, and a `near` target is not the row itself. `kind` and `lang` are set on every entry.
+- At least 10 real `near` pairs (rows with `near`), covering plural, case and word order.
+- `keep` is set on at least 150 content titles and on at least 10 titles of every content domain. Every `keep` word occurs in its title (compared after `toCanonical`, 4.1, as a whole token or a compound part).
+- `skip` is set only on rows with a sibling `group`, all rows of the group carry the same `skip`, the reason is not empty, and skipped sibling pairs are at most 3% of all sibling pairs.
+- Only synthetic titles and invented names (public repo rule).
+
+Group conventions (normative, used by Q5, Q6, Q8, Q14):
+- `dup-<name>`: identical titles (sharing the body is wanted).
+- `norm-<name>` (the corpus uses `norm-variants`): case, spacing, umlaut and `ß` variants of one title (Q8: identical IDs alone).
+- any other group name: siblings that follow one pattern and differ in one or two concepts (`<domain>-<topic>-<what differs>`, for example `news-storm-direction`, `software-release-version`). Q6 runs over these, in default config. A group whose difference only a user config can show (a field rule) carries `skip.Q6` with the reason; its config is tested in `recipes.test.ts` or by `expect.config` rows. The two skipped groups at rev 3.1 are the floor group (`1. OG` vs `3. OG`: the CR removed floor codes, and an ordinal before a word is noise) and the `Los 1` / `Los 2` group (needs the procurement recipe marker `los`).
+
+Coverage the corpus must have (not by id; by content):
+
+| Purpose | Kinds of titles |
 |---|---|
-| person names | `Gespräch Thomas Becker Rahmenvertrag Reinigung`, `Herr Dr. Muster Kick-off Logistik`, `Meeting Sarah Miller Freight Rates 2026`, `Jahresgespräch Anna Krüger Bürobedarf`, `Lieferantengespräch Frau Petra Lang` |
-| floors, not legal forms | `Umbau EG Verwaltung Kassel`, `Sanierung KG 2 Tiefgarage`, `Reinigung 1. OG und EG Hauptverwaltung` |
-| Roman numerals | `Phase II Rollout ERP`, `CEM II/A-LL Zement Lieferung 2026`, `Teil III Rahmenvertrag Kabel` |
-| umlaut plurals and stems | `Ausschreibungen Gebäudereinigung 2026`, `Wartungsverträge Aufzüge Nord`, `Erste-Hilfe-Kästen Nachbestellung`, `Umzüge Standorte Süd` |
-| money and terms | `Budget 500 € Büromaterial 2026`, `Rahmenvertrag Kabel 1,2 Mio € netto 30 Tage`, `Net 45 Payment Terms Review` |
-| only adjectives plus a noun | `Neue günstige Lösung`, `dringend schnelle Lieferung`, `Gelbe Schutzhelme`, `Urgent cheap supply` |
-| org names with direction words | `Rahmenvertrag Strom Nordwind Energie AG`, `Westfeld Logistik GmbH Fracht 2026`, `Südstern Bau GmbH Tiefbau`, `Ostmark Kabel KG Mittelspannung` |
-| code runs | `Kabel NA2XY 4x150 Lieferung`, `Beton C30/37 Transportbeton Los 2`, `VOB/B Bauvertrag Tiefbau` |
-| phone, IBAN, PO lists | `Rückruf +49 89 1234567 Stromvertrag`, `PO 4500012345 4500012346 Schrauben`, `Zahlung DE89 3704 0044 0532 0130 00 Skonto` |
+| siblings | at least 6 domains with sibling groups (same pattern, one concept differs: a direction, a month, a weekday, a version, a name, a number, a size or variant letter, a model number, a quantity) |
+| names | inner-caps product names, company names before a legal form, person names in sentence-case EN, Title Case EN without signals, DE titles with city and person names |
+| acronyms | technical acronyms (`RAM`, `VPN`, `NDA`), known abbreviations typed in capitals (`SEO`, `HR`, `KPI`), `2 PM` |
+| time and numbers | years, historic years, wide ranges (`1950–2020`), quarters, months (DE and EN, with and without year, and with a year so the `26mrz` / `26mar` bond is tested), weekdays, weeks, versions (with `v`, after a version word, decimal after a name or version compound), markers (incl. `Phase II`, `Part One`, `Größe M`, `Art. 28`), ticket keys in the `PROJ-1234` form, long numbers, quantities (integer, decimal, `m²`), model numbers (`Phone 8`) |
+| compounds | DE compounds with weak heads, generic modifiers, two strong parts, three or more parts, direction modifiers (`Norddeutschland`), hyphenated (DE and EN), inflected heads |
+| duplicates | `dup-*` groups of 2 to 5 titles, real `near` pairs (plural, case, word order) |
+| privacy | titles where `denyTokens` and `leak: 'minimal'` matter (synthetic person names, DE and EN) |
+| edge | empty, whitespace, ZWSP, function words only, noise only, numbers only, legal forms only, umlauts, `ẞ`, Cyrillic, Greek, CJK, Arabic, emoji, markup, entities, `C++`/`C#`, look-alike junk, blocklist traps (`Analyseplattform`, `Cockpit`, `Scunthorpe`, `Shiitake`), reserved words, very long compounds, Roman numerals, code runs, slash and bracket words (`A/B-Test`, `Input/Output`), money, percent, phone, IBAN, email, URL, dates |
 
-Every new title must be checked against the public repo rule: invented company and person names, no real contract data.
+Rev 3.1 corpus work (part of M1.5, section 23 #18): rename `near` to `vary` on the group rows, add the missing coverage (month with year in DE and EN, real near pairs, `Phase II`, `PROJ-1234`-style keys, historic years, model numbers), set `keep` and `skip`, and keep the domain and language shares.
+
+`expect` rows: the `ref` rows of section 20 are added as fixtures with `expect` at M4, after `scripts/ref-acceptance.ts` confirms them.
 
 ---
 
 ## 20. Acceptance examples (guidance until regenerated)
 
-Default config: length 16, exact, `-`, leak `normal`, no store df (priors only). `[tN]` = a tail of N chars from the safe alphabet (first char a consonant). "Alone" = empty memory store. "After X" = inserted in order into one memory store. The body and the tail length are the target. Tail chars depend on the hash.
+Default config: length 16, exact, `-`, leak `normal`, no store df (priors only), unless the row says otherwise. `[tN]` = a tail of N chars from the safe alphabet (first char a consonant). "Alone" = empty memory store. "After X" = inserted in order into one memory store. The body and the tail length are the target. Tail chars depend on the hash.
 
-**Status column.** Rev 1 rows were not computed with the spec's own formulas (review issue 1). In rev 2:
-- `ref` = hand-computed with the rev 2 rules of sections 6 to 13 (costs in the note where useful). These rows move into the fixtures as `expect` (19.7) at M4.
-- `unv` = unverified target. The rules may give something else; the note says what is known.
+Rev 3: all rows are new. The titles are illustrative and come from many fields; they are not tied to fixture ids. Rows that are also in the corpus get an `expect` field at M4 (19.7). Rev 3.1: every row was checked against I1 (in exact mode 16 a body is exactly 16 chars, or 13 or less plus a tail of 16 - 1 - body length) and recomputed with the rev 3.1 rules; several rev 3 values were impossible (17 chars, or 14 to 15 chars without a tail).
 
-At M4, `scripts/ref-acceptance.ts` (a small, separate re-implementation of ranking, ladders and fit cost from this spec, not importing `src/core`) recomputes every row and prints both values. Section 20 is then regenerated from it, and any row where the reference and `src` disagree is a bug in one of them. Reviewers may accept a different body if it is at least as readable and the metrics hold.
+**Status column.**
+- `ref` = hand-computed with the rev 3.1 rules of sections 5 to 13 (cost in the note).
+- `unv` = unverified target. The rules may give something else; the note says what the hand computation gives.
+
+At M4, `scripts/ref-acceptance.ts` (a small, separate re-implementation of ranking, ladders and fit cost from this spec, not importing `src/core`) recomputes every row and prints both values. It also checks I1 and I2 on every expected value, `ref` and `unv`, for the row's mode and length, and fails on a value that cannot occur. Section 20 is then regenerated from it, and any row where the reference and `src` disagree is a bug in one of them. Reviewers may accept a different body if it is at least as readable and the metrics hold.
 
 ### 20.1 German
 
-| # | Fixture | Title | Expected | Status | Note |
+| # | Field | Title | Expected | Status | Note |
 |---|---|---|---|---|---|
-| 1 | t001 | Rahmenvertrag Stromlieferung Standorte Nord 2026 | `strom-rv-nord-26` | ref | cost 120 (12.2); `standorte` weak, not in pool |
-| 2 | t002 | ... Standorte Süd 2026 | `strom-rv-sued-26` | ref | never `sd` |
-| 3 | t003 | ... Standorte Nord 2027 | `strom-rv-nord-27` | ref | |
-| 4 | t085 | Rahmenvertrag für Stromlieferung der Standorte 2026 | `strom-rv-2026-[t2]` | ref | 340 vs `strom-rvtr-26-[t2]` 365 (12.2); PO shape: body + 2-char tail |
-| 5 | t086 after t085 | Rahmenverträge für Stromlieferung der Standorte 2026 | `strom-rv-2026-[t2]`, other tail | ref | same stems, diff empty, body kept, reason `shared-body` |
-| 6 | t004 | Erdgaslieferung Liegenschaften Kassel 2025 | `erdgas-kassel-25` | ref | cost 60 |
-| 7 | t006 | Erdgaslieferung Liegenschaften Göttingen 2026 | `erdgas-goe-26-[t2]` | ref | 350; max mode: `erdgas-goett-26` |
-| 8 | t007 | Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 1 | `reinig-muen-los1` | ref | 615 vs `reinig-nord-los1` 620; needs `verwaltungsgebaeude` prior common (15.5) |
-| 9 | t008 after t007 | ... Nord – Los 2 | `reinig-muen-los2` | ref | free body, reason `base` |
-| 10 | t010 after t007 to t009 | ... München Süd – Los 1 | `reinig-sued-los1` | ref | best body taken, findByBody diff `{sued}`, reason `repick` |
-| 11 | t011 | Wartungsvertrag Aufzugsanlagen Hauptverwaltung – Isarwerk Elektrotechnik GmbH | `aufz-wtg-hv-isar` | ref | Q slot by title position (`hv` before `isar`); org `Isarwerk` (not split), syllable cut; line word `elektro` lost |
-| 12 | t012 after t011 | ... – Fichtel Kran & Hebetechnik GmbH | `aufz-wtg-hv-fich` | unv | rules give `aufz-kran-wtg-hv` (520, line word `kran` kept at -50); decide at M8 |
-| 13 | t013 | Nachtrag 1 zum Rahmenvertrag Betonstahl – Preisgleitklausel | `bst-pgk-rvtr-nt1` | ref | 215; four concepts, two cryptic; checked again in Q13 |
-| 14 | t016 | Kündigung Wartungsvertrag Brandmeldeanlage Standort Kassel | `bma-kuend-kassel` | ref | 375 |
-| 15 | t017 | ... Standort Fulda | `bma-kuend-wtg-[t2]` or `bma-kdg-fulda-[t2]` | unv | rules give `bma-wtg-fulda-[t2]` (605), which drops Kündigung; M8: action weight or `kuendigung` weight +40 |
-| 16 | t018 | Verlängerung Dienstleistungsvertrag Winterdienst 2025/2026 | `winter-verl-2526` | ref | 100 |
-| 17 | t022 | Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q1 2026 | `zement-rued-26q1` | ref | 275; `rv` lost |
-| 18 | t025 | Lieferung Mittelspannungskabel NA2XS(F)2Y Los 1 Netzgebiet Ost | `mskabel-ost-los1` | ref | 60; bond joined, code run of 8 chars is noise |
-| 19 | t030 | Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Nord | `bargeld-gaa-nord` | ref | 60 |
-| 20 | t049 | Leasingvertrag Fuhrpark Servicefahrzeuge 2026 Los A | `leas-fzg-26-losa` | ref | 250 vs `leasing-fzg-losa` 335; group `fzg` counted once (tf 2) |
-| 21 | t053 | Wartung PV-Anlage Dach Logistikzentrum Bielefeld | `pv-wtg-bielefeld` | unv | rules give `pv-dach-wtg-logz` (`dach` as a part-only topic scores 360); M8 |
-| 22 | t176 | Müller Stahlbau GmbH | `stahlbau-mueller` | ref | 0; slot T before Q (rev 1 said `mueller-stahlbau`, which the slot order never gives) |
-| 23 | t215 | Bestellung 4500012345 Schutzhelme EN 397 rot | `helm-rot-2345-[t2]` | ref | 485; `rot` is attr; PO number now kept (phone rule fixed) |
-| 24 | t326 | Wartungsvertrag Brandmeldeanlage Hauptverwaltung | `bma-wtg-hv-[t5]` | ref | 460; `bma-wartung-hv` (14) cannot take a tail |
-| 25 | t327 after t326 | same | `bma-wtg-hv-[t5]`, other tail | ref | diff empty, body kept |
-| 26 | t336 to t340 (each alone) | Rahmenvertrag Stromlieferung München 2026 and variants | `strom-rv-muen-26` (all five) | ref | 175; same canonical title |
-| 27 | t337 after t336 | RAHMENVERTRAG STROMLIEFERUNG MÜNCHEN 2026 | `strom-muc-26-[t3]` | ref | diff empty; body-only ID taken, `refitWithTail` drops `rv`; 360 vs `strom-muen-26-[t2]` 365; reason `shared-body`, warning `tail-grown` |
-| 28 | t404 | Stromlieferungsrahmenvertragsverlängerungsvereinbarung | `strom-rv-verl-[t2]` | ref | 350; `rahmenvertrag` middle part scores 125 (>= 100) |
-| 29 | t384 | Analyseplattform Lieferantenbewertung | `analyse-lfbew-[t2]` | ref | 330; pass 2 split `analyse` + weak head; `anal`/`analys` cuts blocked |
-| 30 | t388 | Fickenscher Metallbau GmbH Rahmenvertrag | `metallbau-rv-[t3]` | ref | 340; org blocked (hard), so line word `metallbau` keeps full weight |
-| 31 | t365 | !!! Wartung ??? (Halle 3) /// Los #2 ;;; v1.2 ... | `wtg-h3-los2-[t4]` | ref | 410; no zero-pad rung any more (rev 1: `wartung-h3-los02`) |
-| 32 | t369 | C++ / C# Schulung & Zertifizierung @ München | `cpp-schulung-muc` | unv | T slot by title position puts `cpp` first |
+| 1 | finance | Jahresbericht Vertrieb Nord 2026 | `vertrieb-nord-26` | ref | 100 (12.2 A); `jahresbericht` is a weak word |
+| 2 | finance | Jahresbericht Vertrieb Süd 2026, after 1 | `vertrieb-sued-26` | ref | free body, reason `base`; never `sd` |
+| 3 | finance | Jahresbericht Vertrieb Nord 2026, after 1 | `ver-nord-2026-[t2]` | ref | 490 (12.2 B); diff empty, reason `shared-body`, warning `tail-grown` |
+| 4 | recipe | Rezept Apfelkuchen mit Zimt | `apfelkuchen-zimt` | ref | 410: one compound concept (7.3), `rezept` (370) lost; nothing with all three concepts fits 16 (`rezept-apfel-zimt` is 17) |
+| 5 | event | Sommerfest 2026 | `sommerfest-26-[t2]` | ref | 290; language `de` by the compound hint (8+ chars, 6.1); `sommerfest` is one concept (`sommer` + `fest`), full word 40; the morph rung `sommer` and the head rung `fest` are cryptic (100), so `sommer-2026-[t4]` costs 480 |
+| 6 | medical | MRT Knie links | `mrt-knie-[t7]`; max mode `mrt-knie-links` | ref | exact 715 (`links` 215 lost, no 16-char body exists); max 60. `MRT` is an acronym (360), `links` a direction (lower case, `lowerOnly`). Q1 data point |
+| 7 | procurement | Rahmenvertrag Stromlieferung Standorte Nord 2026, with the procurement recipe (15.8) | `rv-strom-nord-26` | ref | 120; `rv` (user entry, prior medium) 415, `strom` 340 (head `lieferung` weak by the recipe), `y2026` 235, `nord` 215; title order puts `rv` first |
+| 8 | procurement | same title, default config | `vertrag-strom-26` | unv | hand result about 800: three compound concepts (`rahmen`+`vertrag`, `strom`+`lieferung`, `stand`+`orte`), cryptic head and morph rungs, `standorte` and `nord` lost; `vertrag-stand-26` (815) and `rahmen-nord-2026` (855) are close. Shows why a field adds a lexicon |
+| 9 | hr | Mitarbeitergespräch Anna Weber 2026, with `denyTokens: ['anna', 'weber']` | `mitarb-2026-[t4]` | unv | hand result 510; the names never show. `mitarbeitergespraech` does not split (`gespraech` is a part only from rev 3.1 on, and then the rules give `gespraech-26-[t3]` at 400; check at M4). Without deny tokens the names are plain topics in a `de` title, also in `minimal` (6.6) |
+| 10 | education | Elternabend Klasse 4b Grundschule Nord | `elternabend-nord` | unv | `Klasse 4b` is the marker `kla4b` (255). Hand result: `abend-kla4b-nord` (500) and `abend-grund-nord` (515) beat `elternabend-nord` (635), because a cryptic head rung (100) costs less than losing `grundschule` (340). Input for the head-rung cost at M8 (Q19 data) |
+| 11 | legal | Mietvertrag Wohnung Kassel 2026 | `miet-kassel-2026` | ref | 530: `mietvertrag` one compound concept, morph rung `miet` cryptic (100), `kassel` an unknown topic (full word 0), `wohnung` (340) lost. `mietvertrag-26-[t2]` would be 17 chars; `mietvertrag-2026` costs 725 |
+| 12 | meeting | Protokoll Teamsitzung 12.03.2026 | `protok-team-2026` | ref | 320: only weak words, so the back-off restores `protokoll` and `teamsitzung`; the date gives the year only. `protok` coda cut 130, `team` morph rung cryptic (4 chars) 100, `2026` 30, chunks 60. `protokoll-team-26` would be 17 chars |
+| 13 | software | Versionshinweise 5.1 | `versionshinweise` | ref | 235: decimal version after a version compound (5.4) gives `v51` (195, lost); the all-weak compound is restored by the back-off. `hinweise-v51-[t3]` 360 |
+| 14 | software | Versionshinweise 5.2, after 13 | `hinweise-v52-[t3]` | ref | 360, reason `repick`: the diff boosts `v52` to 495, so keeping `versionshinweise` costs 535. Head rung `hinweise` is plain (the other part `version` is a noise word, 7.3) |
+| 15 | meeting | Sprintplanung Sprint 22 | `sprint22-[t7]` | ref | 500: the topic `sprint` (modifier of the weak head `planung`) merges into the marker `sprint22` (5.3), tf 2, score 295. Rev 3 gave `sprint-[t9]` (855) and lost the number |
 
 ### 20.2 English and mixed
 
-| # | Fixture | Title | Expected | Status | Note |
+| # | Field | Title | Expected | Status | Note |
 |---|---|---|---|---|---|
-| 33 | t059 | Master Service Agreement – Bluefin Analytics Ltd. | `msa-bluefin-[t4]` | ref | 640 vs `analytics-msa-[t2]` 650; `analytics` line word |
-| 34 | t063 | Mutual NDA – Northgate Cloud Services Inc. 2025 | `nda-northgate-25` | ref | 485; org full name 9 chars (cost 40); `nor` removed (stop word) |
-| 35 | t064 after t063 | ... 2026 | `nda-northgate-26` | ref | |
-| 36 | t334 | NDA Northgate Cloud Services Inc. | `nda-northgate-[t2]` | ref | 675 |
-| 37 | t065 | Framework Agreement Office Supplies EMEA 2026 | `office-emea-2026` | ref | 265; full year fills budget |
-| 38 | t066 | ... APAC 2026 | `office-apac-2026` | ref | |
-| 39 | t070 | RFQ Pallet Racking Warehouse Leipzig Lot 1 | `racking-lpz-lot1` | ref | 275 |
-| 40 | t074 | Security Services Agreement Head Office London | `sec-hq-london-[t2]` | ref | 390; max mode: `sec-hq-london` |
-| 41 | t078 | Purchase Order Laptops Engineering Team Batch 1 | `laptop-eng-po-b1` | ref | 160; `eng` is a topic, so slot T holds `laptop` and `eng` (rev 1: `laptop-po-eng-b1`) |
-| 42 | t247 | Statement of Work 7 – ERP Rollout Wave 2 | `erp-rollout-sow7` | ref | 355 |
-| 43 | t306 | RFQ Industrial Cleaning Services Plant 2 | `clean-rfq-plant2` | ref | 60 |
-| 44 | t314 | Rahmenvertrag Cloud Services – SLA Addendum 2026 | `cloud-sla-add-26` | ref | 335 |
-| 45 | t320 | Facility Management Agreement Standort München Nord | `fm-muenchen-nord` | ref | 90 |
-| 46 | t319 | Kick-off Negotiation Strompreise FY2026 | `strom-preis-fy26` | ref | 650; two actions lost |
-| 47 | t390 | Scunthorpe Warehouse Lease Renewal | `scun-lease-renew` | ref | 250; detected `en`; `scunth` blocked (hard); `Lease` is not re-classed as a place |
-| 48 | t385 | Shiitake Mushroom Supply Canteen | `shiitake-canteen` | ref | 390; no false hit |
+| 16 | marketing | Q3 2026 Marketing Budget Review | `mktg-budget-26q3` | ref | 375 (12.2 C) |
+| 17 | recipe | Chocolate Cake Recipe | `choc-cake-recipe` | ref | 190 (12.2 D); language `und` |
+| 18 | software | Firefox v132 Release Notes | `firefox-rel-v132` | ref | 230; tie with `fir-release-v132` (230) broken by rung cost in rank order (12); `notes` weak |
+| 19 | travel | Trip report from Lisbon | `trip-lisbon-[t4]` | ref | 350; sentence case makes `Lisbon` a name (410); max mode `trip-lisbon` |
+| 20 | travel | Trip report from Porto, after 19 | `trip-porto-[t5]` | ref | free body; siblings differ in the name |
+| 21 | hr | Onboarding checklist for Acme Corp | `onb-check-acme` (max mode) | unv | max 250. Exact: `onboar-chct-acme` (450). `checklist` is a doc-kind word (270), `Acme` a name (sentence case and legal form). M8: a cap on cryptic segments per ID, Q1 |
+| 22 | ticket | PROJ-1234 Checkout fails in Safari | `check-safari-[t3]` | unv | about 935: code run `proj1234` (slot Q, 175) lost, `fails` lost. The title is `und` (no hint), so `fails` is a topic, and `fails-safari-[t3]` (835) may win; an EN verb rule is out of scope for v1. A code can never be the first segment while a T concept is in the body (2.1) |
+| 23 | research | Effects of Sleep on Memory in Older Adults | `eff-sleep-memory` | unv | hand result about 800: `effects` is a doc-kind word (310), the decreasing position bonus keeps `memory` ahead of `older` and `adults`; `sleep-memory-old` (804) and `sleep-mem-adults` (808) are close. Rev 3 listed `sleep-memory-[t4]`, which is 17 chars |
+| 24 | news | Storm warning for the north coast | `storm-warn-coast` | ref | 405: `warn` coda cut 130, chunks 60, `north` (215) lost; `storm-warn-north` 505. Rev 3 listed `storm-north-coast` (17 chars) |
+| 25 | software | Kubernetes Upgrade Plan Q3 2026, with the software recipe (15.8) | `k8s-upgrade-26q3` | ref | 100: `kubernetes` lexicon name with known `k8s`, `upgrade` 40, bond `26q3`, chunks 60; `plan` weak |
+| 26 | mixed | Kick-off Meeting KI Strategie Q1 2026 | `kickoff-ki-strat` | ref | 640: `kick off` phrase (known `kickoff`), `meeting` weak, `KI` known (`upperOnly`), `strat` coda cut 130, chunks 60, year and quarter (450) lost. Rev 3 listed `ki-strategie-26q1` (17 chars) |
+| 27 | mixed | Release 2.4 Hinweise zur Migration | `migration-v24-[t2]` | ref | 290: `Release 2.4` is a version, `hinweise` is weak (rev 3.1, pair of `notes`). Rev 3 listed `migration-v24`, 13 chars without a tail |
+| 28 | event | Team Lunch Friday | `lunch-friday-[t3]` | ref | 300: `team` weak, `friday` a weekday (175, full word 0). `lunch-fri-[t6]` 450 |
+| 29 | event | Team Lunch Monday, after 28 | `lunch-monday-[t3]` | ref | free body, reason `base`; siblings differ in the weekday |
+| 30 | legal | AGB Version 3.1 | `agb-v31-[t8]`; leak minimal `agb-[t12]` | ref | `AGB` is an acronym (kept in `minimal`); `Version 3.1` a version (dropped in `minimal`). Exact 550; minimal 750. Rev 3 gave an empty body in `minimal` |
 
 ### 20.3 Edge cases
 
-| # | Fixture | Title | Expected | Status |
-|---|---|---|---|---|
-| 49 | t341 to t344 | empty, spaces, tabs, ZWSP | `doc-[t12]` | ref |
-| 50 | t345, t346, t347 | `der die das`, `und oder für mit von der`, `the and of` | `doc-[t12]` | ref (needs the rev 2 DE stop list) |
-| 51 | t349, t350, t368 | `Vertrag GmbH AG`, `Vertrag`, `Vertrag_v2_FINAL_final(3).docx` | `vertrag-[t8]` | ref |
-| 52 | t351 | `2026` | `doc-2026-[t7]` | ref |
-| 53 | t353 | `2025 2026 2027` | `doc-25-26-27-[t3]` | unv (years not removed any more) |
-| 54 | t354 | `4500012345` | `doc-2345-[t7]` | ref (rev 1 phone regex ate it) |
-| 55 | t359 | `Öl` | `oel-[t12]` | ref |
-| 56 | t360 | `⚡️ Strom 2026 🔌` | `strom-2026-[t5]` | ref (430) |
-| 57 | t361, t367, t406 | emoji only, punctuation only, look-alike junk | `doc-[t12]` | ref |
-| 58 | t372 | Договор поставки электроэнергии 2026 | `dogovor-postavki` | unv (tokens `und`, not split) |
-| 59 | t373 | 电力供应框架协议 2026 | `doc-2026-[t7]`, warning `script-dropped` | ref |
-| 60 | t374 vs t373 | Arabic vs CJK | different tails | ref |
-| 61 | t378 | `new` | `new-[t12]`; max mode `new-[t2]` | ref |
-| 62 | t401 | STRASSE Strasse Straße STRAẞE | `strasse-[t8]` (one concept, tf 4) | ref |
-| 63 | t407 | Los 1 Los 2 Los 3 | `los1-los2-[t6]` | ref (705; first char letter, `doc` not needed) |
-| 64 | t001, leak opaque, secret set | | `[t16]` | ref |
-| 65 | t001, max mode | | `strom-rv-nord-26` | ref |
-| 66 | t085, max mode | | `strom-rv-26` | ref |
+| # | Title | Expected | Status |
+|---|---|---|---|
+| 31 | empty, spaces, tabs, ZWSP | `doc-[t12]` | ref |
+| 32 | `der die das`, `und oder für mit von der`, `the and of` | `doc-[t12]` | ref |
+| 33 | `GmbH AG Inc Ltd` (only legal forms) | `doc-[t12]` | ref |
+| 34 | `Vertrag GmbH AG` | `vertrag-[t8]` | ref (590; `vertrag` is a normal part now, not a domain stop word) |
+| 35 | `Vertrag_v2_FINAL_final(3).docx` | `vertrag-v2-[t5]` | ref (440; `v2` is a version, `final` weak, `docx` noise; `final(3).docx` has no upper-case letter, so it is no code run) |
+| 36 | `Datei.pdf` | `datei-[t10]` | ref (only noise words: the back-off restores `datei`) |
+| 37 | `2026` | `doc-2026-[t7]` | ref |
+| 38 | `2025 2026 2027` | `doc-25-26-27-[t3]` | unv |
+| 39 | `12345` | `doc-2345-[t7]` | ref |
+| 40 | `Öl` | `oel-[t12]` | ref |
+| 41 | `⚡️ Strom 2026 🔌` | `strom-2026-[t5]` | ref (430) |
+| 42 | emoji only, punctuation only, look-alike junk | `doc-[t12]` | ref |
+| 43 | Договор поставки электроэнергии 2026 | `dogovor-postavki` | unv (16 chars; tokens `und`, not split; hand result: cuts like `dog-post-elek-26` (about 530) beat it (630); input for the cryptic cap of Q1) |
+| 44 | 电力供应框架协议 2026 | `doc-2026-[t7]`, warning `script-dropped` | ref |
+| 45 | an Arabic title vs a CJK title, both without Latin letters | different tails | ref |
+| 46 | `new` | `new-[t12]`; max mode `new-[t2]` | ref (`new` is weak, restored by the back-off; reserved in max mode) |
+| 47 | STRASSE Strasse Straße STRAẞE | `strasse-[t8]` (one concept, tf 4) | ref |
+| 48 | Teil 1 Teil 2 Teil 3 | `pt1-pt2-pt3-[t4]` | ref (410; markers start with a letter, so no `doc`) |
+| 49 | row 1, leak opaque, secret set | `[t16]` | ref |
+| 50 | row 1, max mode | `vertrieb-nord-26` | ref |
+| 51 | row 16, max mode | `mktg-budget-26q3` | ref |
+| 52 | row 1, leak minimal | `vertrieb-nord-26` | ref (no `name`, code or marker in the title) |
+
+Rev 3.1 renumbered the rows (new rows 13 to 15 and 28 to 30). Section 22 (Q1, Q17) and Appendix B cite rows by the new numbers.
 
 ---
 
@@ -2511,15 +2712,16 @@ Each milestone ends with green CI and a short changeset (pre-1.0, private until 
 
 | M | Scope | Done when |
 |---|---|---|
-| M0 Scaffold | git init, package.json, pnpm, tsdown, tsconfigs, biome, vitest, size-limit, changesets, CI workflow, LICENSE, NOTICE, empty barrel, fixture file, PR/issue templates | `pnpm build && pnpm test && pnpm lint` green; publint/attw pass on an empty export |
-| M1 Hash + format | SipHash-2-4 + vectors, tail encoder, alphabets, `TAIL_BLOCK`, invariants, `isValidSlug`, config validation, errors, empty/opaque path | opaque and empty IDs pass properties I1 to I10 |
-| M2 Data v1 + language | normalize (ordered noise removal, protected spans, case flags), translit, tokenize (code runs), all v1 lists (sections 6 and 15, incl. line suffixes and first names), vendored CISTEM + Porter2, language detection with `lang` on every entry, phrases, stop words, attr words, back-off, org/person; fixture changes of 19.7 | unit tests for sections 4 to 6 green; ReDoS harness green; digest test in place |
-| M3 Compounds + concepts + rank | two-pass splitter, concept rules, lexicon-free stored stems, stem lookup, integer ranking with priors and blend | compound and rank unit tests green; `analyze()` public |
-| M4 Ladders + safety + fit | graphemes, cuts, skeleton, number rungs, plain/cryptic costs, blocklist checks, bounded fit search, `suggest()` / `slug()` without store; `scripts/ref-acceptance.ts` | independent corpus snapshot written; section 20 regenerated from the reference script and `src` agree; `ref` rows moved to fixture `expect`; Q1 to Q4, Q7, Q8, Q10, Q15 measured |
-| M5 Resolve + memory | sans-IO resolve, store tiers, sync `taken` driver, memory adapter, `generate`, `createUnique`, `slugMany`, tail index, re-pick, tail growth | sequential snapshot; Q5, Q6, Q9, Q14, Q16 gates; tier parity properties; stress test |
+| M0 Scaffold | git init, package.json, pnpm, tsdown, tsconfigs, biome, vitest, size-limit, changesets, CI workflow, LICENSE, NOTICE, empty barrel, fixture file, PR/issue templates | done (`aa18096`) |
+| M1 Hash + format | SipHash-2-4 + vectors, tail encoder, alphabets, `TAIL_BLOCK`, invariants, `isValidSlug`, config validation, errors, empty/opaque path | done (`aa18096`); rev 3 follow-ups in section 23 |
+| M1.5 Rev 3 alignment | the code changes of section 23 (config keys, classes, lexicon validation, wording in repo docs, fixture schema and corpus fixes, fixture test) | `pnpm build && pnpm test && pnpm lint && pnpm typecheck` green; no procurement wording in `src/` (code, comments, data), `README.md` outside the recipe section, `CONTRIBUTING.md`, templates and `docs/`. Allowed: SPEC.md, the recipe example files `examples/recipes/*`, procurement titles in the corpus (one domain of many, at most 10%), and the hash-input strings of section 23 #11 |
+| M2 Data v1 + language | normalize (ordered noise removal, protected spans, case flags), translit, tokenize (code runs, months, weekdays, versions, quantities, model numbers, number words, markers), `src/lang/` with the `de` and `en` packs and `LanguagePack` validation, all v1 lists (sections 6 and 15), vendored CISTEM + Porter2, language detection with `lang` on every entry and the rev 3.1 hints, lookup step 0, phrases, stop words, attr words, name signals, acronyms, deny tokens, back-off | unit tests for sections 4 to 6 green; ReDoS harness green; digest test in place; `fixtures.test.ts` corpus requirements (19.7) green |
+| M3 Compounds + concepts + rank | two-pass splitter, concept rules incl. one concept per compound and direction, region and qualifier modifiers, topic-to-marker merge, lexicon-free stored stems with the `und` plural fold, stem lookup, integer ranking with priors, blend and the decreasing position bonus | compound and rank unit tests green; `analyze()` public |
+| M4 Ladders + safety + fit | graphemes, cuts, skeleton, number rungs, plain/cryptic costs, blocklist checks, bounded fit search with the rev 3 tie-break, `suggest()` / `slug()` without store; `scripts/ref-acceptance.ts` | independent corpus snapshot written; section 20 regenerated from the reference script and `src` agree, and the script's I1 check passes on every row; `ref` rows moved to fixture `expect`; Q1 to Q4, Q7, Q8, Q10, Q15, Q18, Q19 measured; the Q4 gate is set from the measured values (19.6) |
+| M5 Resolve + memory | sans-IO resolve, store tiers, sync `taken` driver, memory adapter, `generate`, `createUnique`, `slugMany`, tail index, re-pick, tail growth | sequential snapshot; Q5, Q6 (with `skip`), Q9, Q14 gates; tier parity properties; stress test |
 | M6 DB adapters | SQL adapter, Prisma adapter, pglite integration, race tests, Prisma schema + SQL examples | integration tests green on Node 22.18 and 24 |
-| M7 DX + release | `explain()` + `toString`, CLI, playground + Pages, README, smoke fixtures (incl. bin), Playwright browser job, dist sandbox test, size budgets, release workflow gated on CI, publish `0.0.1` by hand, trusted publisher, `0.1.0` via changesets | npm package with provenance, playground live |
-| M8 Quality loop + freeze | corpus report review, lexicon tuning to ~600 entries, the `unv` rows of section 20, human rating (Q13), golden files for all configs, golden-changeset guard | Q1 to Q17 targets met; no `unv` rows left; `1.0.0` |
+| M7 DX + release | `explain()` + `toString`, CLI (incl. `--lexicon`, `--deny`), playground + Pages, README with the domain recipes (15.8) and `recipes.test.ts`, smoke fixtures (incl. bin), Playwright browser job, dist sandbox test, size budgets, release workflow gated on CI, publish `0.0.1` by hand, trusted publisher, `0.1.0` via changesets | npm package with provenance, playground live |
+| M8 Quality loop + freeze | corpus report review per domain, lexicon growth to about 400 entries by the cross-domain test (15.2), the `unv` rows of section 20, human rating (Q13) per language, golden files for all configs, golden-changeset guard, decision on `languagePacks` stability | Q1 to Q19 targets met (Q16 removed); no `unv` rows left; `1.0.0` |
 
 ---
 
@@ -2527,17 +2729,51 @@ Each milestone ends with green CI and a short changeset (pre-1.0, private until 
 
 | # | Question | Default in this spec |
 |---|---|---|
-| Q1 | `exact` or `max` as the default? Exact pads up to ~45% of IDs with a code that only fills space. | `exact` (PO request), with the rev 2 length policy of 12.1: bodies are exactly L or take a tail, no pad-only rungs, no 1-char pads. `max` documented as "readable" preset. Q4 data goes to the PO at M4. |
+| Q1 | `exact` or `max` as the default? Exact pads many IDs with a code that only fills space (rev 3.1: the rate on the new corpus is measured at M4, Q4; 23% of content titles have 2 or fewer content words and always get a tail). Short everyday words often give bodies of 14 or 15 chars, which cannot take a tail (`MRT Knie links` -> `mrt-knie-[t7]` in exact, `mrt-knie-links` in max; section 20 rows 6, 19, 21). Exact mode also prefers cut-heavy bodies when a word does not fit (rows 21, 43). | `exact` (PO request), with the length policy of 12.1. `max` documented as "readable" preset. Q4 data per domain goes to the PO at M4. |
 | Q2 | Separator and double-click: `-` selects one segment on double-click; `_` or `''` select the whole ID but leave `[a-z0-9-]`. | `-`, with `_` and `''` as options and a README tip for a copy button. |
-| Q3 | Supplier names in `normal` leak level? | Allowed (best discriminator). Dropped in `minimal`. |
-| Q4 | City short forms (`muc`, `ffm`, `hbg`) or full names when they fit? | Short forms first, full name as a longer rung. |
-| Q5 | `rv` for both Rahmenvertrag and Rahmenvereinbarung? | Yes (same group). Re-pick handles collisions. |
-| Q6 | Rarity from the DB makes new IDs depend on scope history. OK? | Yes. `rarity: 'static'` gives fully reproducible IDs. |
+| Q3 | Names (companies, products, people) in `normal` leak level? | **Answered (rev 3):** allowed, they are the best discriminator ("supplier names are okay"). Dropped in `minimal`. Person names: `denyTokens`. |
+| Q4 | (rev 2) City short forms (`muc`, `ffm`). | **Obsolete:** no built-in city table. |
+| Q5 | (rev 2) `rv` for Rahmenvertrag and Rahmenvereinbarung. | **Obsolete:** procurement lexicon removed; a user lexicon decides (same `group` merges). |
+| Q6 | Rarity from the DB makes new IDs depend on scope history. OK? | Yes. `rarity: 'static'` gives fully reproducible IDs. In rev 3 store df matters more, because the built-in lexicon is small. |
 | Q7 | Identical titles: always a new ID, or offer `onDuplicateTitle: 'return-existing'` via `titleKey`? | Always a new ID in v1. |
 | Q8 | Require `secret` when `leak: 'opaque'`? | Answered in rev 2: required (`ConfigError`), also for `storeStems: 'hashed'` (13.6). |
-| Q9 | `consistentRungs` on by default? One spelling per concept in all IDs (`kuend` everywhere) costs more tails. | Off. Decide with the Q17 report at M8. |
-| Q10 | Drop person names by default (first-name rule)? IDs go into URLs and logs. | On (`dropPersonNames: true`). |
-| Q11 | Building-type places (`Verwaltungsgebäude`, `Logistikzentrum`) rank below cities and directions. OK? | Yes (prior `common`, 15.5). |
+| Q9 | `consistentRungs` on by default? One spelling per concept in all IDs (`mktg` everywhere) costs more tails. | Off. Decide with the Q17 report at M8. |
+| Q10 | (rev 2) Drop person names by default (first-name rule)? | **Obsolete:** no person rule. Users set `denyTokens` (every language) or `leak: 'minimal'` (drops `name` concepts, so it helps only where names are detected, mostly EN sentence case); the README privacy section says so. |
+| Q11 | (rev 2) Building-type places below cities. | **Obsolete:** no built-in places. |
+| Q12 | German name detection uses only positive signals (inner caps, before a legal form, lexicon). So `Kassel` or `Weber` in a German title is a plain topic, not a name, and `minimal` keeps it. OK, or do we want a heuristic that marks some capitalized German words as names (and drops them in `minimal`)? | Positive signals only (6.6). Store df ranks rare words up anyway. The README and 6.6 say clearly that `denyTokens` is the tool for names (rev 3.1). |
+| Q13 | Month + year bond: `26mrz` (year first, like `26q1`) or `mrz26`? | `26mrz`, consistent with `26q1`. |
+| Q14 | `languagePacks`: public and experimental in 0.x, or internal until 1.0? | Public, marked experimental; not under the stability promise until declared stable at M8. |
+| Q15 | Code segments up to 8 chars (so ticket keys like `proj1234` show), rev 2 had 6. OK? | 8. |
+| Q16 | Package wording: description "Short, readable, unique IDs from any title. German + English built in." and keywords without `procurement`. OK? | Yes (section 23). |
+| Q17 | (rev 3.1) Compound head and morph rungs are cryptic now. In `Elternabend Klasse 4b Grundschule Nord` (section 20 row 10) a head rung (`abend`) still beats the full word. Raise their cost, or drop head rungs when the modifier is strong? | Cryptic at cost 60 (7.3, 11.1). Decide at M8 with Q19 and Q13 data. |
+
+---
+
+## 23. Rev 3 impact on M0-M1 code
+
+M0 and M1 are implemented and committed (`aa18096`). Rev 3 needs these changes before M2 starts (milestone M1.5). None of them changes an ID that M1 can produce today (empty and opaque IDs depend only on the canonical title, the key and the tail rules); only `configFingerprint` values change, because the config shape changes.
+
+| # | File | Change | Why (section) |
+|---|---|---|---|
+| 1 | `src/config.ts` | `ConceptClass`: remove `org`, `action`, `activity`, `doctype`; add `name`, `month`, `version` and (rev 3.1) `acronym`, `qualifier`, `weekday`, `model`. Add `export type LexiconClass = 'topic' \| 'name' \| 'qualifier' \| 'place' \| 'direction' \| 'region' \| 'marker'`. | 5.2, 15.1 |
+| 2 | `src/config.ts` | `CONCEPT_CLASSES` (the set used to validate lexicon `cls`) becomes the `LexiconClass` set. It currently allows `org`, `action`, `activity`, `doctype`, `year`, `range`, `quarter`, `week`, `longnum`, `code`, `quantity`; number classes are not lexicon classes. Rename it `LEXICON_CLASSES`. | 15.1 |
+| 3 | `src/config.ts` | `LexiconEntry`: `cls: LexiconClass`, `lang: Lang \| '*'`, new optional `upperOnly: boolean` and (rev 3.1) `lowerOnly: boolean` (validate with `bool`, add to the boolean key loop; both true gives `invalid-lexicon`), and (rev 3.1) optional `pair: string` (validated like `group`). For `cls: 'marker'`: `abbr` is required and `abbr[0]` must match `^[a-z]{0,5}[a-hj-km-np-z]$`, else reason `invalid-marker-prefix`. | 5.3, 15.1 |
+| 4 | `src/config.ts` | Remove `domainStopWords`, `weakWords`, `dropPersonNames` from `SluggerConfig`, `ResolvedConfig`, `DefaultKeys`, `DEFAULTS`, `KNOWN_KEYS`, `LIST_DEFAULTS` and `resolveConfig`. They become unknown keys (`unknown-key`). `LIST_DEFAULTS` keeps only `stopWords`; its comment points to 6.3. | 6.3, 6.6, 16.2 |
+| 5 | `src/config.ts` | `Lang` becomes `'de' \| 'en' \| (string & {})`. Add `languagePacks?: readonly LanguagePack[]` to `SluggerConfig` and `KNOWN_KEYS`. In M1.5 a minimal validator: array of plain objects with `code` (`/^[a-z]{2,3}$/`, not `und`, not `de`/`en` -> `builtin-pack`), `id` (non-empty string), `stopWords` (string list) and `stem` (function), else `invalid-language-pack`; full validation lands in M2 (`src/lang/pack.ts`). `resolveLanguages` accepts built-in codes and pack codes (else `unknown-language`) and keeps the given priority order instead of sorting to `['de', 'en']`; `defaultLang` must be in that list (existing reason `default-lang-not-enabled`). Lexicon `lang` must be `*` or an enabled code (`unknown-language`). `ResolvedConfig` gains `languagePacks` (frozen). | 6.7, 16.2 |
+| 6 | `src/config.ts` | Default `prior` handling: user entries keep "no prior means `medium`" (no stored default, as today). Built-in entries get `prior: 'common'` filled in by the data loader in M2, not by `resolveLexicon`. No change now; note for M2. | 15.1 |
+| 7 | `src/index.ts` | Export the type `LexiconClass`; export `LanguagePack` once `src/lang/pack.ts` exists (M1.5 can export a type-only stub). | 16.1 |
+| 8 | `src/data/v1/blocklist.ts` | Header comment: "common inside normal German or English procurement words" -> "common inside normal German or English words". Comment only; no data change. | 15.2 |
+| 9 | `test/unit/config.test.ts` | Remove `dropPersonNames` from the DEFAULTS expectation and from the "all fields" case; remove `domainStopWords` and `weakWords` from that case and the `cfg.domainStopWords` assertion; move the `not-boolean` case to another boolean (`consistentRungs`). Add cases: the three removed keys give `unknown-key`; lexicon `cls: 'org'` and `cls: 'year'` give `invalid-lexicon`; `cls: 'name'`, `cls: 'qualifier'` and `cls: 'marker'` (with a valid prefix) pass; `cls: 'acronym'` gives `invalid-lexicon`; `upperOnly` with `lowerOnly` gives `invalid-lexicon`; marker prefixes `vol`, `teil` give `invalid-marker-prefix`; `upperOnly` boolean check; `languages: ['en', 'de']` keeps the order; `languages: ['fr']` without a pack gives `unknown-language`; a pack with code `de` gives `builtin-pack`. The test strings `denyTokens: ['Fickenscher', 'Müller']` and lexicon key `strom` can stay (neutral). | 16.2 |
+| 10 | `test/fixtures.test.ts` | Replace the fixed counts (407 titles, ids `t001..t407`, 340 content titles) by the corpus requirements of 19.7: unique ids, required fields, at least 12 content domains, no domain over 15%, procurement at most 10%, language shares, every `near` id exists and is not the row itself, at least 10 `near` pairs, `keep` on 150+ content titles and 10+ per domain, `keep` words occur in the title, `skip` rules. Add `vary?`, `near?`, `keep?`, `skip?` and `expect?` to the local `Fixture` type. | 19.7 |
+| 11 | `test/unit/siphash.test.ts`, `test/unit/tail.test.ts`, `test/unit/invariants.test.ts`, `test/unit/empty.test.ts` | They use strings like `rahmenvertrag stromlieferung standorte nord 2026` and `strom-rv-nord-26` only as hash inputs and format samples. No behavior depends on them. Keep them (the pinned `makeTail` outputs depend on the inputs); optionally replace the format samples in `invariants.test.ts` with `vertrieb-nord-26`. | - |
+| 12 | `package.json` | `description`: "Short, readable, unique IDs from any title. German + English built in. Zero dependencies." `keywords`: drop `procurement`; use `slug, id, short-id, readable-id, german, english, abbreviation, unique`. | 18.3, Q16 |
+| 13 | `README.md` | One-liner as in `description`; example `Jahresbericht Vertrieb Nord 2026` -> `vertrieb-nord-26` (rev 2: `Rahmenvertrag ...` -> `strom-rv-nord-26`). | 1, 18.9 |
+| 14 | `CONTRIBUTING.md`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/bad-id.yml`, `.github/ISSUE_TEMPLATE/bug.yml` | "real contract titles, supplier names or customer data" -> "real customer, patient, employee or other confidential data, or real names". Add the cross-domain test checkbox (18.10) and a "field (domain)" input to `bad-id.yml`. | 18.10 |
+| 15 | `docs/DEVIATIONS.md` | Entry 20 (lists default to empty until M2) mentions `domainStopWords` and `weakWords`: add a rev 3 note that these options are removed. Entry 10 (impossible opaque example) is resolved by the new example in 2.1. | 2.1, 16.2 |
+| 16 | `src/core/*`, `src/hash/*`, `src/data/v1/constants.ts`, `src/data/v1/reserved.ts`, `src/errors.ts`, `src/result.ts` | No change. The tail hash, alphabets, invariants, blocklist checks, reserved words, fallback word `doc` and error classes are domain-neutral. | 2, 9, 13 |
+| 17 | `.changeset/` | Add a changeset for M1.5: "Config: removed `domainStopWords`, `weakWords`, `dropPersonNames`; lexicon classes changed (`qualifier` added); lexicon flags `lowerOnly` and `pair`; `languagePacks` (experimental). Config fingerprints change. ID output unchanged." | 14.2 |
+| 18 | `test/fixtures/titles.json` (rev 3.1) | (a) On every row whose `near` is a label (`part year edition variant exact norm city direction quarter week version issue number term region`), move the value to `vary` and remove `near` (121 rows at rev 3). (b) Add at least 10 real near-duplicate pairs with `near: <id>` (plural, case, word order; for example `Chocolate Cake Recipes` near `Chocolate Cake Recipe`). (c) Add the missing coverage of 19.7: titles with month and year in DE and EN (`Newsletter März 2026`, `Board Minutes March 2026`), `Phase II`, `PROJ-1234`-style ticket keys, historic years, model numbers, a decimal quantity, `A/B-Test`. (d) Set `keep` on at least 150 content titles, at least 10 per domain, written by a native reader of the title's language. (e) Set `skip: { Q6: '...' }` on the floor group (`1. OG` / `3. OG`) and the `Los 1` / `Los 2` group. (f) Keep the domain and language shares of 19.7 (procurement at most 10%). The rev 3.1 review numbers (68 sibling pairs, 23% short titles) refer to the corpus before these fixes. | 19.6, 19.7 |
+| 19 | `.github/pull_request_template.md` (rev 3.1) | Add to the data checkbox: "New compound parts: output of `scripts/check-parts-frequency.ts` attached (15.7)." | 15.7, 18.10 |
 
 ---
 
@@ -2545,32 +2781,34 @@ Each milestone ends with green CI and a short changeset (pre-1.0, private until 
 
 Issue numbers follow the rev 1 review. A = accepted, P = accepted in part or with a different fix, R = rejected.
 
+**Rev 3 status.** Rows marked **[obsolete rev 3]** no longer apply, because the rule they decided was removed with the procurement-specific logic (see "Rev 3 changes"). Rows marked **[changed rev 3]** still apply in a generic form; the note says what changed. All other rows stay valid as written. Fixture ids in this appendix (`t001`, `t388`, ...) refer to the rev 2 corpus and are history only.
+
 | # | Issue | Decision | Why / where |
 |---|---|---|---|
-| 1 | Acceptance table not computed with own formulas | A | Section 20 rows hand-recomputed with rev 2 rules and marked `ref` or `unv`; `scripts/ref-acceptance.ts` regenerates them at M4 (21). |
-| 2 | Weak words under-specified, enter pool and `lost` | A | Weak concepts are out of the pool and out of `lost`; only the back-off restores them (6.3, 6.5, 10.4). |
-| 3 | Class/prior missing for parts, numbers, place markers | A | Parts-only: topic + prior common (7.3, 15.6). Number classes: fixed rarity 50. Place markers re-class only unknown proper-noun candidates (10.1). |
+| 1 | Acceptance table not computed with own formulas | A | Section 20 rows hand-recomputed with rev 2 rules and marked `ref` or `unv`; `scripts/ref-acceptance.ts` regenerates them at M4 (21). **[changed rev 3]** Section 20 rewritten with illustrative multi-domain titles; the reference script rule stays. |
+| 2 | Weak words under-specified, enter pool and `lost` | A | Weak concepts are out of the pool and out of `lost`; only the back-off restores them (6.3, 6.5, 10.4). **[changed rev 3]** Weak words are now lexicon entries with `weak: true` (15.6); the pool rule is unchanged. |
+| 3 | Class/prior missing for parts, numbers, place markers | A | Parts-only: topic + prior common (7.3, 15.7; rev 3 wrote 15.6). Number classes: fixed rarity 50. Place markers re-class only unknown proper-noun candidates (10.1). **[changed rev 3]** Parts-only and number-class rules stay; place markers are removed (no built-in places). |
 | 4 | Small text errors, undefined functions | A | Explain example fixed (16.4), `lfrt` (11.4), `refitWithTail` defined, `idNoTail` removed (13.2). |
 | 5 | Within-slot order by score | A | Order inside a slot is title position; score only picks concepts (2.1, C7). |
-| 6 | Unknown words outrank lexicon words | A | Unknown words weight 220, prior 40; new `attr` class with DE/EN suffix and lower-case rules (6.4, 10.1). |
-| 7 | `isProperNoun` useless in German | A | DE: only org-adjacent, or capitalized, not splittable, no lexicon match; EN Title Case gives no signal (10.2). |
-| 8 | EN entries untagged, `und` split as German | A | Every built-in entry has `lang`; extra EN endings; `und` and transliterated tokens never split (6.1, 15.4). |
-| 9 | DE stop list missing words | A | Added `ab also bin binnen ca die fast hat man oder seit war will`; unit test per conflict word (6.3). |
+| 6 | Unknown words outrank lexicon words | A | Unknown words weight 220, prior 40; new `attr` class with DE/EN suffix and lower-case rules (6.4, 10.1). **[changed rev 3]** Weights retuned for a generic lexicon (10.1): lexicon topic 280, unknown 240, name 260. |
+| 7 | `isProperNoun` useless in German | A | DE: only org-adjacent, or capitalized, not splittable, no lexicon match; EN Title Case gives no signal (10.2). **[obsolete rev 3]** `isProperNoun` is replaced by the positive name signals of 6.6; DE titles have no case-only signal. |
+| 8 | EN entries untagged, `und` split as German | A | Every built-in entry has `lang`; extra EN endings; `und` and transliterated tokens never split (6.1, 15.4). **[changed rev 3]** Language tags stay; detection is generalized to packs (6.1, 6.7). |
+| 9 | DE stop list missing words | A | Added `ab also bin binnen ca die fast hat man oder seit war will`; unit test per conflict word (6.3). **[changed rev 3]** Person titles added to the function lists (6.3). |
 | 10 | Lexicon lookup exact only | A | Stem index fallback for tokens of 5+ chars (4.4). |
 | 11 | Rarity swings at small N | A | Integer blend with k = 200 (10.2). |
 | 12 | ReDoS in email regex | A | Bounded pattern; one harness for every regex in `src/` (4.3). |
 | 13 | Phone regex eats PO numbers and years | A | Phone needs leading `+`/`0` and a separator, year groups rejected; number spans protected before money/percent (4.3). |
 | 14 | Money regex `\b` after `€` | A | Unicode edge lookahead (4.3). |
-| 15 | IBAN regex matches `kw12 2026 ...` | P | Fixed by a SEPA country list (no `kw`) and 4-char groups; IBAN runs before masking so real IBAN groups like `2013` are not masked first (4.3). |
-| 16 | Code fragments become junk words | A | Code runs joined first; Roman numerals and short `[ilo]` tokens are noise (5.1, 5.2). |
-| 17 | Missing units and payment terms | A | Units added; payment-term pattern is noise (4.3, 5.2). |
-| 18 | Ambiguous legal forms | P | Accepted with a changed condition: the previous token must be capitalized (not "non-lexicon", which would break `Grauwacke Beton AG`); floors added to the lexicon (6.3, 15.5). |
-| 19 | Org walk picks wrong token | P | Accepted, but the proposed stop rule fails on `Beton AG` and `Nordlicht` (lexicon and splittable). New rule: skip line words, then take one name token (6.6, 15.7); checked on all 14 listed fixtures. |
-| 20 | Org morph cuts read as other words | A | Org tokens not split; org rungs equal to another class or a stop word removed; full name up to 10 chars (6.6). |
-| 21 | DP prefers known + unknown | P | Two passes: known parts only, then one unknown modifier (5+ chars) + known head. Weak heads are allowed as head (else `Analyseplattform` gives no concept), which the review did not allow (7.2). |
-| 22 | `WEAK_HEADS` and weak list differ | A | `WEAK_HEADS` = union of list, weak words, domain words (7.1). |
-| 23 | All-weak compounds, `ersatz` modifier | A | All-weak/domain compound becomes a domain word; `ersatzteil` entry, `ersatz` removed from modifiers (7.3, 15.3). |
-| 24 | All abbreviations cost 0 | A | Cost 15 per list index, +40 per cryptic segment, `known` list, `consistentRungs` option (11.1, 15.1). |
+| 15 | IBAN regex matches `kw12 2026 ...` | P | Fixed by a SEPA country list (no `kw`) and 4-char groups; IBAN runs before masking so real IBAN groups like `2013` are not masked first (4.3). **[changed rev 3]** IBAN rule unchanged; the `kw` example is generic. |
+| 16 | Code fragments become junk words | A | Code runs joined first; Roman numerals and short `[ilo]` tokens are noise (5.1, 5.2). **[changed rev 3]** Code display limit raised from 6 to 8 chars (5.2). |
+| 17 | Missing units and payment terms | A | Units added; payment-term pattern is noise (4.3, 5.2). **[changed rev 3]** Units stay (generic list); the payment-term pattern is removed. |
+| 18 | Ambiguous legal forms | P | Accepted with a changed condition: the previous token must be capitalized (not "non-lexicon", which would break `Grauwacke Beton AG`); floors added to the lexicon (6.3, 15.5). **[obsolete rev 3]** Floor entries are gone; ambiguous legal forms use the simpler rule of 6.3. |
+| 19 | Org walk picks wrong token | P | Accepted, but the proposed stop rule fails on `Beton AG` and `Nordlicht` (lexicon and splittable). New rule: skip line words, then take one name token (6.6, 15.7); checked on all 14 listed fixtures. **[obsolete rev 3]** No org walk, no line words (6.6). |
+| 20 | Org morph cuts read as other words | A | Org tokens not split; org rungs equal to another class or a stop word removed; full name up to 10 chars (6.6). **[changed rev 3]** Org rungs become name rungs (6.6): no split, full word up to 12 chars, rungs equal to a stop word or another entry removed. |
+| 21 | DP prefers known + unknown | P | Two passes: known parts only, then one unknown modifier (5+ chars) + known head. Weak heads are allowed as head (else `Analyseplattform` gives no concept), which the review did not allow (7.2). **[changed rev 3]** Two passes stay; weak heads are generic (7.1); 2+ strong parts now give one concept (7.3). |
+| 22 | `WEAK_HEADS` and weak list differ | A | `WEAK_HEADS` = union of list, weak words, domain words (7.1). **[changed rev 3]** `WEAK_HEADS` = generic list + weak words + noise words. |
+| 23 | All-weak compounds, `ersatz` modifier | A | All-weak/domain compound becomes a domain word; `ersatzteil` entry, `ersatz` removed from modifiers (7.3, 15.3). **[changed rev 3]** All-weak compounds become weak words (not domain stop words); the `ersatzteil` entry is gone. |
+| 24 | All abbreviations cost 0 | A | Cost 15 per list index, +40 per cryptic segment, `known` list, `consistentRungs` option (11.1, 15.1). **[changed rev 3]** Cost rules stay; the known list is the generic list of 15.2. |
 | 25 | Bodies of L-1, L-2 impossible in exact mode | P | Option (b) in modified form: body is exactly L or takes a tail, and no pad-only rungs. Always reserving a tail was rejected (it kills `strom-rv-nord-26`); 1-char pads (c) rejected (look like typos). Q1 stays open for the PO (12.1). |
 | 26 | Zero-pad rungs | P | Zero-pad rungs removed. Rejected "keep `2026` only if all siblings use it": siblings are unknown at generation time; `consistentRungs` covers the need (11.1, 11.5). |
 | 27 | Fit size at `maxSegments` 6 | A | `maxSegments` 1..5 and an exact lower-bound cut; worst-case gate (12, Q12). |
@@ -2586,7 +2824,7 @@ Issue numbers follow the rev 1 review. A = accepted, P = accepted in part or wit
 | 37 | I8 only per segment | A | With separator `''`, I8 on the joined body (2.3, 9.2). |
 | 38 | `strict` alphabet goal not stated | A | Goal stated (phone and print); new Crockford-like set without rhyming letters (2.2). |
 | 39 | Opaque/hashed without secret confirm guesses | A | `secret` required for `opaque` and `hashed`; answers Q8 (13.6, 16.2). |
-| 40 | Person names leak | A | First-name list rule, `denyTokens` documented, fixtures added (6.6, 15.8, 19.7). |
+| 40 | Person names leak | A | First-name list rule, `denyTokens` documented, fixtures added (6.6, 15.8, 19.7). **[obsolete rev 3]** The first-name rule is removed; `denyTokens` and `leak: 'minimal'` stay as the privacy tools (6.6). |
 | 41 | Same title same ID in every tenant | P | README recommends a per-tenant `secret` (16.2). `hashScope` option rejected: a per-tenant secret does the same with no new option. |
 | 42 | tsdown exports format vs hand map | A | tsdown owns `exports`, `main`, `module`, `types`; hand map removed; publint/attw validate (18.3). |
 | 43 | Build output risks | A | Separate clean step, `fixedExtension: false` for the CLI, smoke runs the bin, Pages copies all of `dist/` (18.3, 18.6, 19.5). |
@@ -2594,7 +2832,63 @@ Issue numbers follow the rev 1 review. A = accepted, P = accepted in part or wit
 | 45 | `dist` grep false positives | A | `node:vm` sandbox test plus Biome identifier rules (14.1). |
 | 46 | Packaging items | A | `devEngines`, `.nvmrc`, `erasableSyntaxOnly`, release gated on CI with tests, `sourcesContent`, CHECK generated from separator (17.3, 18.2 to 18.5). |
 | J1 | No expected outputs in fixtures | A | Optional `expect` field and `expect.test.ts`, gate Q15 (19.7). |
-| J2 | No near-duplicate or same-supplier links | A | `near` and `org` fields; Q6, Q14, Q16 use them (19.6, 19.7). |
-| J3 | Missing fixture kinds | A | New synthetic fixtures t408 onward for persons, floors, Roman numerals, umlaut plurals, money, adjectives, direction-word orgs, code runs, phone/IBAN (19.7). |
+| J2 | No near-duplicate or same-supplier links | A | `near` and `org` fields; Q6, Q14, Q16 use them (19.6, 19.7). **[changed rev 3]** `near` stays; the `org` field and gate Q16 are removed. |
+| J3 | Missing fixture kinds | A | New synthetic fixtures t408 onward for persons, floors, Roman numerals, umlaut plurals, money, adjectives, direction-word orgs, code runs, phone/IBAN (19.7). **[changed rev 3]** The rev 2 extra fixtures are replaced by the multi-domain corpus and its coverage table (19.7). |
 
-Changes found while recomputing section 20 (not in the review): pass 2 allows weak heads (t384); content line words stay as concepts at -50 (t388, t059); org full name up to 10 chars and stop-word org rungs removed (t063); place markers re-class only proper-noun candidates (t390); an abbr equal to a compound part is plain (t018, t030); building-type places get prior common (t007, Q11); `dach`, `us`, `eu` regions only in upper case; `gaa`, `pgk` added to the known list; the tail start index and tail length are counted again on the final body, so tiers agree for identical titles and the load rule holds after a refit (13.4).
+Changes found while recomputing section 20 (not in the review). **Rev 3:** the org items, place markers, building-type places, the `gaa`/`pgk` known abbreviations and the floor-related items are obsolete; `upperOnly` replaces the `dach`/`us`/`eu` note; the tail start and length rule of 13.4 stays. pass 2 allows weak heads (t384); content line words stay as concepts at -50 (t388, t059); org full name up to 10 chars and stop-word org rungs removed (t063); place markers re-class only proper-noun candidates (t390); an abbr equal to a compound part is plain (t018, t030); building-type places get prior common (t007, Q11); `dach`, `us`, `eu` regions only in upper case; `gaa`, `pgk` added to the known list; the tail start index and tail length are counted again on the final body, so tiers agree for identical titles and the load rule holds after a refit (13.4).
+
+---
+
+## Appendix B. Review decisions (rev 3)
+
+Issue numbers follow the review of rev 3. A = accepted, P = accepted in part or with a different fix, R = rejected. Fixture ids (`t065`, `t446`, ...) refer to the corpus at rev 3, before the fixes of section 23 #18.
+
+| # | Issue | Decision | Why / where |
+|---|---|---|---|
+| 1 | `near` holds labels, not ids | A | Labels move to the new field `vary`; `near` holds only ids; at least 10 real near pairs; Q5 counts siblings again (19.6, 19.7, 23 #18). |
+| 2 | Q6 fails or passes falsely | A | Q6 compares canonical titles; issues 8 to 10 fix 4 of the 6 pairs (quantity, size, variant, decimal version); the floor and `Los` groups carry `skip.Q6` with a reason (field rules), capped at 3% of pairs (19.6, 19.7). |
+| 3 | Q1 and Q2 measure the ranker against itself | P | New field `keep` and gate Q19 (>= 85% overall, >= 75% per domain); Q2 is report only. Per-domain Q19 applies to domains with 10+ `keep` titles, and the corpus must have 10+ per domain, so the per-domain number is not noise (19.6, 19.7). |
+| 4 | Q4 gate copied from the rev 2 corpus | A | Q4 is report only until M4, then the gate is set from the measured value, overall and per domain (19.6, 21). |
+| 5 | Coverage gaps | A | Month with year, near pairs, `Phase II`, `PROJ-1234` keys added to the coverage table and to the corpus work list (19.7, 23 #18). |
+| 6 | Short upper-case words become top-ranked names | P | New class `acronym` (slot T, weight 240, prior unknown, kept in `minimal`); name signal 2 removed. `am`/`pm` are noise only after a time number, because `PM` alone often means project or product manager (5.2, 6.6, 10). |
+| 7 | Known abbreviations typed in capitals are lost | A | Lookup step 0 maps an upper-case token (also with a plural `s`) to the entry with that `known` abbr; 6.6 wording fixed. `SEO Keyword Research` now has the `seo` concept; the fit still picks `keyword-research` (450) over `seo-keyword-[t4]` (705), which Q19 accepts (4.4). |
+| 8 | Bare numbers and missing generic markers | P | All proposed markers added (prefix `kla`, not `kl`, because a prefix may not end in `l`). Model numbers are a class `model` (weight 120), but they always join their word (`phone8`) and never stand alone, and in `de` titles they follow only names and acronyms, because every German noun is capitalized. Historic years `1500` to `1899` get a 4-digit rung (5.1, 5.2, 5.3, 5.4, 11.5). |
+| 9 | Quantity rules contradict each other | P | Quantities enter the pool at 125 with key `q<number><unit>`; units extended (incl. `m2`); quantities are found before decimals. A decimal quantity keeps its key but gets no rung, because `1p7l` or `17l` would mislead (5.1, 5.2, 8.2, 10.4). |
+| 10 | Decimal versions without `v` are noise | A | A dotted decimal after a version compound (`Versionshinweise`) or a model position (`Python 3.12`) is a version (5.4); section 20 rows 13 and 14. |
+| 11 | Function-word gaps, number words | A | DE pronouns, possessives, modal verbs, question words and adverbs; EN `ever never cannot nobody ...` and contraction stems; `us` is an EN stop word with the upper-case exception; `pro` is a DE-only conflict word (`Pro 14`). Number words are dropped like `smallnum`, only in titles of their language (`Elf on the Shelf`), and count as marker numbers (`Part One`) (5.1 step 4b, 6.3). |
+| 12 | Doc words rank high, DE/EN weak lists differ | A | Doc-kind entries with `weight: -60` (15.6); `vorlage` and `template` are both doc-kind; `minutes`, `planning`, `hinweis`, `session`, `current` are weak; `retrospektive` added; new field `pair` and a pair unit test with a named exception list. The weight only acts when something must be dropped: when all words fit, a doc word still shows (`best-banan-bread`), which is fine. |
+| 13 | Compound handling loses meaning | A | Morph and head rungs are cryptic, except a whole part of 5+ chars whose other parts are weak, noise or generic modifiers; direction, region and qualifier modifiers become own concepts; joined abbr is plain only with known pieces; an unknown hyphen head is an unknown topic; the hyphen rule holds in every language (5.1, 7.3, 11.1). Row 10 shows that a cryptic head rung can still win; open question Q17. |
+| 14 | Ties in `lost` decided alphabetically | A | Both fixes: decreasing position bonus 60/30/15/8/4 for T concepts, and a content-rank step before the body text in the fit tie-break (10.3, 12). |
+| 15 | `und` for ASCII-folded German and short titles | A | Digraph hint with exclusions (`blue`, `issues`, `Tuesday`, `steuer` do not count), parts hits from 6 chars, compound hint from 8 chars, plural fold for `und` stems. Parts that are also English words (`student patient transport region`) moved to `*` so they give no German score (6.1, 8.2, 15.7). |
+| 16 | Attr suffix false hits | A | `-haft` never matches `-schaft`; `-lich -ig -isch -bar -los -haft` only in lower case; `-iert` stays for any case (6.4). |
+| 17 | Code runs eat slash and bracket words | A | A code run needs a digit or only upper-case letters (5.1 step 1b). |
+| 18 | Marker vs compound topic | A | Topic-to-marker merge (5.3, 8.1); section 20 row 15. |
+| 19 | Generic qualifiers missing | A | Class `qualifier` (slot Q, weight 140, kept in `minimal`) with DE and EN entries and groups; `online` left the parts list (15.5). |
+| 20 | Weekdays and left/right | P | Directions: no stem lookup, and `links`/`rechts` are `lowerOnly`. Weekdays: rejected as weak words; they are a class `weekday` (slot N, weight 100), because a weak word never shows and weekdays separate siblings (`Team Lunch Friday` / `Monday`, rows 28 and 29). They are never names by sentence case (5.4, 6.6). |
+| 21 | Section 20 rows with impossible lengths | A | All rows checked against I1 and recomputed with the rev 3.1 rules; `ref-acceptance.ts` checks I1 and I2 on every expected value (20). One correction to the review: `dogovor-postavki` is 16 chars (7 + 1 + 8), not 15; the row stays `unv` because cut-heavy bodies cost less (row 43). |
+| 22 | Privacy text wrong for German titles | A | Wording option: 6.6, 10.4, README item 11 and Q10 say that `minimal` keeps names in `de` titles and that `denyTokens` is the tool. The heuristic option is rejected for the same reason as in Q12 (it would turn most German nouns into names). |
+| 23 | Duplicate keys in built-in data | A | `west` is one `*` entry; `app software marketing team online` left the parts line; the part count is 240. Also fixed: the region `dach` clashed with the part `dach` (roof); the region key is now `dachregion` with form `dach` and `upperOnly` (15.5, 15.7). |
+| 24 | `known` list breaks rule 15.2.3 | A | `va ma mv jhv gf br abt` are cryptic; `entwicklung` left the `dev` group (keeps `entw`); new rule 15.2.6 on groups. |
+| 25 | Smaller inconsistencies | A | Direction cancel by class (10.1); deny tokens are removed in step 2, right after tokenizing (3, 6.6); Appendix A row 3 points to 15.7; person titles are listed per language (6.3); wide ranges show as two segments `1950-2020` (5.2, 11.5). |
+| 26 | Procurement leftovers in normative text | P | Neutral examples in 4.3, 5.1, 6.4, 7.3, 8.2, 11.1, 11.4 and 19.1; procurement-leaning parts removed (`einkauf liefer wartung neubau umbau sanierung personal`); the M1.5 rule now names what is allowed (SPEC.md, recipe files, corpus titles, hash-input test strings). The word-frequency check is a review script with a list passed by path, not a CI gate, because no frequency list with a fitting license can be committed (15.7, 21, 23 #19). |
+| 27 | `LanguagePack` lacks slots | A | Added `weekdays`, `units`, `versionWords`, `numberWords`, and also `attr` and `hints.digraphs`, so a new language can reach the level of `de` and `en` (6.7). |
+
+**Hand simulation of the review, with the rev 3.1 rules** (default config, exact 16, no store; hand results, checked again at M4):
+
+| Fixture | Title | Rev 3.1 result | Changed by |
+|---|---|---|---|
+| t446 / t450 | Sommerfest Gärtnerei München 2026 / Gaertnerei Muenchen | both `de` (umlaut chars; digraphs and compound hint), so the same concepts and the same ID (Q8) | 15 |
+| t336 | SEO Keyword Research | `keyword-research` (450); `seo` is now a concept, lost by fit | 7 |
+| t382 | Open House Saturday 2 PM | `open-hous-sat-[t2]` (440); `PM` noise, `Saturday` a weekday | 6, 20 |
+| t004 | Mein erstes Jahr als Freelancerin in Leipzig | `mein` stop word, `erstes` number word, `Leipzig` a topic | 11, 16 |
+| t137 | Best Ever Banana Bread | `best-banan-bread` (190); `ever` stop word | 11, 12 |
+| t016 | Ten Houseplants That Survive Any Office | `ten` dropped (number word); `survive` attr | 11 |
+| t065 / t066 | Tavora Phone 8 128/256 GB Midnight Blue | `phone8` bond and quantity `128gb` / `256gb` in the pool; the second sibling shows its quantity after re-pick | 8, 9 |
+| t068/t069, t344/t345 | Größe M / L, Variante A / B | markers `szm` / `szl`, `vara` / `varb` | 8 |
+| t323 / t324 | Versionshinweise 5.1 / 5.2 | `versionshinweise` / `hinweise-v52-[t3]` (rows 13, 14) | 10 |
+| t387/t388, t410/t411 | 1. OG / 3. OG; Los 1 / Los 2 | `skip.Q6` (field rules); `Los` tested with the recipe | 2 |
+| t164 / t165 | Niederschlagstrends in Nord/Süddeutschland 1950–2020 | `nord` / `sued` are own concepts (slot Q), range `1950-2020` | 13, 25 |
+| t116 | Sprintplanung Sprint 22 | `sprint22-[t7]` (500), row 15 | 18 |
+| t197 | Auftragsverarbeitungsvertrag nach Art. 28 DSGVO | marker `art28`, acronym `dsgvo` | 6, 8 |
+| t095 / t094 | Checkout button unresponsive in Safari / Chrome | still `und` (no hint); open, see row 22 | - |
+| t091 / t092 | Laptop startet nicht – Standort Berlin / Dresden | unchanged; Q1 open question (exact vs max) | - |

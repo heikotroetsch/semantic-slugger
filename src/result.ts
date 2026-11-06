@@ -8,7 +8,7 @@ export interface Segment {
   text: string
   kind: 'word' | 'number' | 'code' | 'fallback' | 'tail'
   cls?: ConceptClass
-  /** Ascii source word, for example 'standorte'. */
+  /** Ascii source word, for example 'vertrieb'. */
   source?: string
   rung?: 'lexicon' | 'full' | 'morph' | 'coda' | 'syll' | 'skeleton' | 'number'
   verbatim: boolean

@@ -2,2542 +2,3975 @@
   {
     "id": "t001",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stromlieferung Standorte Nord 2026",
-    "group": "de-strom-standorte"
+    "kind": "blog",
+    "title": "Warum wir unser Büro in eine Bibliothek verwandelt haben",
+    "keep": ["Büro", "Bibliothek"]
   },
   {
     "id": "t002",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stromlieferung Standorte Süd 2026",
-    "group": "de-strom-standorte"
+    "kind": "blog",
+    "title": "10 Tipps für besseren Schlaf im Homeoffice",
+    "keep": ["Schlaf", "Homeoffice"]
   },
   {
     "id": "t003",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stromlieferung Standorte Nord 2027",
-    "group": "de-strom-standorte"
+    "kind": "blog",
+    "title": "Gartenarbeit im Herbst: Was jetzt zu tun ist",
+    "keep": ["Gartenarbeit", "Herbst"]
   },
   {
     "id": "t004",
     "lang": "de",
-    "kind": "contract",
-    "title": "Erdgaslieferung Liegenschaften Kassel 2025",
-    "group": "de-erdgas-kassel"
+    "kind": "blog",
+    "title": "Mein erstes Jahr als Freelancerin in Leipzig",
+    "keep": ["Freelancerin", "Leipzig"]
   },
   {
     "id": "t005",
     "lang": "de",
-    "kind": "contract",
-    "title": "Erdgaslieferung Liegenschaften Kassel 2026",
-    "group": "de-erdgas-kassel"
+    "kind": "blog",
+    "title": "Minimalismus im Alltag – ein ehrlicher Erfahrungsbericht",
+    "keep": ["Minimalismus", "Alltag"]
   },
   {
     "id": "t006",
     "lang": "de",
-    "kind": "contract",
-    "title": "Erdgaslieferung Liegenschaften Göttingen 2026",
-    "group": "de-erdgas-kassel"
+    "kind": "blog",
+    "title": "So reparierst du ein Fahrradschloss in fünf Minuten",
+    "keep": ["Fahrradschloss"]
   },
   {
     "id": "t007",
     "lang": "de",
-    "kind": "contract",
-    "title": "Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 1",
-    "group": "de-reinigung-lose"
+    "kind": "blog",
+    "title": "Die schönsten Wanderwege rund um den Tegernsee",
+    "keep": ["Wanderwege", "Tegernsee"]
   },
   {
     "id": "t008",
     "lang": "de",
-    "kind": "contract",
-    "title": "Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 2",
-    "group": "de-reinigung-lose"
+    "kind": "blog",
+    "title": "Warum ich keine To-do-Listen mehr schreibe"
   },
   {
     "id": "t009",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 3",
-    "group": "de-reinigung-lose"
+    "lang": "en",
+    "kind": "blog",
+    "title": "How I Learned to Stop Worrying and Love Spreadsheets",
+    "keep": ["Spreadsheets"]
   },
   {
     "id": "t010",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Unterhaltsreinigung Verwaltungsgebäude München Süd – Los 1",
-    "group": "de-reinigung-lose"
+    "lang": "en",
+    "kind": "blog",
+    "title": "Five Lessons From Running a Remote Book Club",
+    "keep": ["Book", "Club"]
   },
   {
     "id": "t011",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Aufzugsanlagen Hauptverwaltung – Isarwerk Elektrotechnik GmbH",
-    "group": "de-aufzug-lieferant"
+    "lang": "en",
+    "kind": "blog",
+    "title": "The Quiet Joy of Fixing Old Radios",
+    "keep": ["Radios"]
   },
   {
     "id": "t012",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Aufzugsanlagen Hauptverwaltung – Fichtel Kran & Hebetechnik GmbH",
-    "group": "de-aufzug-lieferant"
+    "lang": "en",
+    "kind": "blog",
+    "title": "Why Our Team Switched to Four-Day Weeks"
   },
   {
     "id": "t013",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Nachtrag 1 zum Rahmenvertrag Betonstahl – Preisgleitklausel",
-    "group": "de-betonstahl-nachtrag"
+    "lang": "en",
+    "kind": "blog",
+    "title": "A Beginner's Guide to Urban Beekeeping",
+    "keep": ["Beekeeping"]
   },
   {
     "id": "t014",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Nachtrag 2 zum Rahmenvertrag Betonstahl – Preisgleitklausel",
-    "group": "de-betonstahl-nachtrag"
+    "lang": "en",
+    "kind": "blog",
+    "title": "What Nobody Tells You About Moving Abroad"
   },
   {
     "id": "t015",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Nachtrag 3 zum Rahmenvertrag Betonstahl – Preisgleitklausel",
-    "group": "de-betonstahl-nachtrag"
+    "lang": "en",
+    "kind": "blog",
+    "title": "Notes From a Year Without Social Media"
   },
   {
     "id": "t016",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Kündigung Wartungsvertrag Brandmeldeanlage Standort Kassel",
-    "group": "de-kuendigung-bma"
+    "lang": "en",
+    "kind": "blog",
+    "title": "Ten Houseplants That Survive Any Office",
+    "keep": ["Houseplants"]
   },
   {
     "id": "t017",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Kündigung Wartungsvertrag Brandmeldeanlage Standort Fulda",
-    "group": "de-kuendigung-bma"
+    "lang": "mixed",
+    "kind": "blog",
+    "title": "Hygge, Lagom und Ikigai: Lifestyle-Trends erklärt"
   },
   {
     "id": "t018",
     "lang": "de",
-    "kind": "contract",
-    "title": "Verlängerung Dienstleistungsvertrag Winterdienst 2025/2026",
-    "group": "de-winterdienst"
+    "kind": "blog",
+    "title": "Sauerteig selbst ansetzen – Teil 1",
+    "group": "blog-sauerteig-teil",
+    "vary": "part",
+    "keep": ["Sauerteig"]
   },
   {
     "id": "t019",
     "lang": "de",
-    "kind": "contract",
-    "title": "Verlängerung Dienstleistungsvertrag Winterdienst 2026/2027",
-    "group": "de-winterdienst"
+    "kind": "blog",
+    "title": "Sauerteig selbst ansetzen – Teil 2",
+    "group": "blog-sauerteig-teil",
+    "vary": "part"
   },
   {
     "id": "t020",
     "lang": "de",
-    "kind": "project",
-    "title": "Leistungsverzeichnis Elektroinstallation Neubau Halle 4",
-    "group": "de-lv-elektro"
+    "kind": "blog",
+    "title": "Sauerteig selbst ansetzen – Teil 3",
+    "group": "blog-sauerteig-teil",
+    "vary": "part"
   },
   {
     "id": "t021",
-    "lang": "de",
-    "kind": "project",
-    "title": "Leistungsverzeichnis Elektroinstallation Neubau Halle 5",
-    "group": "de-lv-elektro"
+    "lang": "en",
+    "kind": "blog",
+    "title": "My Garden Planting Calendar 2025",
+    "group": "blog-garden-year",
+    "vary": "year"
   },
   {
     "id": "t022",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q1 2026",
-    "group": "de-zement-quartal"
+    "lang": "en",
+    "kind": "blog",
+    "title": "My Garden Planting Calendar 2026",
+    "group": "blog-garden-year",
+    "vary": "year"
   },
   {
     "id": "t023",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q2 2026",
-    "group": "de-zement-quartal"
+    "lang": "en",
+    "kind": "blog",
+    "title": "Remote Work Handbook – English Edition",
+    "group": "blog-handbook-edition",
+    "vary": "edition"
   },
   {
     "id": "t024",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q3 2026",
-    "group": "de-zement-quartal"
+    "kind": "blog",
+    "title": "Remote Work Handbook – Deutsche Ausgabe",
+    "group": "blog-handbook-edition",
+    "vary": "edition"
   },
   {
     "id": "t025",
     "lang": "de",
-    "kind": "po",
-    "title": "Lieferung Mittelspannungskabel NA2XS(F)2Y Los 1 Netzgebiet Ost",
-    "group": "de-mittelspannungskabel"
+    "kind": "news",
+    "title": "Stadtrat beschließt neuen Radweg an der Isar",
+    "keep": ["Radweg", "Isar"]
   },
   {
     "id": "t026",
     "lang": "de",
-    "kind": "po",
-    "title": "Lieferung Mittelspannungskabel NA2XS(F)2Y Los 2 Netzgebiet Ost",
-    "group": "de-mittelspannungskabel"
+    "kind": "news",
+    "title": "Hochwasser in Passau: Pegel sinkt langsam",
+    "keep": ["Hochwasser", "Passau"]
   },
   {
     "id": "t027",
     "lang": "de",
-    "kind": "po",
-    "title": "Lieferung Mittelspannungskabel NA2XS(F)2Y Los 1 Netzgebiet West",
-    "group": "de-mittelspannungskabel"
+    "kind": "news",
+    "title": "Bahnstreik legt Fernverkehr am Montag lahm",
+    "keep": ["Bahnstreik"]
   },
   {
     "id": "t028",
     "lang": "de",
-    "kind": "project",
-    "title": "Beschaffung Notebooks Mitarbeitende Filialen Bayern 2026",
-    "group": "de-notebooks-filialen"
+    "kind": "news",
+    "title": "Neue Studie: Deutsche lesen wieder mehr Bücher"
   },
   {
     "id": "t029",
     "lang": "de",
-    "kind": "project",
-    "title": "Beschaffung Notebooks Mitarbeitende Filialen Hessen 2026",
-    "group": "de-notebooks-filialen"
+    "kind": "news",
+    "title": "Freibad Nordstadt öffnet nach Sanierung",
+    "keep": ["Freibad", "Nordstadt"]
   },
   {
     "id": "t030",
     "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Nord",
-    "group": "de-bargeld-region"
+    "kind": "news",
+    "title": "Landesregierung plant kostenloses Schulessen",
+    "keep": ["Schulessen"]
   },
   {
     "id": "t031",
     "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Süd",
-    "group": "de-bargeld-region"
+    "kind": "news",
+    "title": "Rekordhitze im Juli: Wetterdienst warnt vor Trockenheit",
+    "keep": ["Rekordhitze", "Trockenheit"]
   },
   {
     "id": "t032",
     "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Mitte",
-    "group": "de-bargeld-region"
+    "kind": "news",
+    "title": "Tierpark Altenwald begrüßt Nachwuchs bei den Luchsen"
   },
   {
     "id": "t033",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Werttransporte Filialnetz – Elbtal Sicherheitsdienst GmbH",
-    "group": "de-werttransport-lieferant"
+    "lang": "en",
+    "kind": "news",
+    "title": "City Council Approves New Riverside Park",
+    "keep": ["Riverside", "Park", "Council"]
   },
   {
     "id": "t034",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Werttransporte Filialnetz – Kranich Sicherheitslogistik GmbH",
-    "group": "de-werttransport-lieferant"
+    "lang": "en",
+    "kind": "news",
+    "title": "Storm Leaves Thousands Without Power in Coastal Towns",
+    "keep": ["Storm", "Power"]
   },
   {
     "id": "t035",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Jahresgespräch Müller Stahlbau GmbH 2025",
-    "group": "de-jahresgespraech"
+    "lang": "en",
+    "kind": "news",
+    "title": "Local Bakery Wins National Bread Award",
+    "keep": ["Bakery", "Bread"]
   },
   {
     "id": "t036",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Jahresgespräch Müller Stahlbau GmbH 2026",
-    "group": "de-jahresgespraech"
+    "lang": "en",
+    "kind": "news",
+    "title": "Scientists Spot Rare Owl in Northern Forest",
+    "keep": ["Owl"]
   },
   {
     "id": "t037",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Jahresgespräch Grauwacke Beton AG 2026",
-    "group": "de-jahresgespraech"
+    "lang": "en",
+    "kind": "news",
+    "title": "Transit Fares to Rise Next Spring"
   },
   {
     "id": "t038",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Arbeitsschutzkleidung Lager Hamburg KW 12",
-    "group": "de-psa-kw"
+    "lang": "en",
+    "kind": "news",
+    "title": "School District Expands Free Lunch Program"
   },
   {
     "id": "t039",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Arbeitsschutzkleidung Lager Hamburg KW 13",
-    "group": "de-psa-kw"
+    "lang": "en",
+    "kind": "news",
+    "title": "Wildfire Season Starts Early Across the West",
+    "keep": ["Wildfire"]
   },
   {
     "id": "t040",
-    "lang": "de",
-    "kind": "project",
-    "title": "Ausschreibung Facility Management Campus Frankfurt 2026",
-    "group": "de-fm-campus"
+    "lang": "en",
+    "kind": "news",
+    "title": "Startup Lumora Raises Seed Round for Battery Recycling",
+    "keep": ["Lumora", "Battery"]
   },
   {
     "id": "t041",
-    "lang": "de",
-    "kind": "project",
-    "title": "Ausschreibung Facility Management Campus Eschborn 2026",
-    "group": "de-fm-campus"
+    "lang": "mixed",
+    "kind": "news",
+    "title": "Live-Ticker: Champions League Finale"
   },
   {
     "id": "t042",
     "lang": "de",
-    "kind": "po",
-    "title": "Prüfung Leitern und Tritte nach DIN EN 131 Standort Kassel",
-    "group": "de-leitern-din"
+    "kind": "news",
+    "title": "Landtagswahl Bayern 2023: Ergebnisse im Überblick",
+    "group": "news-wahl-year",
+    "vary": "year"
   },
   {
     "id": "t043",
     "lang": "de",
-    "kind": "po",
-    "title": "Prüfung Leitern und Tritte nach DIN EN 131 Standort Erfurt",
-    "group": "de-leitern-din"
+    "kind": "news",
+    "title": "Landtagswahl Bayern 2028: Ergebnisse im Überblick",
+    "group": "news-wahl-year",
+    "vary": "year"
   },
   {
     "id": "t044",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Betreibervertrag Betriebsrestaurant Hauptverwaltung Düsseldorf",
-    "group": "de-kantine-standort"
+    "lang": "en",
+    "kind": "news",
+    "title": "Severe Weather Warning for North Wales",
+    "group": "news-storm-direction",
+    "vary": "direction",
+    "keep": ["Weather", "Wales"]
   },
   {
     "id": "t045",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Betreibervertrag Betriebsrestaurant Werk Duisburg",
-    "group": "de-kantine-standort"
+    "lang": "en",
+    "kind": "news",
+    "title": "Severe Weather Warning for South Wales",
+    "group": "news-storm-direction",
+    "vary": "direction"
   },
   {
     "id": "t046",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Rheinkiesel Baustoffe GmbH",
-    "group": "de-rheinkiesel-nl"
+    "kind": "news",
+    "title": "Verkehrschaos in Köln nach Brückensperrung",
+    "group": "news-traffic-city",
+    "vary": "city"
   },
   {
     "id": "t047",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Rheinkiesel Baustoffe GmbH Niederlassung Köln",
-    "group": "de-rheinkiesel-nl"
+    "kind": "news",
+    "title": "Verkehrschaos in Hamburg nach Brückensperrung",
+    "group": "news-traffic-city",
+    "vary": "city"
   },
   {
     "id": "t048",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Rheinkiesel Baustoffe GmbH Niederlassung Bonn",
-    "group": "de-rheinkiesel-nl"
+    "kind": "product",
+    "title": "Kabellose Kopfhörer Lumora Air mit Geräuschunterdrückung",
+    "keep": ["Kopfhörer", "Lumora"]
   },
   {
     "id": "t049",
     "lang": "de",
-    "kind": "contract",
-    "title": "Leasingvertrag Fuhrpark Servicefahrzeuge 2026 Los A",
-    "group": "de-leasing-los"
+    "kind": "product",
+    "title": "Edelstahl-Wasserkocher 1,7 Liter, mattschwarz",
+    "keep": ["Wasserkocher"]
   },
   {
     "id": "t050",
     "lang": "de",
-    "kind": "contract",
-    "title": "Leasingvertrag Fuhrpark Servicefahrzeuge 2026 Los B",
-    "group": "de-leasing-los"
+    "kind": "product",
+    "title": "Kinderfahrrad 16 Zoll mit Stützrädern",
+    "keep": ["Kinderfahrrad"]
   },
   {
     "id": "t051",
     "lang": "de",
-    "kind": "contract",
-    "title": "Entsorgung gefährlicher Abfälle Werk Nord",
-    "group": "de-entsorgung-werk"
+    "kind": "product",
+    "title": "Ergonomischer Bürostuhl Veltrion Comfort",
+    "keep": ["Bürostuhl", "Veltrion"]
   },
   {
     "id": "t052",
     "lang": "de",
-    "kind": "contract",
-    "title": "Entsorgung gefährlicher Abfälle Werk Süd",
-    "group": "de-entsorgung-werk"
+    "kind": "product",
+    "title": "Bio-Kaffeebohnen Espresso Röstung 1 kg",
+    "keep": ["Kaffeebohnen", "Espresso"]
   },
   {
     "id": "t053",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartung PV-Anlage Dach Logistikzentrum Bielefeld",
-    "group": "de-pv-wartung"
+    "kind": "product",
+    "title": "Wanderrucksack 35 L wasserdicht",
+    "keep": ["Wanderrucksack"]
   },
   {
     "id": "t054",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartung PV-Anlage Dach Logistikzentrum Bremen",
-    "group": "de-pv-wartung"
+    "kind": "product",
+    "title": "Akku-Bohrschrauber 18 V inkl. 2 Akkus",
+    "keep": ["Bohrschrauber"]
   },
   {
     "id": "t055",
     "lang": "de",
-    "kind": "negotiation",
-    "title": "Preisverhandlung Strombeschaffung Nordlicht Energie AG Lieferjahr 2026",
-    "group": "de-strompreis-verhandlung"
+    "kind": "product",
+    "title": "Smarte Heizkörperthermostate 3er-Set",
+    "keep": ["Heizkörperthermostate"]
   },
   {
     "id": "t056",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Preisverhandlung Strombeschaffung Ostwind Stadtwerke AG Lieferjahr 2026",
-    "group": "de-strompreis-verhandlung"
+    "lang": "en",
+    "kind": "product",
+    "title": "Brightwave Pro 14 Laptop, 16 GB RAM, 512 GB SSD",
+    "keep": ["Brightwave", "Laptop"]
   },
   {
     "id": "t057",
-    "lang": "de",
-    "kind": "po",
-    "title": "Abruf Gerüstbau Bauabschnitt 2 Vogt & Söhne Gerüstbau GmbH",
-    "group": "de-gerueste-bauabschnitt"
+    "lang": "en",
+    "kind": "product",
+    "title": "Cast Iron Skillet 12 Inch Pre-Seasoned",
+    "keep": ["Skillet", "Iron"]
   },
   {
     "id": "t058",
-    "lang": "de",
-    "kind": "po",
-    "title": "Abruf Gerüstbau Bauabschnitt 3 Vogt & Söhne Gerüstbau GmbH",
-    "group": "de-gerueste-bauabschnitt"
+    "lang": "en",
+    "kind": "product",
+    "title": "Waterproof Hiking Boots for Women",
+    "keep": ["Hiking", "Boots"]
   },
   {
     "id": "t059",
     "lang": "en",
-    "kind": "contract",
-    "title": "Master Service Agreement – Bluefin Analytics Ltd.",
-    "group": "en-msa-supplier"
+    "kind": "product",
+    "title": "Kestrel X2 Smartwatch with GPS",
+    "keep": ["Kestrel", "Smartwatch"]
   },
   {
     "id": "t060",
     "lang": "en",
-    "kind": "contract",
-    "title": "Master Service Agreement – Ironbark Software Inc.",
-    "group": "en-msa-supplier"
+    "kind": "product",
+    "title": "Organic Green Tea, 100 Bags",
+    "keep": ["Green", "Tea"]
   },
   {
     "id": "t061",
     "lang": "en",
-    "kind": "contract",
-    "title": "SOW 3 – Data Platform Migration Phase 1",
-    "group": "en-sow-phase"
+    "kind": "product",
+    "title": "Bamboo Cutting Board Set of 3",
+    "keep": ["Cutting", "Board"]
   },
   {
     "id": "t062",
     "lang": "en",
-    "kind": "contract",
-    "title": "SOW 4 – Data Platform Migration Phase 2",
-    "group": "en-sow-phase"
+    "kind": "product",
+    "title": "Standing Desk Electric 140 x 70 cm"
   },
   {
     "id": "t063",
     "lang": "en",
-    "kind": "contract",
-    "title": "Mutual NDA – Northgate Cloud Services Inc. 2025",
-    "group": "en-nda-year"
+    "kind": "product",
+    "title": "Kids' Wooden Train Set, 50 Pieces"
   },
   {
     "id": "t064",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Mutual NDA – Northgate Cloud Services Inc. 2026",
-    "group": "en-nda-year"
+    "lang": "mixed",
+    "kind": "product",
+    "title": "Lumora Air Pro – In-Ear Kopfhörer, Noise Cancelling"
   },
   {
     "id": "t065",
     "lang": "en",
-    "kind": "contract",
-    "title": "Framework Agreement Office Supplies EMEA 2026",
-    "group": "en-framework-office"
+    "kind": "product",
+    "title": "Tavora Phone 8 128 GB Midnight Blue",
+    "group": "product-phone-variant",
+    "vary": "variant"
   },
   {
     "id": "t066",
     "lang": "en",
-    "kind": "contract",
-    "title": "Framework Agreement Office Supplies APAC 2026",
-    "group": "en-framework-office"
+    "kind": "product",
+    "title": "Tavora Phone 8 256 GB Midnight Blue",
+    "group": "product-phone-variant",
+    "vary": "variant"
   },
   {
     "id": "t067",
     "lang": "en",
-    "kind": "contract",
-    "title": "Framework Agreement Office Supplies EMEA 2027",
-    "group": "en-framework-office"
+    "kind": "product",
+    "title": "Tavora Phone 8 Pro 256 GB Silver",
+    "group": "product-phone-variant",
+    "vary": "variant"
   },
   {
     "id": "t068",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Renewal Software Licenses CAD Suite Q1 2026",
-    "group": "en-cad-renewal"
+    "lang": "de",
+    "kind": "product",
+    "title": "Herren T-Shirt Bio-Baumwolle Größe M",
+    "group": "product-shirt-size",
+    "vary": "variant"
   },
   {
     "id": "t069",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Renewal Software Licenses CAD Suite Q2 2026",
-    "group": "en-cad-renewal"
+    "lang": "de",
+    "kind": "product",
+    "title": "Herren T-Shirt Bio-Baumwolle Größe L",
+    "group": "product-shirt-size",
+    "vary": "variant"
   },
   {
     "id": "t070",
     "lang": "en",
-    "kind": "project",
-    "title": "RFQ Pallet Racking Warehouse Leipzig Lot 1",
-    "group": "en-rfq-racking"
+    "kind": "product",
+    "title": "Quillon Robot Vacuum V2",
+    "group": "product-vacuum-version",
+    "vary": "version"
   },
   {
     "id": "t071",
     "lang": "en",
-    "kind": "project",
-    "title": "RFQ Pallet Racking Warehouse Leipzig Lot 2",
-    "group": "en-rfq-racking"
+    "kind": "product",
+    "title": "Quillon Robot Vacuum V3",
+    "group": "product-vacuum-version",
+    "vary": "version"
   },
   {
     "id": "t072",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Freight Forwarding Agreement Air Freight Asia to Europe",
-    "group": "en-freight-mode"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Drucker im 3. OG druckt nur leere Seiten",
+    "keep": ["Drucker"]
   },
   {
     "id": "t073",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Freight Forwarding Agreement Ocean Freight Asia to Europe",
-    "group": "en-freight-mode"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "VPN-Verbindung bricht nach 10 Minuten ab",
+    "keep": ["VPN"]
   },
   {
     "id": "t074",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Security Services Agreement Head Office London",
-    "group": "en-security-site"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Passwort zurücksetzen funktioniert nicht",
+    "keep": ["Passwort"]
   },
   {
     "id": "t075",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Security Services Agreement Head Office Dublin",
-    "group": "en-security-site"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Outlook synchronisiert keine Kalendereinträge",
+    "keep": ["Outlook", "Kalendereinträge"]
   },
   {
     "id": "t076",
-    "lang": "en",
-    "kind": "negotiation",
-    "title": "Annual Price Review Harborview Logistics LLC 2025",
-    "group": "en-price-review"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Neuer Mitarbeiter braucht Zugang zum Laufwerk",
+    "keep": ["Zugang", "Laufwerk"]
   },
   {
     "id": "t077",
-    "lang": "en",
-    "kind": "negotiation",
-    "title": "Annual Price Review Harborview Logistics LLC 2026",
-    "group": "en-price-review"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Bildschirm flackert nach Windows-Update",
+    "keep": ["Bildschirm"]
   },
   {
     "id": "t078",
-    "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Laptops Engineering Team Batch 1",
-    "group": "en-po-laptops"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Bestellbestätigung wird nicht per E-Mail versendet",
+    "keep": ["Bestellbestätigung"]
   },
   {
     "id": "t079",
-    "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Laptops Engineering Team Batch 2",
-    "group": "en-po-laptops"
+    "lang": "de",
+    "kind": "ticket",
+    "title": "Rechnungs-PDF enthält falsche Adresse",
+    "keep": ["Rechnung", "Adresse"]
   },
   {
     "id": "t080",
     "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Laptops Sales Team Batch 1",
-    "group": "en-po-laptops"
+    "kind": "ticket",
+    "title": "Login page shows 500 error after deploy",
+    "keep": ["Login", "error"]
   },
   {
     "id": "t081",
     "lang": "en",
-    "kind": "contract",
-    "title": "Cloud Hosting Agreement Production Environment EU-West",
-    "group": "en-cloud-region"
+    "kind": "ticket",
+    "title": "Dark mode toggle resets on page reload",
+    "keep": ["Dark", "mode"]
   },
   {
     "id": "t082",
     "lang": "en",
-    "kind": "contract",
-    "title": "Cloud Hosting Agreement Production Environment EU-Central",
-    "group": "en-cloud-region"
+    "kind": "ticket",
+    "title": "CSV export truncates rows over 10,000",
+    "keep": ["CSV", "export"]
   },
   {
     "id": "t083",
     "lang": "en",
-    "kind": "contract",
-    "title": "Termination Notice Telecom Services Silverline Telecom Ltd. Site A",
-    "group": "en-termination-site"
+    "kind": "ticket",
+    "title": "Crash when uploading images larger than 20 MB",
+    "keep": ["Crash", "images"]
   },
   {
     "id": "t084",
     "lang": "en",
-    "kind": "contract",
-    "title": "Termination Notice Telecom Services Silverline Telecom Ltd. Site B",
-    "group": "en-termination-site"
+    "kind": "ticket",
+    "title": "Search returns no results for words with umlauts",
+    "keep": ["Search", "umlauts"]
   },
   {
     "id": "t085",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag für Stromlieferung der Standorte 2026"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Mobile menu does not close on iOS Safari",
+    "keep": ["menu", "Safari"]
   },
   {
     "id": "t086",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenverträge für Stromlieferung der Standorte 2026"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Memory leak in background sync worker",
+    "keep": ["Memory", "leak"]
   },
   {
     "id": "t087",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wärmeliefervertrag Fernwärme Quartier Am Mühlbach"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Timezone wrong in meeting reminders",
+    "keep": ["Timezone"]
   },
   {
     "id": "t088",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Contracting-Vertrag Blockheizkraftwerk Klinikum Ost"
+    "lang": "mixed",
+    "kind": "ticket",
+    "title": "Bug: Datumsformat im Export ist MM/DD statt TT.MM."
   },
   {
     "id": "t089",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Netzersatzanlage Rechenzentrum Frankfurt-Rödelheim"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Fix flaky test in auth module (#1423)",
+    "group": "ticket-flaky-issue",
+    "vary": "issue"
   },
   {
     "id": "t090",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Instandhaltung Umspannwerk Kassel-Waldau inkl. Schutztechnik"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Fix flaky test in auth module (#1587)",
+    "group": "ticket-flaky-issue",
+    "vary": "issue"
   },
   {
     "id": "t091",
     "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Zählerablesung Netzgebiet Nordhessen"
+    "kind": "ticket",
+    "title": "Laptop startet nicht – Standort Berlin",
+    "group": "ticket-laptop-city",
+    "vary": "city"
   },
   {
     "id": "t092",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Smart-Meter-Gateways Rollout 2026–2028"
+    "kind": "ticket",
+    "title": "Laptop startet nicht – Standort Dresden",
+    "group": "ticket-laptop-city",
+    "vary": "city"
   },
   {
     "id": "t093",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Lieferung Transformatoren 630 kVA Ortsnetzstationen"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Checkout button unresponsive in Firefox",
+    "group": "ticket-checkout-browser",
+    "vary": "variant"
   },
   {
     "id": "t094",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Tiefbauleistungen Kabelverlegung Los 4"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Checkout button unresponsive in Chrome",
+    "group": "ticket-checkout-browser",
+    "vary": "variant"
   },
   {
     "id": "t095",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Netzbau Mittelspannung Ostwind Netzbau GmbH Rahmenvereinbarung"
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Checkout button unresponsive in Safari",
+    "group": "ticket-checkout-browser",
+    "vary": "variant"
   },
   {
     "id": "t096",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartung Ladeinfrastruktur E-Mobilität Betriebshöfe"
+    "kind": "meeting",
+    "title": "Wöchentliches Team-Meeting Marketing",
+    "keep": ["Marketing", "Team"]
   },
   {
     "id": "t097",
     "lang": "de",
-    "kind": "contract",
-    "title": "Stromliefervertrag Ökostrom mit Herkunftsnachweisen 2027"
+    "kind": "meeting",
+    "title": "Retrospektive Sprint 14",
+    "keep": ["Retrospektive"]
   },
   {
     "id": "t098",
     "lang": "de",
-    "kind": "contract",
-    "title": "Direktvermarktungsvertrag Windpark Hohe Rhön"
+    "kind": "meeting",
+    "title": "Elternabend Klasse 4b",
+    "keep": ["Elternabend"]
   },
   {
     "id": "t099",
     "lang": "de",
-    "kind": "contract",
-    "title": "Pachtvertrag Freiflächen-PV Gemarkung Lindenau"
+    "kind": "meeting",
+    "title": "Jour fixe Geschäftsführung",
+    "keep": ["Geschäftsführung"]
   },
   {
     "id": "t100",
     "lang": "de",
-    "kind": "contract",
-    "title": "Preisgleitklausel Erdgas nach THE-Index – Anlage 3"
+    "kind": "meeting",
+    "title": "Kick-off Website-Relaunch",
+    "keep": ["Website", "Relaunch"]
   },
   {
     "id": "t101",
     "lang": "de",
-    "kind": "contract",
-    "title": "Anpassung Preisgleitklausel Kupfer an LME-Notierung"
+    "kind": "meeting",
+    "title": "Vorstandssitzung Sportverein TSV Grünwiese",
+    "keep": ["Vorstandssitzung", "Sportverein"]
   },
   {
     "id": "t102",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Transportbeton Großbaustelle Hafen City Süd"
+    "kind": "meeting",
+    "title": "1:1 mit Jana – Feedback und Ziele"
   },
   {
     "id": "t103",
     "lang": "de",
-    "kind": "contract",
-    "title": "Liefervertrag Kalksandstein KS 20-2,0 Bauvorhaben Wohnpark West"
+    "kind": "meeting",
+    "title": "Mitgliederversammlung Kleingartenverein",
+    "keep": ["Mitgliederversammlung", "Kleingartenverein"]
   },
   {
     "id": "t104",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvereinbarung Kies und Sand Körnung 0/32 Werk Nord"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Weekly Engineering Sync",
+    "keep": ["Engineering", "Sync"]
   },
   {
     "id": "t105",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Liefervertrag Gipskartonplatten nach DIN 18180"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Quarterly Business Review with Rivenhall",
+    "keep": ["Business", "Review", "Rivenhall"]
   },
   {
     "id": "t106",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Dämmstoffe Mineralwolle WLG 035"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Design Critique: Checkout Flow",
+    "keep": ["Design", "Checkout"]
   },
   {
     "id": "t107",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Betonfertigteile Grauwacke Beton AG 2026"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "All-Hands Meeting November"
   },
   {
     "id": "t108",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Liefervertrag Bitumenbahnen Dachsanierung Halle 7"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Board Meeting Minutes",
+    "keep": ["Board", "Minutes"]
   },
   {
     "id": "t109",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stahlträger HEA/HEB Müller Stahlbau GmbH"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Customer Interview with Pemberly Foods",
+    "keep": ["Interview", "Pemberly"]
   },
   {
     "id": "t110",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Pflastersteine und Randsteine Los 2"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Coffee Chat with New Hires"
   },
   {
     "id": "t111",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Liefervertrag Zement CEM II/A-LL 42,5 R Sandhaus Zement GmbH"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Incident Postmortem: Payment Outage",
+    "keep": ["Postmortem", "Payment", "Outage"]
   },
   {
     "id": "t112",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Kontoauszugsdruck und Kuvertierung"
+    "lang": "mixed",
+    "kind": "meeting",
+    "title": "Daily Standup Team Phoenix – Protokoll"
   },
   {
     "id": "t113",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Kartenproduktion Girocard und Kreditkarten"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Q1 Planning Review Product Team",
+    "group": "meeting-planning-quarter",
+    "vary": "quarter"
   },
   {
     "id": "t114",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Auslagerungsvertrag Rechenzentrumsbetrieb nach DORA"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Q2 Planning Review Product Team",
+    "group": "meeting-planning-quarter",
+    "vary": "quarter"
   },
   {
     "id": "t115",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Wertpapierabwicklung Depotbank"
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Q3 Planning Review Product Team",
+    "group": "meeting-planning-quarter",
+    "vary": "quarter"
   },
   {
     "id": "t116",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Geldautomaten und Kontoauszugsdrucker Filialen"
+    "kind": "meeting",
+    "title": "Sprintplanung Sprint 22",
+    "group": "meeting-sprint-number",
+    "vary": "number"
   },
   {
     "id": "t117",
     "lang": "de",
-    "kind": "contract",
-    "title": "Vertrag Tresoranlagen Prüfung nach VdS Filiale Marktplatz"
+    "kind": "meeting",
+    "title": "Sprintplanung Sprint 23",
+    "group": "meeting-sprint-number",
+    "vary": "number"
   },
   {
     "id": "t118",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Druckdienstleistungen Kundenkommunikation"
+    "kind": "meeting",
+    "title": "Abteilungsrunde Vertrieb KW 12",
+    "group": "meeting-vertrieb-kw",
+    "vary": "week"
   },
   {
     "id": "t119",
     "lang": "de",
-    "kind": "contract",
-    "title": "Datenschutzvereinbarung AVV Seeland Datentechnik AG"
+    "kind": "meeting",
+    "title": "Abteilungsrunde Vertrieb KW 13",
+    "group": "meeting-vertrieb-kw",
+    "vary": "week"
   },
   {
     "id": "t120",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Unternehmensberatung Regulatorik MaRisk"
+    "kind": "recipe",
+    "title": "Omas Apfelstrudel mit Vanillesoße",
+    "keep": ["Apfelstrudel"]
   },
   {
     "id": "t121",
     "lang": "de",
-    "kind": "contract",
-    "title": "Lizenzvertrag Kernbankensystem Erweiterungsmodul Meldewesen"
+    "kind": "recipe",
+    "title": "Schnelle Linsensuppe mit Kokosmilch",
+    "keep": ["Linsensuppe"]
   },
   {
     "id": "t122",
     "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Pförtnerdienst Hauptverwaltung"
+    "kind": "recipe",
+    "title": "Käsespätzle wie im Allgäu",
+    "keep": ["Käsespätzle"]
   },
   {
     "id": "t123",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Heizung Lüftung Klima Bürogebäude Lindenstraße 12"
+    "kind": "recipe",
+    "title": "Veganer Kartoffelsalat mit Gurke und Dill",
+    "keep": ["Kartoffelsalat"]
   },
   {
     "id": "t124",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Kälteanlagen Wendelin Kälte- und Klimatechnik GmbH"
+    "kind": "recipe",
+    "title": "Rinderrouladen klassisch geschmort",
+    "keep": ["Rinderrouladen"]
   },
   {
     "id": "t125",
     "lang": "de",
-    "kind": "contract",
-    "title": "Glasreinigung Fassade Bürotürme Westend jährlich"
+    "kind": "recipe",
+    "title": "Zwetschgenkuchen vom Blech",
+    "keep": ["Zwetschgenkuchen"]
   },
   {
     "id": "t126",
     "lang": "de",
-    "kind": "contract",
-    "title": "Grünflächenpflege Außenanlagen Standort Ingolstadt"
+    "kind": "recipe",
+    "title": "Bärlauchpesto selbst gemacht",
+    "keep": ["Bärlauchpesto"]
   },
   {
     "id": "t127",
     "lang": "de",
-    "kind": "contract",
-    "title": "Hausmeisterdienste Wohnanlagen Leipzig-Grünau"
+    "kind": "recipe",
+    "title": "Kürbissuppe mit Ingwer und Orange",
+    "keep": ["Kürbissuppe"]
   },
   {
     "id": "t128",
     "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Empfang und Telefonzentrale"
+    "kind": "recipe",
+    "title": "Dinkelbrot ohne Kneten"
   },
   {
     "id": "t129",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wartung Sprinkleranlagen nach VdS CEA 4001"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "One-Pot Creamy Tomato Pasta",
+    "keep": ["Tomato", "Pasta"]
   },
   {
     "id": "t130",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Prüfung ortsveränderlicher Betriebsmittel DGUV V3 alle Standorte"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Classic Buttermilk Pancakes",
+    "keep": ["Pancakes", "Buttermilk"]
   },
   {
     "id": "t131",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Schädlingsbekämpfung Lebensmittellager Kantine Nord"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Spicy Chickpea Curry in 30 Minutes",
+    "keep": ["Chickpea", "Curry"]
   },
   {
     "id": "t132",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Postdienste und Kurierfahrten"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Slow Cooker Beef Chili",
+    "keep": ["Chili", "Beef"]
   },
   {
     "id": "t133",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Rolltore und Schnelllauftore Logistikhalle"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Lemon Garlic Roast Chicken",
+    "keep": ["Chicken", "Lemon"]
   },
   {
     "id": "t134",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Büromöbel Lindenhof Objekteinrichtung GmbH"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "No-Bake Peanut Butter Bars"
   },
   {
     "id": "t135",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Büromaterial Mosel Bürobedarf GmbH 2026"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Grilled Halloumi Salad with Mint"
   },
   {
     "id": "t136",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag IT-Hardware Arbeitsplatzausstattung 2026–2029"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Homemade Pizza Dough Overnight"
   },
   {
     "id": "t137",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Softwarewartungsvertrag ERP-System Modul Materialwirtschaft"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Best Ever Banana Bread",
+    "keep": ["Banana", "Bread"]
   },
   {
     "id": "t138",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag IT-Service-Desk 1st und 2nd Level"
+    "lang": "mixed",
+    "kind": "recipe",
+    "title": "Shakshuka mit Feta und Koriander"
   },
   {
     "id": "t139",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Mobilfunk Firmenkunden 500 SIM-Karten"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Chocolate Chip Cookies",
+    "group": "recipe-cookies-variant",
+    "vary": "variant",
+    "keep": ["Chocolate", "Cookies"]
   },
   {
     "id": "t140",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Vertrag Managed Firewall Silberfluss IT-Services GmbH"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Vegan Chocolate Chip Cookies",
+    "group": "recipe-cookies-variant",
+    "vary": "variant"
   },
   {
     "id": "t141",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Netzwerkkomponenten Standortvernetzung"
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Gluten-Free Chocolate Chip Cookies",
+    "group": "recipe-cookies-variant",
+    "vary": "variant"
   },
   {
     "id": "t142",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Druckerflotte Managed Print Services"
+    "kind": "recipe",
+    "title": "Lasagne mit Rinderhack",
+    "group": "recipe-lasagne-variant",
+    "vary": "variant"
   },
   {
     "id": "t143",
     "lang": "de",
-    "kind": "contract",
-    "title": "Lizenzvertrag Microsoft-kompatible Bürosoftware Volumenlizenz"
+    "kind": "recipe",
+    "title": "Lasagne mit Spinat und Ricotta",
+    "group": "recipe-lasagne-variant",
+    "vary": "variant"
   },
   {
     "id": "t144",
     "lang": "de",
-    "kind": "contract",
-    "title": "Vertrag Penetrationstest Online-Banking-Portal"
+    "kind": "research",
+    "title": "Einfluss von Lichtverschmutzung auf nachtaktive Insekten in Mitteleuropa",
+    "keep": ["Lichtverschmutzung", "Insekten"]
   },
   {
     "id": "t145",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Speditionsleistungen Stückgut Deutschland"
+    "kind": "research",
+    "title": "Eine empirische Untersuchung zur Lesekompetenz von Grundschulkindern",
+    "keep": ["Lesekompetenz", "Grundschulkindern"]
   },
   {
     "id": "t146",
     "lang": "de",
-    "kind": "contract",
-    "title": "Frachtvertrag Komplettladungen Hansekontor Logistik GmbH"
+    "kind": "research",
+    "title": "Messung der Bodenfeuchte mit kostengünstigen Sensoren",
+    "keep": ["Bodenfeuchte", "Sensoren"]
   },
   {
     "id": "t147",
     "lang": "de",
-    "kind": "contract",
-    "title": "Lagerlogistikvertrag Kontraktlogistik Standort Hamm"
+    "kind": "research",
+    "title": "Sprachwandel in Jugendchats: Eine Korpusanalyse",
+    "keep": ["Sprachwandel", "Jugendchats"]
   },
   {
     "id": "t148",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Kurier- und Expressdienste 2026"
+    "kind": "research",
+    "title": "Wärmepumpen im Altbau: Eine Feldstudie",
+    "keep": ["Wärmepumpen", "Altbau"]
   },
   {
     "id": "t149",
     "lang": "de",
-    "kind": "contract",
-    "title": "Mietvertrag Wechselbrücken und Auflieger"
+    "kind": "research",
+    "title": "Zur Geschichte der Hanse im 14. Jahrhundert",
+    "keep": ["Hanse"]
   },
   {
     "id": "t150",
     "lang": "de",
-    "kind": "contract",
-    "title": "Tankkartenvertrag Fuhrpark 120 Fahrzeuge"
+    "kind": "research",
+    "title": "Mikroplastik in Flusssedimenten der Elbe",
+    "keep": ["Mikroplastik", "Elbe"]
   },
   {
     "id": "t151",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Paletten-Tausch Europaletten EPAL"
+    "kind": "research",
+    "title": "Akzeptanz autonomer Busse im ländlichen Raum",
+    "keep": ["Busse", "autonomer"]
   },
   {
     "id": "t152",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Dienstleistungsvertrag Zeitarbeit Kranich Personaldienste GmbH"
+    "lang": "en",
+    "kind": "research",
+    "title": "Attention Is Not Always What You Need: Sparse Models for Small Data"
   },
   {
     "id": "t153",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Reisebüro Geschäftsreisen und Hotelkontingente"
+    "lang": "en",
+    "kind": "research",
+    "title": "A Survey of Graph Neural Networks for Molecule Design",
+    "keep": ["Graph", "Neural", "Molecule"]
   },
   {
     "id": "t154",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Cateringvertrag Edelweiss Kantinen GmbH Betriebsrestaurant"
+    "lang": "en",
+    "kind": "research",
+    "title": "Effects of Sleep Deprivation on Working Memory in Adolescents",
+    "keep": ["Sleep", "Memory"]
   },
   {
     "id": "t155",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Wasserspender und Getränkeservice Bergquell"
+    "lang": "en",
+    "kind": "research",
+    "title": "Measuring Urban Heat Islands with Satellite Imagery",
+    "keep": ["Heat", "Satellite"]
   },
   {
     "id": "t156",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Arbeitsschutzkleidung nach EN ISO 20471"
+    "lang": "en",
+    "kind": "research",
+    "title": "On the Convergence of Stochastic Gradient Descent with Momentum"
   },
   {
     "id": "t157",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Vertrag Betriebsärztlicher Dienst und Arbeitssicherheit"
+    "lang": "en",
+    "kind": "research",
+    "title": "Coral Reef Recovery After Bleaching Events: A Ten-Year Study",
+    "keep": ["Coral", "Reef"]
   },
   {
     "id": "t158",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Marketingagentur Messeauftritte 2026"
+    "lang": "en",
+    "kind": "research",
+    "title": "Bias in Large Language Models: An Empirical Evaluation",
+    "keep": ["Bias", "Language"]
   },
   {
     "id": "t159",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Übersetzungsdienstleistungen Deutsch-Englisch"
+    "lang": "en",
+    "kind": "research",
+    "title": "Low-Cost Water Filtration Using Moringa Seeds",
+    "keep": ["Filtration", "Moringa"]
   },
   {
     "id": "t160",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Weiterbildung Einkauf und Verhandlungsführung"
+    "lang": "en",
+    "kind": "research",
+    "title": "The Economics of Open Source Maintenance"
   },
   {
     "id": "t161",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Entsorgungsvertrag Altpapier und Aktenvernichtung DIN 66399"
+    "lang": "mixed",
+    "kind": "research",
+    "title": "Deep Learning für die Segmentierung von MRT-Bildern"
   },
   {
     "id": "t162",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Kündigung Rahmenvertrag Mobilfunk zum 31.12.2026"
+    "lang": "en",
+    "kind": "research",
+    "title": "Kestrel Bench v1: A Benchmark for Code Reasoning",
+    "group": "research-bench-version",
+    "vary": "version"
   },
   {
     "id": "t163",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Kündigung Mietvertrag Lagerfläche Halle B fristgerecht"
+    "lang": "en",
+    "kind": "research",
+    "title": "Kestrel Bench v2: A Benchmark for Code Reasoning",
+    "group": "research-bench-version",
+    "vary": "version"
   },
   {
     "id": "t164",
     "lang": "de",
-    "kind": "contract",
-    "title": "Außerordentliche Kündigung Reinigungsvertrag Standort Bochum"
+    "kind": "research",
+    "title": "Niederschlagstrends in Norddeutschland 1950–2020",
+    "group": "research-rain-direction",
+    "vary": "direction"
   },
   {
     "id": "t165",
     "lang": "de",
-    "kind": "contract",
-    "title": "Verlängerung Wartungsvertrag USV-Anlage um 24 Monate"
+    "kind": "research",
+    "title": "Niederschlagstrends in Süddeutschland 1950–2020",
+    "group": "research-rain-direction",
+    "vary": "direction"
   },
   {
     "id": "t166",
     "lang": "de",
-    "kind": "contract",
-    "title": "Verlängerungsoption Rahmenvertrag Kurierdienste ausüben"
+    "kind": "event",
+    "title": "Sommerfest im Stadtpark 2026",
+    "keep": ["Sommerfest", "Stadtpark"]
   },
   {
     "id": "t167",
     "lang": "de",
-    "kind": "contract",
-    "title": "Nachtrag 4 Leistungsänderung Sicherheitsdienst Nachtschicht"
+    "kind": "event",
+    "title": "Weihnachtsmarkt am Rathausplatz",
+    "keep": ["Weihnachtsmarkt", "Rathausplatz"]
   },
   {
     "id": "t168",
     "lang": "de",
-    "kind": "contract",
-    "title": "Nachtrag Mengenanpassung Streusalz Saison 2026/27"
+    "kind": "event",
+    "title": "Jazzabend im Kulturhaus Lindenhof",
+    "keep": ["Jazzabend", "Lindenhof"]
   },
   {
     "id": "t169",
     "lang": "de",
-    "kind": "contract",
-    "title": "Änderungsvereinbarung Skonto 3 % bei Zahlung binnen 10 Tagen"
+    "kind": "event",
+    "title": "Lange Nacht der Museen",
+    "keep": ["Museen"]
   },
   {
     "id": "t170",
     "lang": "de",
-    "kind": "contract",
-    "title": "Zusatzvereinbarung Bonusstaffel Jahresumsatz Baustoffe"
+    "kind": "event",
+    "title": "Flohmarkt für Kinderkleidung",
+    "keep": ["Flohmarkt", "Kinderkleidung"]
   },
   {
     "id": "t171",
     "lang": "de",
-    "kind": "contract",
-    "title": "Vertraulichkeitsvereinbarung Ausschreibung Leitstellensoftware"
+    "kind": "event",
+    "title": "Workshop: Fotografieren mit dem Smartphone",
+    "keep": ["Fotografieren", "Smartphone"]
   },
   {
     "id": "t172",
     "lang": "de",
-    "kind": "contract",
-    "title": "Werkvertrag Umbau Schalterhalle Filiale Domplatz"
+    "kind": "event",
+    "title": "Stadtlauf 10 km für den guten Zweck",
+    "keep": ["Stadtlauf"]
   },
   {
     "id": "t173",
     "lang": "de",
-    "kind": "contract",
-    "title": "Bauvertrag nach VOB/B Erweiterung Lagerhalle 3"
+    "kind": "event",
+    "title": "Lesung mit Autorin Mira Kaltenbach"
   },
   {
     "id": "t174",
     "lang": "de",
-    "kind": "contract",
-    "title": "Ingenieurvertrag Tragwerksplanung Leistungsphasen 1–5 HOAI"
+    "kind": "event",
+    "title": "Tag der offenen Tür Feuerwehr Altenwald",
+    "keep": ["Feuerwehr", "Altenwald"]
   },
   {
     "id": "t175",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Generalunternehmervertrag Neubau Verwaltungsgebäude Kassel"
+    "lang": "en",
+    "kind": "event",
+    "title": "Annual Charity Gala Dinner",
+    "keep": ["Charity", "Gala"]
   },
   {
     "id": "t176",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Müller Stahlbau GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "Open Mic Night at The Copper Lantern",
+    "keep": ["Mic", "Copper"]
   },
   {
     "id": "t177",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Nordlicht Energie AG"
+    "lang": "en",
+    "kind": "event",
+    "title": "Summer Music Festival Lineup Announced",
+    "keep": ["Music", "Festival"]
   },
   {
     "id": "t178",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Brenner Haustechnik GmbH & Co. KG"
+    "lang": "en",
+    "kind": "event",
+    "title": "Community Cleanup Day at Willow Beach",
+    "keep": ["Cleanup", "Willow"]
   },
   {
     "id": "t179",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Alpenblick Facility Services GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "Webinar: Getting Started with Watercolor",
+    "keep": ["Watercolor"]
   },
   {
     "id": "t180",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Hansekontor Logistik GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "Farmers Market Opening Weekend"
   },
   {
     "id": "t181",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Isarwerk Elektrotechnik GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "Tech Meetup: Rust for Beginners",
+    "keep": ["Rust", "Meetup"]
   },
   {
     "id": "t182",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Grauwacke Beton AG"
+    "lang": "en",
+    "kind": "event",
+    "title": "Halloween Costume Contest",
+    "keep": ["Halloween", "Costume"]
   },
   {
     "id": "t183",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Silberfluss IT-Services GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "Wedding Reception of Anna and Leo"
   },
   {
     "id": "t184",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Lindenhof Gebäudereinigung GmbH"
+    "lang": "mixed",
+    "kind": "event",
+    "title": "Oktoberfest Afterwork Party – Dresscode Tracht"
   },
   {
     "id": "t185",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Steinmetz Natursteine KG"
+    "lang": "en",
+    "kind": "event",
+    "title": "DevNorth Conference 2025",
+    "group": "event-devnorth-year",
+    "vary": "year"
   },
   {
     "id": "t186",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Vogt & Söhne Gerüstbau GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "DevNorth Conference 2026",
+    "group": "event-devnorth-year",
+    "vary": "year"
   },
   {
     "id": "t187",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Elbtal Sicherheitsdienst GmbH"
+    "lang": "en",
+    "kind": "event",
+    "title": "DevNorth Conference 2027",
+    "group": "event-devnorth-year",
+    "vary": "year"
   },
   {
     "id": "t188",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Taunus Druck & Medien GmbH"
+    "kind": "event",
+    "title": "Gründertreffen Hamburg – Netzwerkabend",
+    "group": "event-gruender-city",
+    "vary": "city"
   },
   {
     "id": "t189",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Dreiländer Transport AG"
+    "kind": "event",
+    "title": "Gründertreffen München – Netzwerkabend",
+    "group": "event-gruender-city",
+    "vary": "city"
   },
   {
     "id": "t190",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Falkenstein Consulting GmbH"
+    "kind": "legal",
+    "title": "Mietvertrag Wohnung Lindenstraße 12",
+    "keep": ["Mietvertrag", "Lindenstraße"]
   },
   {
     "id": "t191",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Moorbach Entsorgung GmbH & Co. KG"
+    "kind": "legal",
+    "title": "Datenschutzerklärung für die Website",
+    "keep": ["Datenschutzerklärung"]
   },
   {
     "id": "t192",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Seeland Datentechnik AG"
+    "kind": "legal",
+    "title": "Allgemeine Geschäftsbedingungen Onlineshop",
+    "keep": ["Geschäftsbedingungen", "Onlineshop"]
   },
   {
     "id": "t193",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Sandhaus Zement GmbH"
+    "kind": "legal",
+    "title": "Widerspruch gegen Bußgeldbescheid",
+    "keep": ["Bußgeldbescheid", "Widerspruch"]
   },
   {
     "id": "t194",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Ostwind Netzbau GmbH"
+    "kind": "legal",
+    "title": "Testament und Patientenverfügung Vorlage",
+    "keep": ["Testament", "Patientenverfügung"]
   },
   {
     "id": "t195",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Wendelin Kälte- und Klimatechnik GmbH"
+    "kind": "legal",
+    "title": "Gesellschaftervertrag Brightwave UG",
+    "keep": ["Gesellschaftervertrag", "Brightwave"]
   },
   {
     "id": "t196",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Weißdorn Gartenbau e.K."
+    "kind": "legal",
+    "title": "Abmahnung wegen Urheberrechtsverletzung",
+    "keep": ["Abmahnung", "Urheberrechtsverletzung"]
   },
   {
     "id": "t197",
     "lang": "de",
-    "kind": "supplier",
-    "title": "Kranich Personaldienste GmbH"
+    "kind": "legal",
+    "title": "Auftragsverarbeitungsvertrag nach Art. 28 DSGVO",
+    "keep": ["Auftragsverarbeitungsvertrag", "DSGVO"]
   },
   {
     "id": "t198",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Ingenieurbüro Hagedorn & Partner mbB"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Non-Disclosure Agreement Template",
+    "keep": ["Disclosure", "Agreement"]
   },
   {
     "id": "t199",
-    "lang": "de",
-    "kind": "supplier",
-    "title": "Schreinerei Albrecht Möbelbau GmbH"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Terms of Service Update",
+    "keep": ["Terms", "Service"]
   },
   {
     "id": "t200",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Nachverhandlung Preise Betonstahl Q3 2026"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Software License Agreement Kestrel Labs",
+    "keep": ["License", "Kestrel"]
   },
   {
     "id": "t201",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Verhandlung Rabattstaffel Büromaterial Mosel Bürobedarf"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Privacy Policy for Mobile App",
+    "keep": ["Privacy", "Policy"]
   },
   {
     "id": "t202",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Preiserhöhung Nordlicht Energie AG abwehren"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Cease and Desist Letter Trademark",
+    "keep": ["Trademark", "Cease"]
   },
   {
     "id": "t203",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Verhandlungsstrategie Rahmenvertrag Reinigung 2027"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Power of Attorney Form",
+    "keep": ["Attorney"]
   },
   {
     "id": "t204",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Konditionsgespräch Zahlungsziel 60 Tage Hansekontor Logistik"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Settlement Agreement Draft"
   },
   {
     "id": "t205",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Gegenangebot Indexierung Lohnkosten Sicherheitsdienst"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Shareholder Agreement Zentara Ltd",
+    "keep": ["Shareholder", "Zentara"]
   },
   {
     "id": "t206",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Verhandlung Kündigungsfrist und Laufzeit IT-Service-Desk"
+    "lang": "mixed",
+    "kind": "legal",
+    "title": "Letter of Intent für die Übernahme der Fjordbyte GmbH"
   },
   {
     "id": "t207",
     "lang": "de",
-    "kind": "negotiation",
-    "title": "Vorbereitung Lieferantengespräch Sandhaus Zement Mengenbonus"
+    "kind": "legal",
+    "title": "AGB Version 3.1",
+    "group": "legal-agb-version",
+    "vary": "version"
   },
   {
     "id": "t208",
     "lang": "de",
-    "kind": "negotiation",
-    "title": "Eskalation Lieferverzug Transformatoren Isarwerk"
+    "kind": "legal",
+    "title": "AGB Version 3.2",
+    "group": "legal-agb-version",
+    "vary": "version"
   },
   {
     "id": "t209",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Nachverhandlung Energiepreise nach Preisgleitklausel 2026"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Mutual NDA Fjordbyte 2025",
+    "group": "legal-nda-year",
+    "vary": "year"
   },
   {
     "id": "t210",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Verhandlungsrunde 2 Kantinenbetreiber Zuschussmodell"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Mutual NDA Fjordbyte 2026",
+    "group": "legal-nda-year",
+    "vary": "year"
   },
   {
     "id": "t211",
-    "lang": "de",
-    "kind": "negotiation",
-    "title": "Claim-Management Mehrkosten Bauvorhaben Halle 3"
+    "lang": "en",
+    "kind": "legal",
+    "title": "Code of Conduct – English Edition",
+    "group": "legal-coc-edition",
+    "vary": "edition"
   },
   {
     "id": "t212",
     "lang": "de",
-    "kind": "negotiation",
-    "title": "Value-Recovery Rückforderung Überzahlung Frachtkosten 2025"
+    "kind": "legal",
+    "title": "Code of Conduct – Deutsche Fassung",
+    "group": "legal-coc-edition",
+    "vary": "edition"
   },
   {
     "id": "t213",
     "lang": "de",
-    "kind": "negotiation",
-    "title": "Gutschrift Skontoabzug falsch berechnet Grauwacke Beton"
+    "kind": "hr",
+    "title": "Stellenausschreibung Werkstudent Marketing (m/w/d)",
+    "keep": ["Werkstudent", "Marketing"]
   },
   {
     "id": "t214",
     "lang": "de",
-    "kind": "negotiation",
-    "title": "Jahresverhandlung Baustoffe Bonus und Skonto 2027"
+    "kind": "hr",
+    "title": "Onboarding-Checkliste für neue Mitarbeitende",
+    "keep": ["Onboarding", "Checkliste"]
   },
   {
     "id": "t215",
     "lang": "de",
-    "kind": "po",
-    "title": "Bestellung 4500012345 Schutzhelme EN 397 rot"
+    "kind": "hr",
+    "title": "Urlaubsantrag Sommerferien",
+    "keep": ["Urlaubsantrag", "Sommerferien"]
   },
   {
     "id": "t216",
     "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Streusalz 40 t Betriebshof Nord"
+    "kind": "hr",
+    "title": "Richtlinie mobiles Arbeiten",
+    "keep": ["mobiles", "Arbeiten"]
   },
   {
     "id": "t217",
     "lang": "de",
-    "kind": "po",
-    "title": "Abruf aus Rahmenvertrag Kabelschutzrohre DN 110"
+    "kind": "hr",
+    "title": "Mitarbeiterbefragung Zufriedenheit",
+    "keep": ["Mitarbeiterbefragung", "Zufriedenheit"]
   },
   {
     "id": "t218",
     "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Toner und Druckerpatronen Filiale Altstadt"
+    "kind": "hr",
+    "title": "Arbeitszeugnis Vorlage",
+    "keep": ["Arbeitszeugnis"]
   },
   {
     "id": "t219",
     "lang": "de",
-    "kind": "po",
-    "title": "Einzelbestellung Hubarbeitsbühne Miete 3 Wochen"
+    "kind": "hr",
+    "title": "Elternzeit beantragen – so geht's",
+    "keep": ["Elternzeit"]
   },
   {
     "id": "t220",
     "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Ersatzteile Notstromaggregat Standort Fulda"
+    "kind": "hr",
+    "title": "Betriebsvereinbarung Gleitzeit",
+    "keep": ["Gleitzeit", "Betriebsvereinbarung"]
   },
   {
     "id": "t221",
-    "lang": "de",
-    "kind": "po",
-    "title": "Abruf Transportbeton C30/37 KW 18"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Job Posting: Senior Backend Engineer (Remote)",
+    "keep": ["Backend", "Engineer"]
   },
   {
     "id": "t222",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung 25 Monitore 27 Zoll IT-Abteilung"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Employee Handbook",
+    "keep": ["Employee", "Handbook"]
   },
   {
     "id": "t223",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Erste-Hilfe-Kästen DIN 13157 alle Standorte"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Performance Review Guidelines",
+    "keep": ["Performance", "Review"]
   },
   {
     "id": "t224",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Wartung Gabelstapler Lager Süd"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Parental Leave Policy",
+    "keep": ["Parental", "Leave"]
   },
   {
     "id": "t225",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellanforderung Beratungsleistung Lieferkettengesetz"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Exit Interview Questions",
+    "keep": ["Exit", "Interview"]
   },
   {
     "id": "t226",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Kaffeeautomaten Leasing 5 Geräte"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Diversity and Inclusion Report",
+    "keep": ["Diversity", "Inclusion"]
   },
   {
     "id": "t227",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Absperrgitter und Baustellenbeschilderung"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Expense Reimbursement Process",
+    "keep": ["Expense", "Reimbursement"]
   },
   {
     "id": "t228",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Visitenkarten und Briefpapier Vorstand"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Offer Letter for Product Designer",
+    "keep": ["Offer", "Designer"]
   },
   {
     "id": "t229",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Arbeitsschuhe S3 Größenmix Werkstatt"
+    "lang": "mixed",
+    "kind": "hr",
+    "title": "Recruiting Pipeline Q3 – Stand der Bewerbungen"
   },
   {
     "id": "t230",
-    "lang": "de",
-    "kind": "project",
-    "title": "Ausschreibung Energielieferung 2027–2029 EU-weit"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Annual Performance Review 2025 – Sales Team",
+    "group": "hr-review-year",
+    "vary": "year"
   },
   {
     "id": "t231",
-    "lang": "de",
-    "kind": "project",
-    "title": "Ausschreibung Reinigungsleistungen 14 Standorte Los 1 bis 5"
+    "lang": "en",
+    "kind": "hr",
+    "title": "Annual Performance Review 2026 – Sales Team",
+    "group": "hr-review-year",
+    "vary": "year"
   },
   {
     "id": "t232",
     "lang": "de",
-    "kind": "project",
-    "title": "Einkaufsprojekt Konsolidierung Lieferanten indirekter Bedarf"
+    "kind": "hr",
+    "title": "Stellenanzeige Softwareentwickler Junior (m/w/d)",
+    "group": "hr-job-level",
+    "vary": "variant"
   },
   {
     "id": "t233",
     "lang": "de",
-    "kind": "project",
-    "title": "Projekt Einführung Katalogbeschaffung Büromaterial"
+    "kind": "hr",
+    "title": "Stellenanzeige Softwareentwickler Senior (m/w/d)",
+    "group": "hr-job-level",
+    "vary": "variant"
   },
   {
     "id": "t234",
     "lang": "de",
-    "kind": "project",
-    "title": "Lieferantenqualifizierung Netzbau Präqualifikation"
+    "kind": "medical",
+    "title": "Überweisung zum Facharzt für Orthopädie",
+    "keep": ["Orthopädie", "Facharzt"]
   },
   {
     "id": "t235",
     "lang": "de",
-    "kind": "project",
-    "title": "Vergabeverfahren Sektorenauftraggeber SektVO Zählertechnik"
+    "kind": "medical",
+    "title": "Impfplan für Kinder bis 6 Jahre",
+    "keep": ["Impfplan", "Kinder"]
   },
   {
     "id": "t236",
     "lang": "de",
-    "kind": "project",
-    "title": "Markterkundung Wasserstoff-Elektrolyseure 5 MW"
+    "kind": "medical",
+    "title": "Befund MRT Schultergelenk",
+    "keep": ["MRT", "Schultergelenk"]
   },
   {
     "id": "t237",
     "lang": "de",
-    "kind": "project",
-    "title": "Projekt Umstellung Fuhrpark auf E-Fahrzeuge Phase 1"
+    "kind": "medical",
+    "title": "Patienteninformation Darmspiegelung",
+    "keep": ["Darmspiegelung"]
   },
   {
     "id": "t238",
     "lang": "de",
-    "kind": "project",
-    "title": "Lieferantenbewertung 2026 Baustoffe und Stahl"
+    "kind": "medical",
+    "title": "Ernährungstipps bei Diabetes Typ 2",
+    "keep": ["Diabetes", "Ernährungstipps"]
   },
   {
     "id": "t239",
     "lang": "de",
-    "kind": "project",
-    "title": "Make-or-Buy Analyse Gebäudereinigung Eigenpersonal"
+    "kind": "medical",
+    "title": "Verordnung für Physiotherapie",
+    "keep": ["Physiotherapie"]
   },
   {
     "id": "t240",
     "lang": "de",
-    "kind": "project",
-    "title": "Ausschreibung Leitstellensoftware Netzführung"
+    "kind": "medical",
+    "title": "Arbeitsunfähigkeitsbescheinigung",
+    "keep": ["Arbeitsunfähigkeitsbescheinigung"]
   },
   {
     "id": "t241",
     "lang": "de",
-    "kind": "project",
-    "title": "Projekt Spend-Analyse Indirekter Einkauf 2025"
+    "kind": "medical",
+    "title": "Notfallplan bei Allergien in der Kita",
+    "keep": ["Notfallplan", "Allergien"]
   },
   {
     "id": "t242",
-    "lang": "de",
-    "kind": "project",
-    "title": "Risikoanalyse Lieferanten nach LkSG 2026"
+    "lang": "en",
+    "kind": "medical",
+    "title": "Discharge Summary Cardiology Ward",
+    "keep": ["Discharge", "Cardiology"]
   },
   {
     "id": "t243",
-    "lang": "de",
-    "kind": "project",
-    "title": "Sanierung Tiefgarage Hauptverwaltung Bauabschnitt 1"
+    "lang": "en",
+    "kind": "medical",
+    "title": "Patient Intake Form",
+    "keep": ["Intake"]
   },
   {
     "id": "t244",
-    "lang": "de",
-    "kind": "project",
-    "title": "Umzug Rechenzentrum Standort Offenbach nach Frankfurt"
+    "lang": "en",
+    "kind": "medical",
+    "title": "Clinical Trial Protocol for Migraine Treatment",
+    "keep": ["Migraine", "Trial"]
   },
   {
     "id": "t245",
     "lang": "en",
-    "kind": "contract",
-    "title": "Master Service Agreement for Managed IT Services"
+    "kind": "medical",
+    "title": "Guidelines for Hand Hygiene in Hospitals",
+    "keep": ["Hand", "Hygiene"]
   },
   {
     "id": "t246",
     "lang": "en",
-    "kind": "contract",
-    "title": "Master Services Agreement Crescent Ridge Consulting Ltd."
+    "kind": "medical",
+    "title": "Blood Test Results Explained",
+    "keep": ["Blood", "Test"]
   },
   {
     "id": "t247",
     "lang": "en",
-    "kind": "contract",
-    "title": "Statement of Work 7 – ERP Rollout Wave 2"
+    "kind": "medical",
+    "title": "Physical Therapy Plan After ACL Surgery",
+    "keep": ["ACL", "Surgery"]
   },
   {
     "id": "t248",
     "lang": "en",
-    "kind": "contract",
-    "title": "SOW 12 Cybersecurity Assessment and Remediation"
+    "kind": "medical",
+    "title": "Managing Seasonal Allergies",
+    "keep": ["Allergies"]
   },
   {
     "id": "t249",
     "lang": "en",
-    "kind": "contract",
-    "title": "Non-Disclosure Agreement Pre-Sales Workshop"
+    "kind": "medical",
+    "title": "Telehealth Consent Form",
+    "keep": ["Telehealth", "Consent"]
   },
   {
     "id": "t250",
-    "lang": "en",
-    "kind": "contract",
-    "title": "One-way NDA Oakmere Facilities plc"
+    "lang": "mixed",
+    "kind": "medical",
+    "title": "Second Opinion zur Hüft-OP"
   },
   {
     "id": "t251",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Framework Agreement Temporary Staffing UK"
+    "lang": "de",
+    "kind": "medical",
+    "title": "Röntgen Kniegelenk links",
+    "group": "medical-knee-side",
+    "vary": "variant"
   },
   {
     "id": "t252",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Framework Agreement Engineering Services Redwater Engineering BV"
+    "lang": "de",
+    "kind": "medical",
+    "title": "Röntgen Kniegelenk rechts",
+    "group": "medical-knee-side",
+    "vary": "variant"
   },
   {
     "id": "t253",
     "lang": "en",
-    "kind": "contract",
-    "title": "Software License Agreement Analytics Platform Enterprise Tier"
+    "kind": "medical",
+    "title": "Phase 1 Trial Results for Compound KT-201",
+    "group": "medical-trial-phase",
+    "vary": "number"
   },
   {
     "id": "t254",
     "lang": "en",
-    "kind": "contract",
-    "title": "SaaS Subscription Agreement Procurement Analytics 3 Years"
+    "kind": "medical",
+    "title": "Phase 2 Trial Results for Compound KT-201",
+    "group": "medical-trial-phase",
+    "vary": "number"
   },
   {
     "id": "t255",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Data Processing Agreement Lumen Grid Solutions Inc."
+    "lang": "de",
+    "kind": "education",
+    "title": "Mathe-Arbeitsblatt Bruchrechnung Klasse 6",
+    "keep": ["Bruchrechnung", "Mathe"]
   },
   {
     "id": "t256",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Service Level Agreement Data Center Colocation"
+    "lang": "de",
+    "kind": "education",
+    "title": "Stundenplan Wintersemester",
+    "keep": ["Stundenplan", "Wintersemester"]
   },
   {
     "id": "t257",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Maintenance Agreement HVAC Systems Building C"
+    "lang": "de",
+    "kind": "education",
+    "title": "Hausaufgabe: Gedichtinterpretation Erlkönig",
+    "keep": ["Gedichtinterpretation", "Erlkönig"]
   },
   {
     "id": "t258",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Supply Agreement Steel Coils Grade S355"
+    "lang": "de",
+    "kind": "education",
+    "title": "Referat über den Wasserkreislauf",
+    "keep": ["Wasserkreislauf"]
   },
   {
     "id": "t259",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Power Purchase Agreement Solar Farm 50 MW"
+    "lang": "de",
+    "kind": "education",
+    "title": "Lernzettel Photosynthese",
+    "keep": ["Photosynthese"]
   },
   {
     "id": "t260",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Facility Management Agreement Corporate Campus"
+    "lang": "de",
+    "kind": "education",
+    "title": "Elternbrief zum Wandertag",
+    "keep": ["Wandertag", "Elternbrief"]
   },
   {
     "id": "t261",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Equipment Lease Agreement Forklifts 24 Units"
+    "lang": "de",
+    "kind": "education",
+    "title": "Klausurvorbereitung Statistik",
+    "keep": ["Klausurvorbereitung", "Statistik"]
   },
   {
     "id": "t262",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Consulting Agreement Category Strategy Indirect Spend"
+    "lang": "de",
+    "kind": "education",
+    "title": "Bewerbung um einen Studienplatz Medizin",
+    "keep": ["Studienplatz", "Medizin"]
   },
   {
     "id": "t263",
     "lang": "en",
-    "kind": "contract",
-    "title": "Amendment No. 2 to Supply Agreement Price Adjustment"
+    "kind": "education",
+    "title": "Introduction to Linear Algebra – Lecture Notes",
+    "keep": ["Linear", "Algebra"]
   },
   {
     "id": "t264",
     "lang": "en",
-    "kind": "contract",
-    "title": "Amendment 1 Payment Terms Net 60"
+    "kind": "education",
+    "title": "Syllabus: World History 101",
+    "keep": ["History", "Syllabus"]
   },
   {
     "id": "t265",
     "lang": "en",
-    "kind": "contract",
-    "title": "Renewal of Telecom Services Agreement 2027"
+    "kind": "education",
+    "title": "Essay Prompt: The Causes of World War I",
+    "keep": ["War", "Causes"]
   },
   {
     "id": "t266",
     "lang": "en",
-    "kind": "contract",
-    "title": "Auto-Renewal Notice Cloud Storage Subscription"
+    "kind": "education",
+    "title": "Lab Report: Acid-Base Titration",
+    "keep": ["Titration", "Lab"]
   },
   {
     "id": "t267",
     "lang": "en",
-    "kind": "contract",
-    "title": "Termination for Convenience Marketing Agency Retainer"
+    "kind": "education",
+    "title": "Study Guide for Final Exam Biology",
+    "keep": ["Biology", "Exam"]
   },
   {
     "id": "t268",
     "lang": "en",
-    "kind": "contract",
-    "title": "Change Order 5 Warehouse Automation Project"
+    "kind": "education",
+    "title": "Reading List for Summer Break",
+    "keep": ["Reading", "Summer"]
   },
   {
     "id": "t269",
     "lang": "en",
-    "kind": "contract",
-    "title": "Letter of Intent Logistics Hub Partnership"
+    "kind": "education",
+    "title": "Graduation Ceremony Schedule",
+    "keep": ["Graduation"]
   },
   {
     "id": "t270",
     "lang": "en",
-    "kind": "contract",
-    "title": "Memorandum of Understanding Joint Sourcing Initiative"
+    "kind": "education",
+    "title": "How to Write a Thesis Statement",
+    "keep": ["Thesis"]
   },
   {
     "id": "t271",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Purchase Agreement Laboratory Equipment"
+    "lang": "mixed",
+    "kind": "education",
+    "title": "Vokabelliste Englisch Unit 5: Travel"
   },
   {
     "id": "t272",
     "lang": "en",
-    "kind": "contract",
-    "title": "Distribution Agreement Spare Parts EMEA"
+    "kind": "education",
+    "title": "Organic Chemistry Lecture Part 1",
+    "group": "edu-chemistry-part",
+    "vary": "part"
   },
   {
     "id": "t273",
     "lang": "en",
-    "kind": "contract",
-    "title": "Subcontractor Agreement Electrical Works Phase 3"
+    "kind": "education",
+    "title": "Organic Chemistry Lecture Part 2",
+    "group": "edu-chemistry-part",
+    "vary": "part"
   },
   {
     "id": "t274",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Escrow Agreement Source Code Core Platform"
+    "lang": "de",
+    "kind": "education",
+    "title": "Klassenfahrt Klasse 7a nach Berlin",
+    "group": "edu-klassenfahrt-variant",
+    "vary": "variant"
   },
   {
     "id": "t275",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Rebate Agreement Volume Tiers Office Supplies"
+    "lang": "de",
+    "kind": "education",
+    "title": "Klassenfahrt Klasse 7b nach Berlin",
+    "group": "edu-klassenfahrt-variant",
+    "vary": "variant"
   },
   {
     "id": "t276",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Price Escalation Clause Diesel Surcharge Schedule"
+    "lang": "de",
+    "kind": "education",
+    "title": "Modulhandbuch Informatik Wintersemester 2025/26",
+    "group": "edu-modulhandbuch-term",
+    "vary": "term"
   },
   {
     "id": "t277",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Indemnity and Liability Cap Addendum"
+    "lang": "de",
+    "kind": "education",
+    "title": "Modulhandbuch Informatik Sommersemester 2026",
+    "group": "edu-modulhandbuch-term",
+    "vary": "term"
   },
   {
     "id": "t278",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Travel Management Services Agreement"
+    "lang": "de",
+    "kind": "finance",
+    "title": "Steuererklärung 2025 Unterlagen",
+    "keep": ["Steuererklärung"]
   },
   {
     "id": "t279",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Fleet Management Services Agreement 2026"
+    "lang": "de",
+    "kind": "finance",
+    "title": "Haushaltsbuch Oktober",
+    "keep": ["Haushaltsbuch"]
   },
   {
     "id": "t280",
-    "lang": "en",
-    "kind": "supplier",
-    "title": "Bluefin Analytics Ltd."
+    "lang": "de",
+    "kind": "finance",
+    "title": "Kreditvertrag Baufinanzierung",
+    "keep": ["Kreditvertrag", "Baufinanzierung"]
   },
   {
     "id": "t281",
-    "lang": "en",
-    "kind": "supplier",
-    "title": "Northgate Cloud Services Inc."
+    "lang": "de",
+    "kind": "finance",
+    "title": "Jahresabschluss Brightwave UG",
+    "keep": ["Jahresabschluss", "Brightwave"]
   },
   {
     "id": "t282",
-    "lang": "en",
-    "kind": "supplier",
-    "title": "Harborview Logistics LLC"
+    "lang": "de",
+    "kind": "finance",
+    "title": "Kostenstellenbericht Marketing",
+    "keep": ["Kostenstellenbericht", "Marketing"]
   },
   {
     "id": "t283",
-    "lang": "en",
-    "kind": "supplier",
-    "title": "Crescent Ridge Consulting Ltd."
+    "lang": "de",
+    "kind": "finance",
+    "title": "Liquiditätsplanung nächste zwölf Monate",
+    "keep": ["Liquiditätsplanung"]
   },
   {
     "id": "t284",
-    "lang": "en",
-    "kind": "supplier",
-    "title": "Ironbark Software Inc."
+    "lang": "de",
+    "kind": "finance",
+    "title": "Spesenabrechnung Dienstreise Hamburg",
+    "keep": ["Spesenabrechnung", "Hamburg"]
   },
   {
     "id": "t285",
-    "lang": "en",
-    "kind": "supplier",
-    "title": "Silverline Telecom Ltd."
+    "lang": "de",
+    "kind": "finance",
+    "title": "Dividendenstrategie für Einsteiger",
+    "keep": ["Dividendenstrategie"]
   },
   {
     "id": "t286",
     "lang": "en",
-    "kind": "supplier",
-    "title": "Oakmere Facilities plc"
+    "kind": "finance",
+    "title": "Monthly Budget Template",
+    "keep": ["Budget"]
   },
   {
     "id": "t287",
     "lang": "en",
-    "kind": "supplier",
-    "title": "Redwater Engineering BV"
+    "kind": "finance",
+    "title": "Quarterly Earnings Call Transcript",
+    "keep": ["Earnings", "Call"]
   },
   {
     "id": "t288",
     "lang": "en",
-    "kind": "supplier",
-    "title": "Pinecrest Security Ltd."
+    "kind": "finance",
+    "title": "Cash Flow Forecast",
+    "keep": ["Cash", "Flow", "Forecast"]
   },
   {
     "id": "t289",
     "lang": "en",
-    "kind": "supplier",
-    "title": "Lumen Grid Solutions Inc."
+    "kind": "finance",
+    "title": "Invoice Payment Reminder",
+    "keep": ["Invoice", "Reminder"]
   },
   {
     "id": "t290",
     "lang": "en",
-    "kind": "supplier",
-    "title": "Quarry Lane Aggregates Ltd."
+    "kind": "finance",
+    "title": "Retirement Savings Plan Comparison",
+    "keep": ["Retirement", "Savings"]
   },
   {
     "id": "t291",
     "lang": "en",
-    "kind": "supplier",
-    "title": "Brightwater Office Supply Co."
+    "kind": "finance",
+    "title": "Annual Audit Findings",
+    "keep": ["Audit"]
   },
   {
     "id": "t292",
     "lang": "en",
-    "kind": "negotiation",
-    "title": "Price Negotiation Steel Coils 2026"
+    "kind": "finance",
+    "title": "Tax Deductions for Freelancers",
+    "keep": ["Tax", "Freelancers"]
   },
   {
     "id": "t293",
     "lang": "en",
-    "kind": "negotiation",
-    "title": "Renewal Negotiation Analytics Platform Licenses"
+    "kind": "finance",
+    "title": "Investor Update November"
   },
   {
     "id": "t294",
     "lang": "en",
-    "kind": "negotiation",
-    "title": "Payment Terms Negotiation Net 30 to Net 60"
+    "kind": "finance",
+    "title": "Profit and Loss Statement",
+    "keep": ["Profit", "Loss"]
   },
   {
     "id": "t295",
-    "lang": "en",
-    "kind": "negotiation",
-    "title": "Rate Card Review Consulting Services Q4"
+    "lang": "mixed",
+    "kind": "finance",
+    "title": "Forecast vs. Ist-Zahlen Vergleich"
   },
   {
     "id": "t296",
-    "lang": "en",
-    "kind": "negotiation",
-    "title": "Counter Offer Freight Rates Ocean Containers"
+    "lang": "de",
+    "kind": "finance",
+    "title": "Quartalsbericht Q1 2026",
+    "group": "finance-bericht-quarter",
+    "vary": "quarter"
   },
   {
     "id": "t297",
-    "lang": "en",
-    "kind": "negotiation",
-    "title": "Supplier Quarterly Business Review Ironbark Q2 2026"
+    "lang": "de",
+    "kind": "finance",
+    "title": "Quartalsbericht Q2 2026",
+    "group": "finance-bericht-quarter",
+    "vary": "quarter"
   },
   {
     "id": "t298",
-    "lang": "en",
-    "kind": "negotiation",
-    "title": "Claim for Overcharged Fuel Surcharges 2025"
+    "lang": "de",
+    "kind": "finance",
+    "title": "Quartalsbericht Q3 2026",
+    "group": "finance-bericht-quarter",
+    "vary": "quarter"
   },
   {
     "id": "t299",
     "lang": "en",
-    "kind": "negotiation",
-    "title": "Volume Discount Negotiation Laptops Fleet Refresh"
+    "kind": "finance",
+    "title": "Zentara Annual Report 2024",
+    "group": "finance-annual-year",
+    "vary": "year"
   },
   {
     "id": "t300",
     "lang": "en",
-    "kind": "po",
-    "title": "PO 4500098765 Safety Gloves Cut Level C"
+    "kind": "finance",
+    "title": "Zentara Annual Report 2025",
+    "group": "finance-annual-year",
+    "vary": "year"
   },
   {
     "id": "t301",
-    "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Office Chairs Ergonomic 40 pcs"
+    "lang": "de",
+    "kind": "software",
+    "title": "Neue Exportfunktion für Berichte",
+    "keep": ["Exportfunktion", "Berichte"]
   },
   {
     "id": "t302",
-    "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Server Rack Hardware Data Hall 2"
+    "lang": "de",
+    "kind": "software",
+    "title": "Anmeldung mit Passkeys einführen",
+    "keep": ["Passkeys", "Anmeldung"]
   },
   {
     "id": "t303",
-    "lang": "en",
-    "kind": "po",
-    "title": "Release Order Packaging Material Week 22"
+    "lang": "de",
+    "kind": "software",
+    "title": "Performance-Verbesserungen in der Suche",
+    "keep": ["Performance", "Suche"]
   },
   {
     "id": "t304",
-    "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Conference Room AV Equipment"
+    "lang": "de",
+    "kind": "software",
+    "title": "Barrierefreiheit im Formular-Editor verbessern",
+    "keep": ["Barrierefreiheit", "Formular"]
   },
   {
     "id": "t305",
-    "lang": "en",
-    "kind": "po",
-    "title": "Purchase Order Calibration Services Measuring Devices"
+    "lang": "de",
+    "kind": "software",
+    "title": "Datenbankmigration auf neue Version",
+    "keep": ["Datenbankmigration"]
   },
   {
     "id": "t306",
-    "lang": "en",
-    "kind": "project",
-    "title": "RFQ Industrial Cleaning Services Plant 2"
+    "lang": "de",
+    "kind": "software",
+    "title": "Benachrichtigungen per Push",
+    "keep": ["Benachrichtigungen", "Push"]
   },
   {
     "id": "t307",
-    "lang": "en",
-    "kind": "project",
-    "title": "RFP Managed Print Services Europe"
+    "lang": "de",
+    "kind": "software",
+    "title": "Dunkelmodus für die Web-App",
+    "keep": ["Dunkelmodus"]
   },
   {
     "id": "t308",
-    "lang": "en",
-    "kind": "project",
-    "title": "RFI Battery Storage Systems 10 MWh"
+    "lang": "de",
+    "kind": "software",
+    "title": "Refactoring der Zahlungslogik",
+    "keep": ["Zahlungslogik", "Refactoring"]
   },
   {
     "id": "t309",
     "lang": "en",
-    "kind": "project",
-    "title": "Sourcing Event Corporate Travel 2027"
+    "kind": "software",
+    "title": "Add rate limiting to public API",
+    "keep": ["rate", "limiting"]
   },
   {
     "id": "t310",
     "lang": "en",
-    "kind": "project",
-    "title": "Supplier Onboarding Program Tier 2 Suppliers"
+    "kind": "software",
+    "title": "Migrate CI pipeline to new runners",
+    "keep": ["CI", "pipeline", "runners"]
   },
   {
     "id": "t311",
     "lang": "en",
-    "kind": "project",
-    "title": "Category Plan Facility Services 2026"
+    "kind": "software",
+    "title": "Feature: bulk edit for tags",
+    "keep": ["bulk", "tags"]
   },
   {
     "id": "t312",
     "lang": "en",
-    "kind": "project",
-    "title": "Tender Waste Management Services All Sites"
+    "kind": "software",
+    "title": "Refactor user settings page",
+    "keep": ["user", "settings"]
   },
   {
     "id": "t313",
     "lang": "en",
-    "kind": "project",
-    "title": "Spend Cube Refresh Indirect Procurement FY2026"
+    "kind": "software",
+    "title": "chore: bump dependencies"
   },
   {
     "id": "t314",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "Rahmenvertrag Cloud Services – SLA Addendum 2026"
+    "lang": "en",
+    "kind": "software",
+    "title": "docs: update installation guide",
+    "keep": ["installation"]
   },
   {
     "id": "t315",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "Master Service Agreement mit Nordlicht Energie AG"
+    "lang": "en",
+    "kind": "software",
+    "title": "Implement offline mode for mobile app",
+    "keep": ["offline", "mobile"]
   },
   {
     "id": "t316",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "SOW Nr. 7 Implementierung E-Procurement-Suite Guided Buying"
+    "lang": "en",
+    "kind": "software",
+    "title": "Remove deprecated v1 endpoints",
+    "keep": ["deprecated", "endpoints"]
   },
   {
     "id": "t317",
     "lang": "mixed",
-    "kind": "contract",
-    "title": "Change Request 12 zum Wartungsvertrag Rechenzentrum"
+    "kind": "software",
+    "title": "feat(auth): Login mit SSO hinzufügen"
   },
   {
     "id": "t318",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "NDA Lieferantenworkshop Q3 2026"
+    "lang": "en",
+    "kind": "software",
+    "title": "Release Notes v2.3.0",
+    "group": "software-release-version",
+    "vary": "version"
   },
   {
     "id": "t319",
-    "lang": "mixed",
-    "kind": "negotiation",
-    "title": "Kick-off Negotiation Strompreise FY2026"
+    "lang": "en",
+    "kind": "software",
+    "title": "Release Notes v2.4.0",
+    "group": "software-release-version",
+    "vary": "version"
   },
   {
     "id": "t320",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "Facility Management Agreement Standort München Nord"
+    "lang": "en",
+    "kind": "software",
+    "title": "Release Notes v3.0.0",
+    "group": "software-release-version",
+    "vary": "version"
   },
   {
     "id": "t321",
-    "lang": "mixed",
-    "kind": "po",
-    "title": "Purchase Order Bürostühle ergonomisch Batch 3"
+    "lang": "en",
+    "kind": "software",
+    "title": "PR #812: Fix pagination bug",
+    "group": "software-pr-issue",
+    "vary": "issue"
   },
   {
     "id": "t322",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "Renewal Wartungsvertrag Klimaanlage Server Room"
+    "lang": "en",
+    "kind": "software",
+    "title": "PR #845: Fix pagination bug",
+    "group": "software-pr-issue",
+    "vary": "issue"
   },
   {
     "id": "t323",
-    "lang": "mixed",
-    "kind": "project",
-    "title": "RFQ Betonfertigteile Projekt Riverside Offices"
+    "lang": "de",
+    "kind": "software",
+    "title": "Versionshinweise 5.1",
+    "group": "software-hinweise-version",
+    "vary": "version"
   },
   {
     "id": "t324",
-    "lang": "mixed",
-    "kind": "contract",
-    "title": "Service Level Agreement Hausmeisterdienste Campus Süd"
+    "lang": "de",
+    "kind": "software",
+    "title": "Versionshinweise 5.2",
+    "group": "software-hinweise-version",
+    "vary": "version"
   },
   {
     "id": "t325",
-    "lang": "mixed",
-    "kind": "negotiation",
-    "title": "QBR Hansekontor Logistik GmbH – Savings Review"
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Newsletter Oktober: Herbstaktion",
+    "keep": ["Newsletter", "Herbstaktion"]
   },
   {
     "id": "t326",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Brandmeldeanlage Hauptverwaltung",
-    "group": "dup-01"
+    "kind": "marketing",
+    "title": "Social-Media-Plan Weihnachten",
+    "keep": ["Weihnachten", "Social"]
   },
   {
     "id": "t327",
     "lang": "de",
-    "kind": "contract",
-    "title": "Wartungsvertrag Brandmeldeanlage Hauptverwaltung",
-    "group": "dup-01"
+    "kind": "marketing",
+    "title": "Landingpage für Produktlaunch",
+    "keep": ["Landingpage", "Produktlaunch"]
   },
   {
     "id": "t328",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Gebäudereinigung 2026",
-    "group": "dup-02"
+    "kind": "marketing",
+    "title": "Pressemitteilung Eröffnung Filiale",
+    "keep": ["Pressemitteilung", "Filiale"]
   },
   {
     "id": "t329",
     "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Gebäudereinigung 2026",
-    "group": "dup-02"
+    "kind": "marketing",
+    "title": "Kundenumfrage Markenwahrnehmung",
+    "keep": ["Kundenumfrage", "Markenwahrnehmung"]
   },
   {
     "id": "t330",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Master Service Agreement",
-    "group": "dup-03"
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Rabattaktion zum Jahresende",
+    "keep": ["Rabattaktion", "Jahresende"]
   },
   {
     "id": "t331",
-    "lang": "en",
-    "kind": "contract",
-    "title": "Master Service Agreement",
-    "group": "dup-03"
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Messeauftritt Konzept",
+    "keep": ["Messeauftritt"]
   },
   {
     "id": "t332",
     "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Büromaterial",
-    "group": "dup-04"
+    "kind": "marketing",
+    "title": "Imagefilm Drehbuch",
+    "keep": ["Imagefilm", "Drehbuch"]
   },
   {
     "id": "t333",
-    "lang": "de",
-    "kind": "po",
-    "title": "Bestellung Büromaterial",
-    "group": "dup-04"
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Brand Guidelines",
+    "keep": ["Brand", "Guidelines"]
   },
   {
     "id": "t334",
     "lang": "en",
-    "kind": "contract",
-    "title": "NDA Northgate Cloud Services Inc.",
-    "group": "dup-05"
+    "kind": "marketing",
+    "title": "Email Campaign: Spring Sale",
+    "keep": ["Spring", "Sale"]
   },
   {
     "id": "t335",
     "lang": "en",
-    "kind": "contract",
-    "title": "NDA Northgate Cloud Services Inc.",
-    "group": "dup-05"
+    "kind": "marketing",
+    "title": "Influencer Partnership Brief",
+    "keep": ["Influencer"]
   },
   {
     "id": "t336",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stromlieferung München 2026",
-    "group": "norm-variants"
+    "lang": "en",
+    "kind": "marketing",
+    "title": "SEO Keyword Research",
+    "keep": ["SEO", "Keyword"]
   },
   {
     "id": "t337",
-    "lang": "de",
-    "kind": "contract",
-    "title": "RAHMENVERTRAG STROMLIEFERUNG MÜNCHEN 2026",
-    "group": "norm-variants"
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Product Launch Plan for Lumora Air",
+    "keep": ["Launch", "Lumora"]
   },
   {
     "id": "t338",
-    "lang": "de",
-    "kind": "contract",
-    "title": "  Rahmenvertrag   Stromlieferung  München 2026  ",
-    "group": "norm-variants"
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Customer Testimonials Video",
+    "keep": ["Testimonials"]
   },
   {
     "id": "t339",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stromlieferung München 2026",
-    "group": "norm-variants"
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Content Calendar"
   },
   {
     "id": "t340",
-    "lang": "de",
-    "kind": "contract",
-    "title": "Rahmenvertrag Stromlieferung Muenchen 2026",
-    "group": "norm-variants"
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Competitor Ad Analysis",
+    "keep": ["Competitor"]
   },
   {
     "id": "t341",
+    "lang": "mixed",
+    "kind": "marketing",
+    "title": "Go-to-Market Strategie DACH"
+  },
+  {
+    "id": "t342",
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Holiday Campaign North America",
+    "group": "mkt-holiday-region",
+    "vary": "region"
+  },
+  {
+    "id": "t343",
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Holiday Campaign Europe",
+    "group": "mkt-holiday-region",
+    "vary": "region"
+  },
+  {
+    "id": "t344",
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Newsletter Betreffzeile Variante A",
+    "group": "mkt-betreff-variant",
+    "vary": "variant"
+  },
+  {
+    "id": "t345",
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Newsletter Betreffzeile Variante B",
+    "group": "mkt-betreff-variant",
+    "vary": "variant"
+  },
+  {
+    "id": "t346",
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Social Media Report Week 14",
+    "group": "mkt-social-week",
+    "vary": "week"
+  },
+  {
+    "id": "t347",
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Social Media Report Week 15",
+    "group": "mkt-social-week",
+    "vary": "week"
+  },
+  {
+    "id": "t348",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Rundreise durch Portugal in zwei Wochen",
+    "keep": ["Portugal", "Rundreise"]
+  },
+  {
+    "id": "t349",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Packliste für den Skiurlaub",
+    "keep": ["Skiurlaub", "Packliste"]
+  },
+  {
+    "id": "t350",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Zugfahrt von München nach Rom",
+    "keep": ["Rom", "Zugfahrt"]
+  },
+  {
+    "id": "t351",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Camping am Gardasee mit Kindern",
+    "keep": ["Gardasee", "Camping"]
+  },
+  {
+    "id": "t352",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Visum für Japan beantragen",
+    "keep": ["Visum", "Japan"]
+  },
+  {
+    "id": "t353",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Wochenendtrip nach Wien",
+    "keep": ["Wien"]
+  },
+  {
+    "id": "t354",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Hotelbuchung Dienstreise Frankfurt",
+    "keep": ["Frankfurt", "Hotelbuchung"]
+  },
+  {
+    "id": "t355",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Radtour entlang der Donau",
+    "keep": ["Donau", "Radtour"]
+  },
+  {
+    "id": "t356",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Two Weeks in Iceland: Itinerary",
+    "keep": ["Iceland"]
+  },
+  {
+    "id": "t357",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Packing List for a Beach Holiday",
+    "keep": ["Beach", "Packing"]
+  },
+  {
+    "id": "t358",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Best Street Food in Bangkok",
+    "keep": ["Bangkok", "Food"]
+  },
+  {
+    "id": "t359",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Road Trip Along the Pacific Coast",
+    "keep": ["Pacific", "Road"]
+  },
+  {
+    "id": "t360",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Travel Insurance Checklist",
+    "keep": ["Insurance"]
+  },
+  {
+    "id": "t361",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Business Trip to Singapore",
+    "keep": ["Singapore"]
+  },
+  {
+    "id": "t362",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Hidden Gems of Lisbon",
+    "keep": ["Lisbon"]
+  },
+  {
+    "id": "t363",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Backpacking Southeast Asia on a Budget",
+    "keep": ["Backpacking", "Asia"]
+  },
+  {
+    "id": "t364",
+    "lang": "mixed",
+    "kind": "travel",
+    "title": "Interrail Tour: Paris – Barcelona – Lissabon"
+  },
+  {
+    "id": "t365",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Weekend Guide to Copenhagen",
+    "group": "travel-weekend-city",
+    "vary": "city"
+  },
+  {
+    "id": "t366",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Weekend Guide to Stockholm",
+    "group": "travel-weekend-city",
+    "vary": "city"
+  },
+  {
+    "id": "t367",
+    "lang": "en",
+    "kind": "travel",
+    "title": "Weekend Guide to Oslo",
+    "group": "travel-weekend-city",
+    "vary": "city"
+  },
+  {
+    "id": "t368",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Urlaubsplanung Sommer 2026",
+    "group": "travel-urlaub-year",
+    "vary": "year"
+  },
+  {
+    "id": "t369",
+    "lang": "de",
+    "kind": "travel",
+    "title": "Urlaubsplanung Sommer 2027",
+    "group": "travel-urlaub-year",
+    "vary": "year"
+  },
+  {
+    "id": "t370",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "3-Zimmer-Wohnung mit Balkon in Leipzig-Plagwitz",
+    "keep": ["Leipzig", "Plagwitz", "Balkon"]
+  },
+  {
+    "id": "t371",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Einfamilienhaus mit Garten zu verkaufen",
+    "keep": ["Einfamilienhaus", "Garten"]
+  },
+  {
+    "id": "t372",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Exposé Altbauwohnung Schwabing",
+    "keep": ["Altbauwohnung", "Schwabing"]
+  },
+  {
+    "id": "t373",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Nebenkostenabrechnung 2025",
+    "keep": ["Nebenkostenabrechnung"]
+  },
+  {
+    "id": "t374",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Baugrundstück 600 m² am Ortsrand",
+    "keep": ["Baugrundstück"]
+  },
+  {
+    "id": "t375",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "WG-Zimmer ab sofort frei",
+    "keep": ["WG", "Zimmer"]
+  },
+  {
+    "id": "t376",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Wohnungsübergabeprotokoll",
+    "keep": ["Wohnungsübergabeprotokoll"]
+  },
+  {
+    "id": "t377",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Energieausweis für Mehrfamilienhaus",
+    "keep": ["Energieausweis", "Mehrfamilienhaus"]
+  },
+  {
+    "id": "t378",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Modern Loft for Rent Downtown",
+    "keep": ["Loft", "Downtown"]
+  },
+  {
+    "id": "t379",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Charming Cottage with Sea View",
+    "keep": ["Cottage", "Sea"]
+  },
+  {
+    "id": "t380",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Commercial Office Space 500 sqm",
+    "keep": ["Office", "Commercial"]
+  },
+  {
+    "id": "t381",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Home Inspection Report",
+    "keep": ["Inspection"]
+  },
+  {
+    "id": "t382",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Open House Saturday 2 PM"
+  },
+  {
+    "id": "t383",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Mortgage Pre-Approval Letter",
+    "keep": ["Mortgage"]
+  },
+  {
+    "id": "t384",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Studio Apartment Near Campus",
+    "keep": ["Studio", "Campus"]
+  },
+  {
+    "id": "t385",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Property Valuation Request",
+    "keep": ["Valuation"]
+  },
+  {
+    "id": "t386",
+    "lang": "mixed",
+    "kind": "realestate",
+    "title": "Penthouse mit Rooftop-Terrasse",
+    "keep": ["Penthouse", "Rooftop"]
+  },
+  {
+    "id": "t387",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Mietwohnung 2 Zimmer, 1. OG",
+    "group": "re-mietwohnung-floor",
+    "vary": "variant",
+    "skip": {"Q6": "Field rule: only the floor differs (1. OG / 3. OG). Rev 3 removed floor codes and an ordinal before a word is noise, so the default config cannot show it."}
+  },
+  {
+    "id": "t388",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Mietwohnung 2 Zimmer, 3. OG",
+    "group": "re-mietwohnung-floor",
+    "vary": "variant",
+    "skip": {"Q6": "Field rule: only the floor differs (1. OG / 3. OG). Rev 3 removed floor codes and an ordinal before a word is noise, so the default config cannot show it."}
+  },
+  {
+    "id": "t389",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Apartment 12A Lease Renewal",
+    "group": "re-lease-unit",
+    "vary": "variant"
+  },
+  {
+    "id": "t390",
+    "lang": "en",
+    "kind": "realestate",
+    "title": "Apartment 12B Lease Renewal",
+    "group": "re-lease-unit",
+    "vary": "variant"
+  },
+  {
+    "id": "t391",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Neubaugebiet Nord Bebauungsplan",
+    "group": "re-baugebiet-direction",
+    "vary": "direction"
+  },
+  {
+    "id": "t392",
+    "lang": "de",
+    "kind": "realestate",
+    "title": "Neubaugebiet Süd Bebauungsplan",
+    "group": "re-baugebiet-direction",
+    "vary": "direction"
+  },
+  {
+    "id": "t393",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Rahmenvertrag Büromaterial",
+    "keep": ["Büromaterial"]
+  },
+  {
+    "id": "t394",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Angebot Gebäudereinigung",
+    "keep": ["Gebäudereinigung"]
+  },
+  {
+    "id": "t395",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Bestellung Arbeitsschutzkleidung",
+    "keep": ["Arbeitsschutzkleidung"]
+  },
+  {
+    "id": "t396",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Lieferantenbewertung Logistik",
+    "keep": ["Lieferantenbewertung", "Logistik"]
+  },
+  {
+    "id": "t397",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Ausschreibung IT-Hardware",
+    "keep": ["Hardware"]
+  },
+  {
+    "id": "t398",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Wartungsvertrag Aufzüge",
+    "keep": ["Aufzüge", "Wartungsvertrag"]
+  },
+  {
+    "id": "t399",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Preisanpassung Verpackungsmaterial",
+    "keep": ["Verpackungsmaterial", "Preisanpassung"]
+  },
+  {
+    "id": "t400",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Kündigung Leasingvertrag Firmenwagen",
+    "keep": ["Leasingvertrag", "Firmenwagen"]
+  },
+  {
+    "id": "t401",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Request for Quotation: Office Furniture",
+    "keep": ["Office", "Furniture"]
+  },
+  {
+    "id": "t402",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Supplier Onboarding Checklist",
+    "keep": ["Supplier", "Onboarding"]
+  },
+  {
+    "id": "t403",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Purchase Order Laptops",
+    "keep": ["Laptops"]
+  },
+  {
+    "id": "t404",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Master Service Agreement Altmark Logistics",
+    "keep": ["Altmark", "Logistics"]
+  },
+  {
+    "id": "t405",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Vendor Risk Assessment",
+    "keep": ["Vendor", "Risk"]
+  },
+  {
+    "id": "t406",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Price Review Meeting Packaging"
+  },
+  {
+    "id": "t407",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Framework Agreement Cleaning Services"
+  },
+  {
+    "id": "t408",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Statement of Work Data Migration"
+  },
+  {
+    "id": "t409",
+    "lang": "mixed",
+    "kind": "procurement",
+    "title": "Purchase Order Stahlträger – dringend"
+  },
+  {
+    "id": "t410",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Ausschreibung Reinigung Los 1",
+    "group": "proc-reinigung-lot",
+    "vary": "part",
+    "skip": {"Q6": "Field rule: only the lot number differs (Los 1 / Los 2). Needs the user marker `los` from the procurement recipe (15.8); tested in recipes.test.ts."}
+  },
+  {
+    "id": "t411",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Ausschreibung Reinigung Los 2",
+    "group": "proc-reinigung-lot",
+    "vary": "part",
+    "skip": {"Q6": "Field rule: only the lot number differs (Los 1 / Los 2). Needs the user marker `los` from the procurement recipe (15.8); tested in recipes.test.ts."}
+  },
+  {
+    "id": "t412",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Electricity Supply Contract 2026",
+    "group": "proc-electricity-year",
+    "vary": "year"
+  },
+  {
+    "id": "t413",
+    "lang": "en",
+    "kind": "procurement",
+    "title": "Electricity Supply Contract 2027",
+    "group": "proc-electricity-year",
+    "vary": "year"
+  },
+  {
+    "id": "t414",
+    "lang": "de",
+    "kind": "project",
+    "title": "Projektplan Umzug Hauptbüro",
+    "keep": ["Umzug", "Hauptbüro"]
+  },
+  {
+    "id": "t415",
+    "lang": "de",
+    "kind": "project",
+    "title": "Statusbericht Digitalisierung Kundenservice",
+    "keep": ["Digitalisierung", "Kundenservice"]
+  },
+  {
+    "id": "t416",
+    "lang": "de",
+    "kind": "project",
+    "title": "Risikoanalyse Rollout CRM",
+    "keep": ["CRM", "Rollout"]
+  },
+  {
+    "id": "t417",
+    "lang": "de",
+    "kind": "project",
+    "title": "Meilensteinplanung Website-Relaunch",
+    "keep": ["Website", "Relaunch"]
+  },
+  {
+    "id": "t418",
+    "lang": "de",
+    "kind": "project",
+    "title": "Lessons Learned Pilotprojekt",
+    "keep": ["Pilotprojekt"]
+  },
+  {
+    "id": "t419",
+    "lang": "de",
+    "kind": "project",
+    "title": "Ressourcenplanung Team Nordlicht",
+    "keep": ["Nordlicht", "Ressourcenplanung"]
+  },
+  {
+    "id": "t420",
+    "lang": "de",
+    "kind": "project",
+    "title": "Projektsteckbrief Solaranlage Schule",
+    "keep": ["Solaranlage", "Schule"]
+  },
+  {
+    "id": "t421",
+    "lang": "de",
+    "kind": "project",
+    "title": "Abschlussbericht Förderprojekt",
+    "keep": ["Förderprojekt"]
+  },
+  {
+    "id": "t422",
+    "lang": "en",
+    "kind": "project",
+    "title": "Project Charter: Customer Portal",
+    "keep": ["Customer", "Portal"]
+  },
+  {
+    "id": "t423",
+    "lang": "en",
+    "kind": "project",
+    "title": "Roadmap Mobile App",
+    "keep": ["Roadmap", "Mobile"]
+  },
+  {
+    "id": "t424",
+    "lang": "en",
+    "kind": "project",
+    "title": "Weekly Status Report Data Platform",
+    "keep": ["Data", "Platform"]
+  },
+  {
+    "id": "t425",
+    "lang": "en",
+    "kind": "project",
+    "title": "Risk Register",
+    "keep": ["Risk", "Register"]
+  },
+  {
+    "id": "t426",
+    "lang": "en",
+    "kind": "project",
+    "title": "Stakeholder Map",
+    "keep": ["Stakeholder"]
+  },
+  {
+    "id": "t427",
+    "lang": "en",
+    "kind": "project",
+    "title": "Go-Live Checklist",
+    "keep": ["Checklist"]
+  },
+  {
+    "id": "t428",
+    "lang": "en",
+    "kind": "project",
+    "title": "Change Request: Scope Extension",
+    "keep": ["Scope", "Extension"]
+  },
+  {
+    "id": "t429",
+    "lang": "en",
+    "kind": "project",
+    "title": "Project Closure Report",
+    "keep": ["Closure"]
+  },
+  {
+    "id": "t430",
+    "lang": "mixed",
+    "kind": "project",
+    "title": "Projekt Phoenix – Kickoff Deck",
+    "keep": ["Phoenix"]
+  },
+  {
+    "id": "t431",
+    "lang": "en",
+    "kind": "project",
+    "title": "Data Platform Migration Phase 1",
+    "group": "proj-migration-phase",
+    "vary": "part"
+  },
+  {
+    "id": "t432",
+    "lang": "en",
+    "kind": "project",
+    "title": "Data Platform Migration Phase 2",
+    "group": "proj-migration-phase",
+    "vary": "part"
+  },
+  {
+    "id": "t433",
+    "lang": "en",
+    "kind": "project",
+    "title": "Data Platform Migration Phase 3",
+    "group": "proj-migration-phase",
+    "vary": "part"
+  },
+  {
+    "id": "t434",
+    "lang": "de",
+    "kind": "project",
+    "title": "Statusbericht Projekt Atlas KW 40",
+    "group": "proj-atlas-week",
+    "vary": "week"
+  },
+  {
+    "id": "t435",
+    "lang": "de",
+    "kind": "project",
+    "title": "Statusbericht Projekt Atlas KW 41",
+    "group": "proj-atlas-week",
+    "vary": "week"
+  },
+  {
+    "id": "t436",
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Team Lunch Friday",
+    "group": "dup-01",
+    "vary": "exact"
+  },
+  {
+    "id": "t437",
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Team Lunch Friday",
+    "group": "dup-01",
+    "vary": "exact"
+  },
+  {
+    "id": "t438",
+    "lang": "de",
+    "kind": "recipe",
+    "title": "Kartoffelgratin mit Bergkäse",
+    "group": "dup-02",
+    "vary": "exact"
+  },
+  {
+    "id": "t439",
+    "lang": "de",
+    "kind": "recipe",
+    "title": "Kartoffelgratin mit Bergkäse",
+    "group": "dup-02",
+    "vary": "exact"
+  },
+  {
+    "id": "t440",
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Cannot reset password",
+    "group": "dup-03",
+    "vary": "exact"
+  },
+  {
+    "id": "t441",
+    "lang": "en",
+    "kind": "ticket",
+    "title": "Cannot reset password",
+    "group": "dup-03",
+    "vary": "exact"
+  },
+  {
+    "id": "t442",
+    "lang": "de",
+    "kind": "blog",
+    "title": "Warum wir unser Büro umgebaut haben",
+    "group": "dup-04",
+    "vary": "exact"
+  },
+  {
+    "id": "t443",
+    "lang": "de",
+    "kind": "blog",
+    "title": "Warum wir unser Büro umgebaut haben",
+    "group": "dup-04",
+    "vary": "exact"
+  },
+  {
+    "id": "t444",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Rahmenvertrag Gebäudereinigung 2026",
+    "group": "dup-05",
+    "vary": "exact"
+  },
+  {
+    "id": "t445",
+    "lang": "de",
+    "kind": "procurement",
+    "title": "Rahmenvertrag Gebäudereinigung 2026",
+    "group": "dup-05",
+    "vary": "exact"
+  },
+  {
+    "id": "t446",
+    "lang": "de",
+    "kind": "event",
+    "title": "Sommerfest Gärtnerei München 2026",
+    "group": "norm-variants",
+    "vary": "norm"
+  },
+  {
+    "id": "t447",
+    "lang": "de",
+    "kind": "event",
+    "title": "SOMMERFEST GÄRTNEREI MÜNCHEN 2026",
+    "group": "norm-variants",
+    "vary": "norm"
+  },
+  {
+    "id": "t448",
+    "lang": "de",
+    "kind": "event",
+    "title": "  Sommerfest   Gärtnerei  München 2026  ",
+    "group": "norm-variants",
+    "vary": "norm"
+  },
+  {
+    "id": "t449",
+    "lang": "de",
+    "kind": "event",
+    "title": "Sommerfest Gärtnerei München 2026",
+    "group": "norm-variants",
+    "vary": "norm"
+  },
+  {
+    "id": "t450",
+    "lang": "de",
+    "kind": "event",
+    "title": "Sommerfest Gaertnerei Muenchen 2026",
+    "group": "norm-variants",
+    "vary": "norm"
+  },
+  {
+    "id": "t451",
     "lang": "mixed",
     "kind": "edge",
     "title": ""
   },
   {
-    "id": "t342",
+    "id": "t452",
     "lang": "mixed",
     "kind": "edge",
     "title": "   "
   },
   {
-    "id": "t343",
+    "id": "t453",
     "lang": "mixed",
     "kind": "edge",
     "title": "\t\n  \n"
   },
   {
-    "id": "t344",
+    "id": "t454",
     "lang": "mixed",
     "kind": "edge",
-    "title": " ​ "
+    "title": " ​ "
   },
   {
-    "id": "t345",
+    "id": "t455",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "  "
+  },
+  {
+    "id": "t456",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Projekt Planung​2026"
+  },
+  {
+    "id": "t457",
+    "lang": "en",
+    "kind": "edge",
+    "title": "﻿Weekly Report"
+  },
+  {
+    "id": "t458",
     "lang": "de",
     "kind": "edge",
     "title": "der die das"
   },
   {
-    "id": "t346",
+    "id": "t459",
     "lang": "de",
     "kind": "edge",
     "title": "und oder für mit von der"
   },
   {
-    "id": "t347",
+    "id": "t460",
     "lang": "en",
     "kind": "edge",
     "title": "the and of"
   },
   {
-    "id": "t348",
+    "id": "t461",
     "lang": "en",
     "kind": "edge",
     "title": "a an the for with to"
   },
   {
-    "id": "t349",
-    "lang": "de",
+    "id": "t462",
+    "lang": "mixed",
     "kind": "edge",
-    "title": "Vertrag GmbH AG"
+    "title": "GmbH AG Inc Ltd"
   },
   {
-    "id": "t350",
-    "lang": "de",
-    "kind": "edge",
-    "title": "Vertrag"
-  },
-  {
-    "id": "t351",
+    "id": "t463",
     "lang": "mixed",
     "kind": "edge",
     "title": "2026"
   },
   {
-    "id": "t352",
+    "id": "t464",
     "lang": "mixed",
     "kind": "edge",
     "title": "12345"
   },
   {
-    "id": "t353",
+    "id": "t465",
     "lang": "mixed",
     "kind": "edge",
     "title": "2025 2026 2027"
   },
   {
-    "id": "t354",
+    "id": "t466",
     "lang": "mixed",
     "kind": "edge",
     "title": "4500012345"
   },
   {
-    "id": "t355",
+    "id": "t467",
     "lang": "mixed",
     "kind": "edge",
     "title": "01.01.2026 – 31.12.2026"
   },
   {
-    "id": "t356",
+    "id": "t468",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "3.14159"
+  },
+  {
+    "id": "t469",
     "lang": "mixed",
     "kind": "edge",
     "title": "AB"
   },
   {
-    "id": "t357",
+    "id": "t470",
     "lang": "mixed",
     "kind": "edge",
     "title": "x"
   },
   {
-    "id": "t358",
+    "id": "t471",
     "lang": "mixed",
     "kind": "edge",
     "title": "Q1"
   },
   {
-    "id": "t359",
+    "id": "t472",
     "lang": "de",
     "kind": "edge",
     "title": "Öl"
   },
   {
-    "id": "t360",
+    "id": "t473",
     "lang": "mixed",
     "kind": "edge",
-    "title": "⚡️ Strom 2026 🔌"
+    "title": "v2"
   },
   {
-    "id": "t361",
+    "id": "t474",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "⚡️ Energie sparen 2026 🔌"
+  },
+  {
+    "id": "t475",
     "lang": "mixed",
     "kind": "edge",
     "title": "🚚📦🚚"
   },
   {
-    "id": "t362",
+    "id": "t476",
     "lang": "en",
     "kind": "edge",
     "title": "🔥 Hot Deal: Laptops Q4 💻"
   },
   {
-    "id": "t363",
+    "id": "t477",
     "lang": "de",
     "kind": "edge",
-    "title": "RAHMENVERTRAG STAHLBAU NORD LOS 3"
+    "title": "🎉🎂 Geburtstag Oma 🎂🎉"
   },
   {
-    "id": "t364",
+    "id": "t478",
     "lang": "en",
     "kind": "edge",
-    "title": "MASTER SERVICE AGREEMENT - URGENT!!!"
+    "title": "👨‍👩‍👧‍👦 Family Trip Planning"
   },
   {
-    "id": "t365",
+    "id": "t479",
+    "lang": "en",
+    "kind": "edge",
+    "title": "QUARTERLY ALL HANDS MEETING - URGENT!!!"
+  },
+  {
+    "id": "t480",
     "lang": "de",
     "kind": "edge",
-    "title": "!!! Wartung ??? (Halle 3) /// Los #2 ;;; v1.2 ..."
+    "title": "WICHTIG: SERVERWARTUNG HEUTE NACHT"
   },
   {
-    "id": "t366",
+    "id": "t481",
     "lang": "de",
     "kind": "edge",
-    "title": "Wartung \"Kältetechnik\" / Halle 3 (Los 2) – Rev. 1.2"
+    "title": "!!! Wartung ??? (Raum 3) /// Teil #2 ;;; v1.2 ..."
   },
   {
-    "id": "t367",
+    "id": "t482",
     "lang": "mixed",
     "kind": "edge",
     "title": "---___...,,,;;;"
   },
   {
-    "id": "t368",
+    "id": "t483",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Hello, World! (Again?) [Draft] {v2}"
+  },
+  {
+    "id": "t484",
     "lang": "de",
     "kind": "edge",
     "title": "Vertrag_v2_FINAL_final(3).docx"
   },
   {
-    "id": "t369",
+    "id": "t485",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "IMG_20260512_143022.jpg"
+  },
+  {
+    "id": "t486",
+    "lang": "en",
+    "kind": "edge",
+    "title": "quarterly-report_Q3-2026 (copy).xlsx"
+  },
+  {
+    "id": "t487",
     "lang": "de",
     "kind": "edge",
     "title": "C++ / C# Schulung & Zertifizierung @ München"
   },
   {
-    "id": "t370",
-    "lang": "de",
-    "kind": "edge",
-    "title": "Rahmenvertrag über die Lieferung, Montage, Inbetriebnahme, Wartung und Instandhaltung von Mittelspannungsschaltanlagen, Ortsnetzstationen und Transformatoren einschließlich Ersatzteilversorgung, Notfallbereitschaft rund um die Uhr, Dokumentation nach DIN EN 62271-200 sowie Schulung des Betriebspersonals für die Netzgebiete Nord, Süd, Ost und West mit Preisgleitklausel auf Basis Kupfer- und Lohnindex, Laufzeit 2026 bis 2030, Los 1 bis Los 6"
-  },
-  {
-    "id": "t371",
+    "id": "t488",
     "lang": "en",
     "kind": "edge",
-    "title": "Master Service Agreement for the provision of end-to-end managed infrastructure services including network operations, end-user support, cloud hosting, backup and disaster recovery, security monitoring, vulnerability management, license management and quarterly service reviews across all European sites, with service credits, price review mechanism and optional extension for two further years"
+    "title": "Node.js vs. Deno: Benchmark 2026"
   },
   {
-    "id": "t372",
+    "id": "t489",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Abschlussbericht zum dreijährigen Forschungs- und Entwicklungsprojekt über die Verbesserung der Wasserqualität in kleinen Seen und Teichen durch naturnahe Uferbepflanzung, regelmäßige Messungen von Sauerstoff, Nitrat und Phosphat, die Einbindung von Schulklassen und Bürgerinitiativen sowie Empfehlungen für Gemeinden, Landwirte und Naturschutzverbände in Bayern, Baden-Württemberg und Thüringen, Teil 1 bis Teil 4"
+  },
+  {
+    "id": "t490",
+    "lang": "en",
+    "kind": "edge",
+    "title": "A comprehensive step-by-step guide to planning, building and maintaining a small vegetable garden on a city balcony, including soil selection, container sizes, watering schedules, companion planting, pest control without chemicals, seasonal planting calendars for spring, summer and autumn, and tips from experienced urban gardeners in London, Berlin and Toronto, updated for the 2026 season"
+  },
+  {
+    "id": "t491",
     "lang": "mixed",
     "kind": "edge",
-    "title": "Договор поставки электроэнергии 2026"
+    "title": "Отчёт о продажах за 2026 год"
   },
   {
-    "id": "t373",
+    "id": "t492",
     "lang": "mixed",
     "kind": "edge",
-    "title": "电力供应框架协议 2026"
+    "title": "2026年产品发布会"
   },
   {
-    "id": "t374",
+    "id": "t493",
     "lang": "mixed",
     "kind": "edge",
-    "title": "عقد توريد الكهرباء 2026"
+    "title": "تقرير المبيعات السنوي 2026"
   },
   {
-    "id": "t375",
+    "id": "t494",
     "lang": "mixed",
     "kind": "edge",
-    "title": "Σύμβαση προμήθειας ενέργειας 2026"
+    "title": "Ετήσια έκθεση πωλήσεων 2026"
   },
   {
-    "id": "t376",
+    "id": "t495",
     "lang": "mixed",
     "kind": "edge",
-    "title": "電力供給基本契約 東京 2026"
+    "title": "東京 新製品発表会 2026"
   },
   {
-    "id": "t377",
+    "id": "t496",
     "lang": "mixed",
     "kind": "edge",
-    "title": "Rahmenvertrag Москва Логистик 2026"
+    "title": "서울 개발자 컨퍼런스 2026"
   },
   {
-    "id": "t378",
+    "id": "t497",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Kick-off Москва Office 2026"
+  },
+  {
+    "id": "t498",
     "lang": "mixed",
     "kind": "edge",
     "title": "new"
   },
   {
-    "id": "t379",
+    "id": "t499",
     "lang": "mixed",
     "kind": "edge",
     "title": "edit"
   },
   {
-    "id": "t380",
+    "id": "t500",
     "lang": "mixed",
     "kind": "edge",
     "title": "admin"
   },
   {
-    "id": "t381",
+    "id": "t501",
     "lang": "mixed",
     "kind": "edge",
     "title": "New"
   },
   {
-    "id": "t382",
+    "id": "t502",
     "lang": "mixed",
     "kind": "edge",
     "title": "api settings"
   },
   {
-    "id": "t383",
+    "id": "t503",
     "lang": "en",
     "kind": "edge",
-    "title": "Admin Portal License Renewal"
+    "title": "Settings"
   },
   {
-    "id": "t384",
+    "id": "t504",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Admin Dashboard Redesign"
+  },
+  {
+    "id": "t505",
     "lang": "de",
     "kind": "edge",
-    "title": "Analyseplattform Lieferantenbewertung"
+    "title": "Analyse der Nutzerdaten"
   },
   {
-    "id": "t385",
+    "id": "t506",
     "lang": "en",
     "kind": "edge",
-    "title": "Shiitake Mushroom Supply Canteen"
+    "title": "Shiitake Risotto Recipe"
   },
   {
-    "id": "t386",
+    "id": "t507",
     "lang": "en",
     "kind": "edge",
-    "title": "Assessment Center Procurement Trainees"
+    "title": "Assessment Center for Trainees"
   },
   {
-    "id": "t387",
+    "id": "t508",
     "lang": "en",
     "kind": "edge",
-    "title": "Cockpit Reporting Procurement KPIs"
+    "title": "Cockpit Dashboard KPIs"
   },
   {
-    "id": "t388",
+    "id": "t509",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Sexton Family Reunion"
+  },
+  {
+    "id": "t510",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Scunthorpe Town Walking Tour"
+  },
+  {
+    "id": "t511",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Penistone Hill Walking Route"
+  },
+  {
+    "id": "t512",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Titanium Bike Frame Review"
+  },
+  {
+    "id": "t513",
     "lang": "de",
     "kind": "edge",
-    "title": "Fickenscher Metallbau GmbH Rahmenvertrag"
+    "title": "Hurtig ans Ziel: Laufplan für Anfänger"
   },
   {
-    "id": "t389",
-    "lang": "en",
-    "kind": "edge",
-    "title": "Sexton Facility Services Ltd. MSA"
-  },
-  {
-    "id": "t390",
-    "lang": "en",
-    "kind": "edge",
-    "title": "Scunthorpe Warehouse Lease Renewal"
-  },
-  {
-    "id": "t391",
+    "id": "t514",
     "lang": "de",
     "kind": "edge",
-    "title": "Kotflügel Ersatzteile Fuhrpark"
+    "title": "Kotflügel austauschen Anleitung"
   },
   {
-    "id": "t392",
+    "id": "t515",
     "lang": "de",
     "kind": "edge",
-    "title": "Scheibenwischer Fuhrpark Nachbestellung"
+    "title": "Scheibenwischer wechseln leicht gemacht"
   },
   {
-    "id": "t393",
+    "id": "t516",
     "lang": "en",
     "kind": "edge",
-    "title": "Titanium Fasteners Supply Agreement"
+    "title": "Therapist Directory Berlin"
   },
   {
-    "id": "t394",
-    "lang": "de",
+    "id": "t517",
+    "lang": "en",
     "kind": "edge",
-    "title": "Hurtig Umzüge Kassel Angebot"
+    "title": "Cumulative Sales Analysis"
   },
   {
-    "id": "t395",
+    "id": "t518",
     "lang": "mixed",
     "kind": "edge",
-    "title": "<script>alert('x')</script> Rahmenvertrag"
+    "title": "<script>alert('x')</script> Newsletter"
   },
   {
-    "id": "t396",
+    "id": "t519",
     "lang": "mixed",
     "kind": "edge",
-    "title": "Vertrag &amp; Nachtrag &lt;2026&gt;"
+    "title": "Tom &amp; Jerry &lt;Remastered&gt;"
   },
   {
-    "id": "t397",
+    "id": "t520",
     "lang": "mixed",
     "kind": "edge",
-    "title": "Wartung <b>Heizung</b> &nbsp; Standort Nord"
+    "title": "Meeting <b>Budget</b> &nbsp; Raum Nord"
   },
   {
-    "id": "t398",
+    "id": "t521",
     "lang": "mixed",
     "kind": "edge",
-    "title": "'; DROP TABLE contracts; --"
+    "title": "'; DROP TABLE users; --"
   },
   {
-    "id": "t399",
+    "id": "t522",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Robert'); DROP TABLE Students;--"
+  },
+  {
+    "id": "t523",
     "lang": "de",
     "kind": "edge",
     "title": "ÄÖÜ äöü ß Straße Größe Übergabe"
   },
   {
-    "id": "t400",
+    "id": "t524",
     "lang": "de",
     "kind": "edge",
-    "title": "Größe Prüfung Änderungsvertrag"
+    "title": "Übergabe Größe Prüfung"
   },
   {
-    "id": "t401",
+    "id": "t525",
     "lang": "de",
     "kind": "edge",
     "title": "STRASSE Strasse Straße STRAẞE"
   },
   {
-    "id": "t402",
+    "id": "t526",
     "lang": "mixed",
     "kind": "edge",
     "title": "Café Crème Façade Ångström Łódź Señor"
   },
   {
-    "id": "t403",
-    "lang": "de",
+    "id": "t527",
+    "lang": "mixed",
     "kind": "edge",
-    "title": "Rahmenvertrag​Stromlieferung"
+    "title": "Kraków Žižkov Øresund Ćevapčići"
   },
   {
-    "id": "t404",
+    "id": "t528",
     "lang": "de",
     "kind": "edge",
-    "title": "Stromlieferungsrahmenvertragsverlängerungsvereinbarung"
+    "title": "Donaudampfschifffahrtsgesellschaftskapitänsmütze"
   },
   {
-    "id": "t405",
+    "id": "t529",
     "lang": "de",
     "kind": "edge",
-    "title": "Donaudampfschifffahrtsgesellschaftskapitänsmützenbeschaffung"
+    "title": "Kraftfahrzeughaftpflichtversicherungsbeitragsrechner"
   },
   {
-    "id": "t406",
+    "id": "t530",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz"
+  },
+  {
+    "id": "t531",
     "lang": "mixed",
     "kind": "edge",
     "title": "0O1lI 0o1li"
   },
   {
-    "id": "t407",
+    "id": "t532",
     "lang": "mixed",
     "kind": "edge",
-    "title": "Los 1 Los 2 Los 3"
+    "title": "Il1 O0 rn m"
+  },
+  {
+    "id": "t533",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Teil 1 Teil 2 Teil 3"
+  },
+  {
+    "id": "t534",
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Newsletter März 2026",
+    "group": "mkt-newsletter-month",
+    "vary": "month",
+    "keep": ["Newsletter", "März"]
+  },
+  {
+    "id": "t535",
+    "lang": "de",
+    "kind": "marketing",
+    "title": "Newsletter April 2026",
+    "group": "mkt-newsletter-month",
+    "vary": "month",
+    "keep": ["Newsletter", "April"]
+  },
+  {
+    "id": "t536",
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Board Minutes March 2026",
+    "group": "meeting-minutes-month",
+    "vary": "month",
+    "keep": ["Board", "March"]
+  },
+  {
+    "id": "t537",
+    "lang": "en",
+    "kind": "meeting",
+    "title": "Board Minutes April 2026",
+    "group": "meeting-minutes-month",
+    "vary": "month",
+    "keep": ["Board", "April"]
+  },
+  {
+    "id": "t538",
+    "lang": "de",
+    "kind": "project",
+    "title": "Website-Relaunch Phase II",
+    "keep": ["Website", "Relaunch"]
+  },
+  {
+    "id": "t539",
+    "lang": "en",
+    "kind": "blog",
+    "title": "The History of Jazz – Part One",
+    "keep": ["Jazz", "History"]
+  },
+  {
+    "id": "t540",
+    "lang": "en",
+    "kind": "ticket",
+    "title": "PROJ-1234: CSV export fails for large files",
+    "keep": ["CSV", "export"]
+  },
+  {
+    "id": "t541",
+    "lang": "de",
+    "kind": "ticket",
+    "title": "WEB-482 Cookie-Banner überdeckt Footer",
+    "keep": ["Cookie", "Banner", "Footer"]
+  },
+  {
+    "id": "t542",
+    "lang": "de",
+    "kind": "education",
+    "title": "Die Französische Revolution 1789 im Überblick",
+    "keep": ["Revolution"]
+  },
+  {
+    "id": "t543",
+    "lang": "en",
+    "kind": "research",
+    "title": "Letters from the Gold Rush, 1849",
+    "keep": ["Gold", "Rush"]
+  },
+  {
+    "id": "t544",
+    "lang": "de",
+    "kind": "news",
+    "title": "Stadtgeschichte: Der große Brand von 1842",
+    "keep": ["Brand", "Stadtgeschichte"]
+  },
+  {
+    "id": "t545",
+    "lang": "en",
+    "kind": "software",
+    "title": "Python 3.12 Upgrade Guide",
+    "keep": ["Python", "Upgrade"]
+  },
+  {
+    "id": "t546",
+    "lang": "en",
+    "kind": "product",
+    "title": "Olive Oil Extra Virgin 0.75 l",
+    "keep": ["Olive", "Oil"]
+  },
+  {
+    "id": "t547",
+    "lang": "de",
+    "kind": "marketing",
+    "title": "A/B-Test Startseite Hero-Banner",
+    "keep": ["Startseite", "Banner"]
+  },
+  {
+    "id": "t548",
+    "lang": "en",
+    "kind": "hr",
+    "title": "HR Policy Update: Remote Work",
+    "keep": ["HR", "Remote"]
+  },
+  {
+    "id": "t549",
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Chocolate Chip Cookie",
+    "near": "t139"
+  },
+  {
+    "id": "t550",
+    "lang": "en",
+    "kind": "recipe",
+    "title": "Classic Buttermilk Pancake",
+    "near": "t130"
+  },
+  {
+    "id": "t551",
+    "lang": "en",
+    "kind": "hr",
+    "title": "Exit Interview Question",
+    "near": "t225"
+  },
+  {
+    "id": "t552",
+    "lang": "en",
+    "kind": "project",
+    "title": "Stakeholder Maps",
+    "near": "t426"
+  },
+  {
+    "id": "t553",
+    "lang": "en",
+    "kind": "news",
+    "title": "City Council Approves New Riverside Parks",
+    "near": "t033"
+  },
+  {
+    "id": "t554",
+    "lang": "en",
+    "kind": "ticket",
+    "title": "login page shows 500 error after deploy",
+    "near": "t080"
+  },
+  {
+    "id": "t555",
+    "lang": "de",
+    "kind": "ticket",
+    "title": "passwort zurücksetzen funktioniert nicht",
+    "near": "t074"
+  },
+  {
+    "id": "t556",
+    "lang": "en",
+    "kind": "legal",
+    "title": "privacy policy for mobile app",
+    "near": "t201"
+  },
+  {
+    "id": "t557",
+    "lang": "de",
+    "kind": "software",
+    "title": "neue Exportfunktion für Berichte",
+    "near": "t301"
+  },
+  {
+    "id": "t558",
+    "lang": "en",
+    "kind": "marketing",
+    "title": "Keyword Research SEO",
+    "near": "t336"
+  },
+  {
+    "id": "t559",
+    "lang": "en",
+    "kind": "finance",
+    "title": "Forecast Cash Flow",
+    "near": "t288"
+  },
+  {
+    "id": "t560",
+    "lang": "en",
+    "kind": "medical",
+    "title": "Hand Hygiene Guidelines in Hospitals",
+    "near": "t245"
+  },
+  {
+    "id": "t561",
+    "lang": "de",
+    "kind": "hr",
+    "title": "Gleitzeit Betriebsvereinbarung",
+    "near": "t220"
+  },
+  {
+    "id": "t562",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Input/Output Error on Save"
+  },
+  {
+    "id": "t563",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Spende 250 € für den Tierpark"
+  },
+  {
+    "id": "t564",
+    "lang": "de",
+    "kind": "edge",
+    "title": "20 % Rabatt auf Wintermode"
+  },
+  {
+    "id": "t565",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Rückruf an +49 89 1234567"
+  },
+  {
+    "id": "t566",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Überweisung an DE89 3704 0044 0532 0130 00"
+  },
+  {
+    "id": "t567",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Feedback to team@example.com"
+  },
+  {
+    "id": "t568",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Docs at https://example.com/docs/start"
   }
 ]

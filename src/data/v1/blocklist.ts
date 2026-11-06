@@ -4,7 +4,7 @@
  * the random tail. These lists are checked by the rules B1 to B7 of SPEC 9.2.
  *
  * Sources: curated from LDNOOBW de/en (CC-BY-4.0) and sqids-blocklist (MIT). Entries that are common
- * inside normal German or English procurement words (for example "wank" in "Schwankung", "butt" in
+ * inside normal German or English words (for example "wank" in "Schwankung", "butt" in
  * "Butter") are soft, not hard.
  *
  * Every entry is stored already leet-folded (4->a 3->e 0->o 1->i 5->s 7->t 8->b) and lowercase ascii.

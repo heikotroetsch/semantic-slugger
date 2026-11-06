@@ -152,7 +152,7 @@ describe('tiers and collisions', () => {
     expect(r.out.tailIndex).toBe(10)
   })
 
-  it('tier A exhausts after maxScan, tier B after maxAttempts', () => {
+  it('tier A exhausts after maxScan; tier B tries maxAttempts per tail length up to the room left', () => {
     const all = { has: () => true } as unknown as ReadonlySet<string>
     try {
       driveSync(emptyPath(emptyDoc, c, none), all)
@@ -166,8 +166,37 @@ describe('tiers and collisions', () => {
       drive(emptyPath(emptyDoc, c, none), { counts: new Map([['doc', 7]]), taken: all })
       expect.unreachable()
     } catch (e) {
+      // t = 2..12 (16 - 'doc' - '-'), 8 indexes each
+      expect((e as ExhaustedError).details).toEqual({ body: 'doc', tailIndex: 7, tries: 88 })
+    }
+    // exact mode has one tail length only
+    try {
+      drive(emptyPath(emptyDoc, resolveConfig({}), none), { counts: new Map([['doc', 7]]), taken: all })
+      expect.unreachable()
+    } catch (e) {
       expect((e as ExhaustedError).details).toEqual({ body: 'doc', tailIndex: 7, tries: 8 })
     }
+  })
+
+  it('tier B: a full window at length t moves on to length t + 1, from k = n again', () => {
+    const n = 40 // tailNeed(40) = 3
+    const window = new Set(Array.from({ length: 8 }, (_, i) => renderEmpty(emptyDoc, c, n + i, 3)))
+    const r = drive(emptyPath(emptyDoc, c, none), { counts: new Map([['doc', n]]), taken: window })
+    expect(r.out.tailIndex).toBe(n)
+    expect(r.out.tail).toHaveLength(4)
+    expect(r.out.id).toBe(renderEmpty(emptyDoc, c, n, 4))
+    // deterministic for the same store state
+    expect(drive(emptyPath(emptyDoc, c, none), { counts: new Map([['doc', n]]), taken: window }).out.id).toBe(r.out.id)
+  })
+
+  it('tier B, max mode: 3000 identical titles never exhaust (regression, tail lag)', () => {
+    const taken = new Set<string>()
+    for (let n = 0; n < 3000; n++) {
+      const { out } = drive(emptyPath(emptyDoc, c, none), { counts: new Map([['doc', n]]), taken })
+      expect(taken.has(out.id)).toBe(false)
+      taken.add(out.id)
+    }
+    expect(taken.size).toBe(3000)
   })
 
   it('skips reserved IDs', () => {
