@@ -118,10 +118,22 @@ describe('ladders (SPEC 11.1, 12.2)', () => {
 
   it('compounds: morph and head rungs are cryptic; joined known abbr is plain', () => {
     const c = ladderOf('Sommerfest 2026', 'sommerfest')
+    // a head of less than 6 chars gives no head rung (docs/DEVIATIONS.md, quality round 2)
+    expect(show(c)).toEqual(['sommerfest(40)', 'sommer(60*)', 'sommerf(90*)', 'smft(600*)'])
     // the head rung costs more than the morph rung (docs/DEVIATIONS.md, quality round 1)
-    expect(show(c)).toEqual(['sommerfest(40)', 'sommer(60*)', 'fest(80*)', 'sommerf(90*)'])
+    const w = ladderOf('Edelstahl-Wasserkocher', ladders('Edelstahl-Wasserkocher')[0]?.key ?? '')
+    expect(w.ladder.find((r) => r.kind === 'head')).toMatchObject({ text: 'wasserkocher', cost: 80, plain: false })
     const k = ladderOf('Kindertagesstättenfest 2026', ladders('Kindertagesstättenfest 2026')[0]?.key ?? '')
     expect(k.ladder[0]).toMatchObject({ text: 'kitafest', kind: 'joined', cost: 0, plain: true })
+  })
+
+  it('polarity parts: a negation is kept, no rung stops before a privative head (quality round 2)', () => {
+    const nb = ladderOf('No-Bake Peanut Butter Bars', ladders('No-Bake Peanut Butter Bars')[0]?.key ?? '')
+    expect(nb.key).toBe('no+bake')
+    expect(texts(nb)).toEqual(['nobake'])
+    const gf = ladderOf('Gluten-Free Cookies', ladders('Gluten-Free Cookies')[0]?.key ?? '')
+    expect(texts(gf)).toContain('glutenfree')
+    expect(texts(gf).some((t) => t.length <= 'gluten'.length)).toBe(false)
   })
 
   it('a whole part of 5+ chars whose other parts are weak or noise is plain (SPEC 7.3)', () => {
@@ -144,8 +156,10 @@ describe('ladders (SPEC 11.1, 12.2)', () => {
     expect(texts(ladderOf('Plan 2025/2026', 'r2025-2026'))).toEqual(['2526'])
     const wide = ladderOf('Archiv 1950–2020', 'r1950-2020')
     expect(wide.ladder[0]).toMatchObject({ text: '1950-2020', segs: ['1950', '2020'] })
-    expect(texts(ladderOf('Newsletter März 2026', 'm03'))).toEqual(['mrz'])
-    expect(texts(ladderOf('Board Minutes March 2026', 'm03'))).toEqual(['mar'])
+    // the full month name is a rung too (docs/DEVIATIONS.md, quality round 2)
+    expect(texts(ladderOf('Newsletter März 2026', 'm03'))).toEqual(['mrz', 'maerz'])
+    expect(texts(ladderOf('Board Minutes March 2026', 'm03'))).toEqual(['mar', 'march'])
+    expect(texts(ladderOf('Sommerfest Mai 2026', 'm05'))).toEqual(['mai'])
     expect(texts(ladderOf('Team Lunch Friday', 'wd5'))).toEqual(['fri', 'friday'])
     expect(texts(ladderOf('Teamessen am Freitag', 'wd5'))).toEqual(['freitag'])
     expect(texts(ladderOf('AGB Version 3.1', 'v3.1'))).toEqual(['v31'])

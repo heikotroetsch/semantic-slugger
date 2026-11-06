@@ -13,6 +13,7 @@ import { enPack } from '../../lang/en.ts'
 import * as blocklist from './blocklist.ts'
 import * as conflict from './conflict.ts'
 import * as constants from './constants.ts'
+import * as decoys from './decoys.ts'
 import * as dockind from './dockind.ts'
 import * as legal from './legal.ts'
 import * as lexiconDe from './lexicon-de.ts'
@@ -24,6 +25,7 @@ import * as noise from './noise.ts'
 import * as numberWords from './number-words.ts'
 import * as parts from './parts-de.ts'
 import * as phonology from './phonology.ts'
+import * as polarity from './polarity.ts'
 import * as qualifiers from './qualifiers.ts'
 import * as reserved from './reserved.ts'
 import * as stopDe from './stop-de.ts'
@@ -40,6 +42,7 @@ export function v1Profile(): Record<string, unknown> {
     blocklist,
     conflict,
     constants,
+    decoys,
     dockind,
     legal,
     lexiconDe,
@@ -51,6 +54,7 @@ export function v1Profile(): Record<string, unknown> {
     numberWords,
     parts,
     phonology,
+    polarity,
     qualifiers,
     reserved,
     stopDe,

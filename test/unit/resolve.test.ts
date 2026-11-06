@@ -39,36 +39,43 @@ describe('resolve branches (SPEC 13.4)', () => {
     expect(out[0]).toMatchObject({ id: 'vertrieb-nord-26', reason: 'base', tail: '' })
   })
 
-  it('repick: a sibling that differs in a direction word shows that word (tier C)', async () => {
+  it('a direction or side word that tells siblings apart shows in the base body (quality round 2)', async () => {
     const [north, south] = group('news-storm-direction')
     expect(north).toMatch(/North/)
     const { out } = await seq([north as string, south as string])
+    expect(out.map((r) => r.reason)).toEqual(['base', 'base'])
+    expect(out[0]?.body).toContain('north')
+    expect(out[1]?.body).toContain('south')
+    const knee = await seq(group('medical-knee-side'))
+    expect(knee.out[0]?.body).toContain('links')
+    expect(knee.out[1]?.body).not.toBe(knee.out[0]?.body)
+  })
+
+  it('repick: a sibling that differs in a dropped year shows that year (tier C)', async () => {
+    const titles = group('news-wahl-year')
+    const { out } = await seq(titles)
+    expect(out[0]?.reason).toBe('base')
     expect(out[1]?.reason).toBe('repick')
-    expect(out[1]?.segments.some((s) => s.text.startsWith('south') || s.text === 'sued' || s.text === 's')).toBe(true)
+    expect(out[1]?.segments.some((s) => s.text.includes('28'))).toBe(true)
     expect(out[1]?.body).not.toBe(out[0]?.body)
   })
 
-  it('repick also works with a side word (links / rechts)', async () => {
-    const titles = group('medical-knee-side')
-    const { out } = await seq(titles)
-    expect(out[1]?.reason).toBe('repick')
-    expect(out[1]?.body).toContain('rechts')
-  })
-
   it('tier B (no findByBody): a sibling keeps the best body and gets a tail', async () => {
-    const titles = group('news-storm-direction')
+    const titles = group('news-wahl-year')
     const { out } = await seq(titles, undefined, noFind)
     expect(out[1]?.storeTier).toBe('B')
     expect(out[1]?.reason).toBe('shared-body')
   })
 
   it('shared-body with an empty diff: identical, case variant and plural variant keep the body', async () => {
-    // the first copy is body-only (a fill segment takes the padding room, quality round 1); the later
-    // copies refit to one tailed body with the same content
-    const id = await seq(['Team Lunch Friday', 'Team Lunch Friday', 'Team Lunch Friday'])
+    // the first copy is body-only; the later copies refit to one tailed body with the same content
+    const id = await seq([
+      'Kartoffelgratin mit Bergkäse',
+      'Kartoffelgratin mit Bergkäse',
+      'Kartoffelgratin mit Bergkäse',
+    ])
     expect(id.out.map((r) => r.reason)).toEqual(['base', 'shared-body', 'shared-body'])
     expect(id.out[0]?.tail).toBe('')
-    expect(id.out[0]?.body.startsWith(id.out[1]?.body ?? '?')).toBe(true)
     expect(new Set(id.out.slice(1).map((r) => r.body)).size).toBe(1)
     expect(id.out.map((r) => r.tailIndex)).toEqual([0, 0, 1])
 

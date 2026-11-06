@@ -49,8 +49,9 @@ describe('explain()', () => {
     const fit = step(e.steps, 'fit')
     expect(fit.best[0]).toMatchObject({ id: 'vertrieb-nord-26', cost: 120 })
     expect(fit.best.length).toBeLessThanOrEqual(5)
-    // a fill segment from an unused word takes the room of a padding tail (quality round 1)
-    expect(fit.best.map((b) => b.id).slice(0, 2)).toEqual(['vertrieb-nord-26', 'vertrieb-nord-ja'])
+    // a fill segment from an unused word takes the room of a padding tail (quality round 1), before
+    // the number segments (quality round 2)
+    expect(fit.best.map((b) => b.id).slice(0, 2)).toEqual(['vertrieb-nord-26', 'vertrieb-jahr-26'])
     expect(step(explain('Board').steps, 'fit').best[0]?.id).toBe('board-<t10>')
     const lad = step(e.steps, 'ladders').rows.find((r) => r.key === 'vertrieb')
     expect(lad?.rungs[0]).toMatchObject({ text: 'vertrieb', kind: 'full', plain: true })

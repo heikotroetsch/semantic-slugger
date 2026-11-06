@@ -5,6 +5,7 @@
  */
 
 import type { LexiconEntry } from '../config.ts'
+import { NEGATION_PARTS } from '../data/v1/polarity.ts'
 import { type CaseFlag, caseOk, type Lexicon } from './lexicon.ts'
 import { RE_VOWEL } from './regexes.ts'
 import type { Stemmer } from './stem.ts'
@@ -187,6 +188,7 @@ export interface PlanContext {
 }
 
 const MOD_CLASSES: ReadonlySet<string> = new Set(['direction', 'region', 'qualifier'])
+const NEGATIONS: ReadonlySet<string> = new Set(NEGATION_PARTS)
 
 /** The part without a plural or case ending when only that form is a known part (`berichte` -> `bericht`). */
 function baseOf(idx: PartIndex | undefined, text: string): string {
@@ -276,6 +278,8 @@ export function planCompound(
     if (ctx.weakHeads.has(p.text) || ctx.weakHeads.has(base) || lex?.weak === true) kind = 'weak'
     else if (ctx.genericModifiers.has(p.text) || ctx.genericModifiers.has(base)) kind = 'generic'
     else if (lex !== undefined && MOD_CLASSES.has(lex.cls)) kind = 'mod'
+    // a leading negation flips the meaning of the rest: never a weak part (docs/DEVIATIONS.md, round 2)
+    if (i === 0 && NEGATIONS.has(p.text)) kind = 'strong'
     return {
       text: p.text,
       linker: i === 0 ? '' : p.linker,

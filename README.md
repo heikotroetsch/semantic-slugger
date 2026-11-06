@@ -27,15 +27,15 @@ length), made in one batch, so the second "Chocolate Cake Recipe" gets a new ID.
 | Recipe (same title again) | Chocolate Cake Recipe | `choc-cake-rec-fs` |
 | Business report (DE) | Jahresbericht Vertrieb Nord 2026 | `vertrieb-nord-26` |
 | Bug ticket | Login page shows 500 error after deploy | `login-page-error` |
-| News | City Council Approves New Riverside Park | `city-rivers-park` |
-| Meeting (DE) | Retrospektive Sprint 14 | `retrospektive-zp` |
+| News | City Council Approves New Riverside Park | `city-council-riv` |
+| Meeting (DE) | Retrospektive Sprint 14 | `retrosp-sprint14` |
 | Release notes | Release Notes Firefox 132 | `release-firef132` |
-| Marketing (DE + EN) | Kick-off Meeting Marketing Kampagne Q3 2026 | `kickoff-kam-26q3` |
-| Research | Effects of Sleep Deprivation on Working Memory in Adolescents | `sleep-wor-memory` |
-| Legal (DE) | Mietvertrag Wohnung Lindenstraße 12 | `miet-wohn-linden` |
-| Product | Kestrel X2 Smartwatch with GPS | `kes-smart-gps-x2` |
+| Marketing (DE + EN) | Kick-off Meeting Marketing Kampagne Q3 2026 | `mktg-kampag-26q3` |
+| Research | Effects of Sleep Deprivation on Working Memory in Adolescents | `sleep-depriv-mem` |
+| Legal (DE) | Mietvertrag Wohnung Lindenstraße 12 | `mietvert-wohnung` |
+| Product | Kestrel X2 Smartwatch with GPS | `kestrel-smart-x2` |
 | Education (DE) | Mathe-Arbeitsblatt Bruchrechnung Klasse 6 | `mathe-bruch-kla6` |
-| Newsletter | Board Minutes March 2026 | `board-26mar-minu` |
+| Newsletter | Board Minutes March 2026 | `board-minu-26mar` |
 | Sales (Cyrillic) | Москва: отчёт о продажах 2026 | `moskva-otchet-26` |
 
 <!-- examples-table:end -->
@@ -230,7 +230,7 @@ const software = createSlugger({
   reserved: { add: ['tickets', 'board'] },
 })
 software.slug('Kubernetes Cluster Upgrade Q3 2026') // 'k8s-cluster-26q3'
-software.slug('Epic: Kubernetes Monitoring Dashboard') // 'k8s-monitor-dash'
+software.slug('Epic: Kubernetes Monitoring Dashboard') // 'kubernetes-monit'
 ```
 
 **Medicine** ([`examples/recipes/medicine.ts`](./examples/recipes/medicine.ts)):
@@ -240,7 +240,7 @@ const medicine = createSlugger({
   lexicon: [{ key: 'magnetresonanztomographie', lang: 'de', cls: 'topic', abbr: ['mrt'], known: ['mrt'] }],
   denyTokens: ['patient', 'patientin'],
 })
-medicine.slug('Befund Magnetresonanztomographie Schulter rechts') // 'befund-mrt-schul'
+medicine.slug('Befund Magnetresonanztomographie Schulter rechts') // 'befund-magnetres'
 medicine.slug('Patient Intake Form') // 'intake-form-kh3g'
 ```
 
@@ -298,7 +298,7 @@ console.log(explain('Jahresbericht Vertrieb Nord 2026').toString())
 ```
 
 ```
-semantic-slugger v1 | length 16 exact | sep "-" | leak normal | fp 36ea9c7d75dec2e5
+semantic-slugger v1 | length 16 exact | sep "-" | leak normal | fp 07e2f37a81f766aa
 input       "Jahresbericht Vertrieb Nord 2026"
 normalize   jahresbericht vertrieb nord 2026
 language    de (heuristic)  de 3 / en 0  de+1 compound:jahresbericht de+1 lex:vertrieb de+1 lex:nord
@@ -310,8 +310,8 @@ compounds   jahresbericht = jahr + es + bericht (all weak or generic: weak word)
 concepts    jahresberich:topic  vertrieb:topic  nord:direction  y2026:year
 rank        key       cls          base  rar  pos  tf  lex  diff  score
             vertrieb  topic         280   20   90   1    0     0    400
-            y2026     year          160   50    0   1    0     0    235
-            nord      direction     140   50    0   1    0     0    215
+            y2026     year          220   50    0   1    0     0    295
+            nord      direction     200   50    0   1    0     0    275
             df static (priors only)
             excluded: jahresberich (weak)
 ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(600*)
@@ -319,7 +319,7 @@ ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(600*)
             y2026: 26(0) 2026(30)
             nord: nord(0)
             (* = cryptic)
-fit         vertrieb-nord-26 120 | vertrieb-nord-ja 525 | vertrieb-2026-ja 535 | nord-26-vertrieb 700 | vertrieb-bericht 790
+fit         vertrieb-nord-26 120 | vertrieb-jahr-26 565 | vertrieb-nord-ja 635 | nord-vertrieb-26 650 | vertrieb-bericht 860
 resolve     vertrieb-nord-26 ok (not checked)
 result      vertrieb-nord-26  reason base  lang de  tail none
 ```
@@ -369,7 +369,7 @@ personal data. Choose what the ID may show:
 
 | `leak`             | The ID shows                                               | Example: `Onboarding checklist for Maria Lopez at Acme` |
 | ------------------ | ---------------------------------------------------------- | ------------------------------------------------------- |
-| `normal` (default) | the main words, names included                             | `onb-mar-lop-acme`                                      |
+| `normal` (default) | the main words, names included                             | `onboarding-maria`                                      |
 | `minimal`          | topic words; drops detected names, codes, numbers, markers | `onboarding-check`                                      |
 | `opaque`           | nothing: a keyed random-looking code (needs `secret`)      | `h4yf57kxc3m3prsk`                                      |
 
@@ -454,7 +454,7 @@ Titles in other scripts are transliterated where a table exists (Cyrillic, Greek
 | `admin`                                | `admin-tz6twjvt2p` | reserved words are never a whole ID                  |
 | `<b>Hello</b> &amp; World`             | `hello-world-s8js` | markup and entities are removed                      |
 | `C++ Schulung`                         | `cpp-schulung-tw3` | `C++`, `C#`, `.NET` keep their meaning               |
-| `SOMMERFEST  gaertnerei muenchen 2026` | `fest-muenchen-26` | same as `Sommerfest Gärtnerei München 2026`          |
+| `SOMMERFEST  GAERTNEREI MUENCHEN 2026` | `sommerf-gaert-26` | same as `Sommerfest Gärtnerei München 2026`          |
 | `Analyseplattform Cockpit`             | `analyseplattform` | bad-word checks look at the whole word, not at parts |
 | a very long title                      | 16 chars           | input is capped at `maxInputLength` (4096)           |
 

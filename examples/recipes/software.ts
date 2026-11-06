@@ -17,5 +17,5 @@ export const software = createSlugger(softwareConfig)
 /** Title -> ID with this config, alone (no store). */
 export const softwareExamples: Readonly<Record<string, string>> = {
   'Kubernetes Cluster Upgrade Q3 2026': 'k8s-cluster-26q3',
-  'Epic: Kubernetes Monitoring Dashboard': 'k8s-monitor-dash',
+  'Epic: Kubernetes Monitoring Dashboard': 'kubernetes-monit',
 }

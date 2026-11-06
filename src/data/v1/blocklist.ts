@@ -77,6 +77,7 @@ export const BLOCK_SOFT: readonly string[] = [
   'fag',
   'hure',
   'kacke',
+  'penis',
   'piss',
   'pisse',
   'poop',

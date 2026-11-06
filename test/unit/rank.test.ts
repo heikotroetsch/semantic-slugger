@@ -112,31 +112,31 @@ describe('score (SPEC 10.3)', () => {
     const r = ranked('Jahresbericht Vertrieb Nord 2026')
     expect(r.rows.map((x) => [x.key, x.cls, x.base, x.rarity, x.pos, x.tf, x.lex, x.diff, x.score])).toEqual([
       ['vertrieb', 'topic', 280, 20, 90, 1, 0, 0, 400],
-      ['y2026', 'year', 160, 50, 0, 1, 0, 0, 235],
-      ['nord', 'direction', 140, 50, 0, 1, 0, 0, 215],
+      ['y2026', 'year', 220, 50, 0, 1, 0, 0, 295],
+      ['nord', 'direction', 200, 50, 0, 1, 0, 0, 275],
     ])
     expect(r.excluded).toEqual([{ key: 'jahresberich', why: 'weak' }])
     expect(r.pool.map((c) => c.key)).toEqual(['vertrieb', 'y2026', 'nord'])
     expect(r.df).toBe('static')
   })
 
-  it('class weights of SPEC 10.1', () => {
+  it('class weights of SPEC 10.1 (quality rounds 1 and 2: marker, year, direction, quarter, week, version)', () => {
     expect(CLASS_WEIGHT).toMatchObject({
       topic: 280,
       name: 260,
       acronym: 240,
       place: 200,
-      marker: 200,
-      year: 160,
+      marker: 240,
+      year: 220,
       range: 160,
-      direction: 140,
+      direction: 200,
       region: 140,
       qualifier: 140,
-      quarter: 140,
+      quarter: 200,
       month: 140,
-      week: 140,
+      week: 200,
       attr: 120,
-      version: 160,
+      version: 200,
       model: 120,
       longnum: 120,
       code: 100,
@@ -187,7 +187,7 @@ describe('score (SPEC 10.3)', () => {
     const r = ranked('Jahresbericht Vertrieb Nord 2026', undefined, { diff: new Set(['nord']) })
     expect(r.rows[0]?.key).toBe('nord')
     expect(r.rows[0]?.diff).toBe(DIFF_BOOST)
-    expect(r.rows[0]?.score).toBe(215 + 300)
+    expect(r.rows[0]?.score).toBe(275 + 300)
   })
 
   it('direction cancel: three or more direction concepts score 0, counted by class', () => {
@@ -197,7 +197,7 @@ describe('score (SPEC 10.3)', () => {
     expect(r.pool.map((c) => [c.key, c.score])).toEqual([['planung', WEAK_POOL_SCORE]])
     expect(ranked('Northeast Southwest North Plan').rows.every((x) => x.score === 0)).toBe(true)
     // two directions stay
-    expect(row('Nord Süd Strategie', 'nord')?.score).toBe(215)
+    expect(row('Nord Süd Strategie', 'nord')?.score).toBe(275)
   })
 
   it('store df moves rare words up and frequent words down', () => {

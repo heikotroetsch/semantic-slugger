@@ -32,7 +32,7 @@ export const LEXICON_SHARED: readonly LexiconEntry[] = [
   { key: 'app', lang: '*', cls: 'topic', forms: ['apps'], abbr: ['app'], known: ['app'], group: 'app' },
   { key: 'email', lang: '*', cls: 'topic', forms: ['mail'], abbr: ['mail'], known: ['mail'] },
   { key: 'onboarding', lang: '*', cls: 'topic', abbr: ['onb'] },
-  { key: 'kickoff', lang: '*', cls: 'topic', phrase: ['kick off'], abbr: ['kickoff'], known: ['kickoff'] },
+  { key: 'kickoff', lang: '*', cls: 'topic', phrase: ['kick off'], abbr: ['kickoff'], known: ['kickoff'], weight: -60 },
   { key: 'workshop', lang: '*', cls: 'topic', forms: ['workshops'] },
   { key: 'webinar', lang: '*', cls: 'topic' },
   { key: 'newsletter', lang: '*', cls: 'topic' },

@@ -8,24 +8,25 @@ import { buildReport, buildSequential } from '../scripts/lib/corpus.ts'
 
 /**
  * Q4 padding tail rate gates, set at M4 from the measured values rounded up to the next 5% (SPEC 19.6),
- * lowered in quality round 1 (fill segments, docs/DEVIATIONS.md) the same way. They may only go down later.
+ * lowered in quality rounds 1 and 2 (fill and grown segments, docs/DEVIATIONS.md) the same way. They
+ * may only go down later.
  */
-const Q4_GATE_OVERALL = 10
+const Q4_GATE_OVERALL = 5
 const Q4_GATES: Readonly<Record<string, number>> = {
   blog: 15,
   education: 5,
   event: 5,
-  finance: 10,
+  finance: 5,
   hr: 5,
-  legal: 20,
+  legal: 15,
   marketing: 5,
-  medical: 20,
-  meeting: 15,
+  medical: 10,
+  meeting: 10,
   news: 5,
   procurement: 5,
   product: 5,
-  project: 20,
-  realestate: 15,
+  project: 10,
+  realestate: 5,
   recipe: 5,
   research: 5,
   software: 5,

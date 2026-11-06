@@ -11,10 +11,10 @@ export const STOP_EN: readonly string[] = [
   'but', 'by', 'can', 'cannot', 'could', 'couldn', 'did', 'didn', 'do', 'does', 'doesn', 'don', 'dr', 'during',
   'each', 'either', 'ever', 'every', 'everything', 'for', 'from', 'further', 'had', 'hadn', 'has', 'hasn', 'have',
   'haven', 'he', 'her', 'here', 'his', 'how', 'i', 'if', 'in', 'incl', 'including', 'into', 'is', 'isn', 'it', 'its',
-  'just', 'me', 'more', 'most', 'mr', 'mrs', 'ms', 'my', 'never', 'nobody', 'nor', 'not', 'nothing', 'of', 'off', 'on',
+  'just', 'me', 'more', 'most', 'mr', 'mrs', 'ms', 'my', 'near', 'never', 'nobody', 'nor', 'not', 'nothing', 'of', 'off', 'on',
   'once', 'only', 'or', 'other', 'our', 'out', 'over', 'own', 'per', 'prof', 'regarding', 'same', 'she', 'should',
   'shouldn', 'so', 'some', 'something', 'such', 'than', 'that', 'the', 'their', 'them', 'then', 'there', 'these',
-  'they', 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'upon', 'us', 've', 'very', 'via', 'was',
+  'they', 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'upon', 'us', 've', 'versus', 'very', 'via', 'vs', 'was',
   'wasn', 'we', 'were', 'weren', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'will', 'with',
   'within', 'without', 'won', 'would', 'wouldn', 'you', 'your',
 ]

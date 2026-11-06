@@ -34,7 +34,15 @@ export const LEXICON_EN: readonly LexiconEntry[] = [
   { key: 'department', lang: 'en', cls: 'topic', forms: ['dept'], abbr: ['dept'], known: ['dept'] },
   { key: 'human resources', lang: 'en', cls: 'topic', abbr: ['hr'], known: ['hr'], group: 'hr' },
   { key: 'operations', lang: 'en', cls: 'topic', abbr: ['ops'], known: ['ops'] },
-  { key: 'introduction', lang: 'en', cls: 'topic', abbr: ['intro'], known: ['intro'] },
+  {
+    key: 'introduction',
+    lang: 'en',
+    cls: 'topic',
+    abbr: ['intro'],
+    known: ['intro'],
+    weight: -60,
+    pair: 'einfuehrung',
+  },
   {
     key: 'specification',
     lang: 'en',

@@ -5,8 +5,10 @@
  */
 
 import type { ConceptClass, ResolvedConfig } from '../config.ts'
+import { DECOYS } from '../data/v1/decoys.ts'
 import { MONTHS_EN } from '../data/v1/months.ts'
 import { CODAS_EN, ONSETS_EN, SINGLE_CONSONANTS } from '../data/v1/phonology.ts'
+import { NEGATION_PARTS, PRIVATIVE_HEADS } from '../data/v1/polarity.ts'
 import { WEEKDAYS_EN } from '../data/v1/weekdays.ts'
 import type { Compiled } from './compile.ts'
 import { joinParts, type PartInfo } from './compound.ts'
@@ -99,6 +101,13 @@ export function bridgeCuts(ascii: string, firstPart: number): string[] {
   }
   return ok
 }
+
+/** A head rung needs a head of this length (docs/DEVIATIONS.md, quality round 2). */
+export const HEAD_MIN = 6
+
+const NEGATIONS: ReadonlySet<string> = new Set(NEGATION_PARTS)
+const DECOY_SET: ReadonlySet<string> = new Set(DECOYS)
+const PRIVATIVES: ReadonlySet<string> = new Set(PRIVATIVE_HEADS)
 
 /** Rungs kept per concept (SPEC 11.1). */
 export const LADDER_SIZE = 4
@@ -352,7 +361,10 @@ function numberDrafts(c: ConceptX, comp: Compiled): Draft[] {
     case 'month': {
       const m = Number(key.slice(1))
       const row = rowOf(comp, c.lang, c.display, m - 1, 'months', MONTHS_EN)
-      return row?.[0] !== undefined ? [num(row[0])] : []
+      if (row?.[0] === undefined) return []
+      // the full name too, so a body can fill its length with it (`juli`; docs/DEVIATIONS.md, round 2)
+      const full = row[1]
+      return full === undefined ? [num(row[0])] : [num(row[0]), num(full, RUNG_COST.numberLong)]
     }
     case 'week': {
       const n = key.replace('kw', '')
@@ -487,8 +499,11 @@ function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
       boundaries.add(prefix.length)
       out.push({ text: prefix, segs: [prefix], kind: 'morph', cost: RUNG_COST.morph, plain: plainPart(prefix) })
     }
+    // a short head alone reads as another, generic word (`zeit`, `fest`, `brief`); a head after a
+    // negation says the opposite (docs/DEVIATIONS.md, quality round 2)
     const head = (parts[parts.length - 1] as PartInfo).text
-    out.push({ text: head, segs: [head], kind: 'head', cost: RUNG_COST.head, plain: plainPart(head) })
+    if (head.length >= HEAD_MIN && !NEGATIONS.has((parts[0] as PartInfo).text))
+      out.push({ text: head, segs: [head], kind: 'head', cost: RUNG_COST.head, plain: plainPart(head) })
     // joined abbr rungs: one part's abbr joined with the full form or abbr of the others, 8 chars or less
     if (c.parts !== undefined) out.push(...joinedAbbrs(c.parts))
   }
@@ -506,6 +521,16 @@ function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
       // a long word shows a bridge cut, not a short cut of 3 or 4 chars (docs/DEVIATIONS.md, quality round 1)
       ...(bridgeable && cut.kind !== 'morph' && cut.text.length < SHORT_CUT ? { short: true } : {}),
     })
+  }
+  // a privative head (`free`, `frei`, `los`): no rung may stop before it (docs/DEVIATIONS.md, round 2);
+  const last = parts !== undefined && parts.length > 1 ? (parts[parts.length - 1] as PartInfo) : undefined
+  // a leading negation: no rung may show it without 3 letters of the next part
+  const first = parts !== undefined && parts.length > 1 ? (parts[0] as PartInfo) : undefined
+  const before = last !== undefined && PRIVATIVES.has(last.text) ? word.length - last.text.length + 1 : 0
+  const neg = first !== undefined && NEGATIONS.has(first.text) ? first.text.length + 3 : 0
+  for (let i = out.length - 1; i >= 0; i--) {
+    const d = out[i] as Draft
+    if (d.kind !== 'lexicon' && d.kind !== 'full' && (d.text.length < before || d.text.length < neg)) out.splice(i, 1)
   }
   if (!isName) {
     const firstPart = parts !== undefined && parts.length > 1 ? (parts[0] as PartInfo).text.length : 0
@@ -576,9 +601,10 @@ export function buildLadder(c: ConceptX, cfg: ResolvedConfig, comp: Compiled): L
     )
       rule = 'name'
     else if (
-      (d.kind === 'coda' || d.kind === 'syll') &&
+      (d.kind === 'coda' || d.kind === 'syll' || d.kind === 'bridge') &&
       !ownWords.has(d.text) &&
       (comp.stop.words.has(d.text) ||
+        DECOY_SET.has(d.text) ||
         comp.lexicon.exactAll(d.text).some((e) => e.partOnly !== true || comp.parts.get(c.lang) === undefined))
     )
       // a cut that is another known word misleads (`for` from `forecast`, `ein` from `einfluss`; in a

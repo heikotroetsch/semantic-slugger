@@ -20,6 +20,7 @@ import {
   BLOCK_SOFT,
   CODAS_DE,
   CODAS_EN,
+  DECOYS,
   DOCKIND_DE,
   DOCKIND_EN,
   FILLER_DE,
@@ -30,10 +31,12 @@ import {
   LEXICON_SHARED,
   MONTHS_DE,
   MONTHS_EN,
+  NEGATION_PARTS,
   ONSETS_DE,
   ONSETS_EN,
   PARTS_DE,
   PARTS_SHARED,
+  PRIVATIVE_HEADS,
   QUALIFIERS,
   SINGLE_CONSONANTS,
   TAIL_BLOCK,
@@ -204,17 +207,17 @@ const CLASS_WEIGHT: Record<string, number> = {
   name: 260,
   acronym: 240,
   place: 200,
-  marker: 200,
-  year: 160,
+  marker: 240,
+  year: 220,
   range: 160,
-  direction: 140,
+  direction: 200,
   region: 140,
   qualifier: 140,
-  quarter: 140,
+  quarter: 200,
   month: 140,
-  week: 140,
+  week: 200,
   attr: 120,
-  version: 160,
+  version: 200,
   model: 120,
   longnum: 120,
   code: 100,
@@ -243,6 +246,18 @@ const HEAD = 80
 const BRIDGE = 70
 const SKELETON = 600
 const WEAK_POOL_SCORE = 50
+// quality round 2 (docs/DEVIATIONS.md): stub cost, head length, lost half for minor topic words,
+// padding letters, decoy cuts, polarity parts
+const STUB = 60
+const STUB_LEN = 4
+const HEAD_MIN = 6
+const LOST_FULL = 2
+const PAD = 250
+const PAD_STUB = 300
+const FILL_WHOLE = 4
+const DECOY = new Set(DECOYS)
+const NEG = new Set(NEGATION_PARTS)
+const PRIV = new Set(PRIVATIVE_HEADS)
 const SLOT: Record<string, number> = {
   topic: 0,
   name: 0,
@@ -311,7 +326,7 @@ interface RRung {
   cost: number
   plain: boolean
   verbatim: boolean
-  kind?: 'full' | 'bridge' | 'short'
+  kind?: 'full' | 'bridge' | 'short' | 'lexicon' | 'skeleton'
 }
 
 const fold = (s: string): string => [...s].map((ch) => LEET_FOLD[ch] ?? ch).join('')
@@ -468,7 +483,10 @@ function refLadder(
       else drafts.push({ text: `${x}-${y}`, segs: [x, y], cost: 0, plain: true, verbatim: false })
     } else if (c.cls === 'month') {
       const tab = rc.lang === 'de' ? MONTHS_DE : MONTHS_EN
-      drafts.push(num((tab[Number(k.slice(1)) - 1] as readonly string[])[0] as string))
+      const r = tab[Number(k.slice(1)) - 1] as readonly string[]
+      drafts.push(num(r[0] as string))
+      // quality round 2: the full month name too
+      if (r[1] !== undefined) drafts.push(num(r[1], 30))
     } else if (c.cls === 'weekday') {
       const tab = [WEEKDAYS_DE, WEEKDAYS_EN].find((t) => t.some((r) => r.includes(w))) ?? WEEKDAYS_EN
       const r = tab[Number(k.slice(2)) - 1] as readonly string[]
@@ -518,6 +536,7 @@ function refLadder(
           cost: 15 * i,
           plain: (c.lex?.known ?? []).includes(x) || parts.includes(x),
           verbatim: false,
+          kind: 'lexicon',
         })
       })
     if (c.cls === 'name') {
@@ -550,7 +569,8 @@ function refLadder(
         }
       })
       const head = (core[core.length - 1] as { text: string }).text
-      drafts.push({ text: head, segs: [head], cost: HEAD, plain: plainPart(head), verbatim: false })
+      if (head.length >= HEAD_MIN && !NEG.has((core[0] as { text: string }).text))
+        drafts.push({ text: head, segs: [head], cost: HEAD, plain: plainPart(head), verbatim: false })
       if (compound) {
         // joined abbr: one part's abbr with the full form or abbr of the others, 8 chars or less
         const opts = core.map((p) => {
@@ -581,13 +601,26 @@ function refLadder(
         ...(short ? { kind: 'short' as const } : {}),
       })
     }
+    // quality round 2: a privative head or a leading negation is never cut off
+    if (core.length > 1) {
+      const last = (core[core.length - 1] as { text: string }).text
+      const first = (core[0] as { text: string }).text
+      const before = PRIV.has(last) ? base.length - last.length + 1 : 0
+      const neg = NEG.has(first) ? first.length + 3 : 0
+      for (let i = drafts.length - 1; i >= 0; i--) {
+        const d = drafts[i] as RRung
+        if (d.kind !== 'lexicon' && d.kind !== 'full' && (d.text.length < before || d.text.length < neg))
+          drafts.splice(i, 1)
+      }
+    }
     if (c.cls !== 'name') {
       const firstPart = core.length > 1 ? (core[0] as { text: string }).text.length : 0
       const bc = refBridges(base, firstPart)
       for (const b of bc)
         drafts.push({ text: b, segs: [b], cost: BRIDGE, plain: false, verbatim: false, kind: 'bridge' })
       const sk = bc.length > 0 ? null : refSkeleton(base)
-      if (sk !== null) drafts.push({ text: sk, segs: [sk], cost: SKELETON, plain: false, verbatim: false })
+      if (sk !== null)
+        drafts.push({ text: sk, segs: [sk], cost: SKELETON, plain: false, verbatim: false, kind: 'skeleton' })
     }
   }
   const isVerbatim = (t: string) => c.verbatim.includes(t) || parts.includes(t)
@@ -601,11 +634,11 @@ function refLadder(
     if (c.cls === 'name' && !own.has(d.text) && (stop.has(d.text) || lex.words.has(d.text) || lex.abbrs.has(d.text)))
       continue
     // a coda or syllable cut that is another known word (quality round 1)
-    const cut = d.cost === 90 || d.cost === 110
+    const cut = d.cost === 90 || d.cost === 110 || d.kind === 'bridge'
     if (
       cut &&
       !own.has(d.text) &&
-      (stop.has(d.text) || lex.words.has(d.text) || (rc.lang !== 'de' && ALL_WORDS.has(d.text)))
+      (stop.has(d.text) || DECOY.has(d.text) || lex.words.has(d.text) || (rc.lang !== 'de' && ALL_WORDS.has(d.text)))
     )
       continue
     if (rc.score < 150 && d.cost > 110) continue
@@ -636,24 +669,99 @@ interface RCand {
   rungCosts: number[]
 }
 
-/** The fill segment (quality round 1): the first unused word in rank order, `room` chars long. */
-function refFill(fill: readonly RC[], used: ReadonlySet<string>, room: number): RRung | null {
+/**
+ * The fill segment (quality round 1): the first unused word in rank order, `room` chars long. Round 2:
+ * no skeleton (unless `skeletons`), no decoy prefix.
+ */
+function refFill(
+  fill: readonly RC[],
+  used: ReadonlySet<string>,
+  room: number,
+  skeletons = false,
+): { r: RRung; u: RC } | null {
   if (room < 2) return null
   const words = new Set(['topic', 'name', 'acronym', 'attr', 'qualifier', 'place', 'direction', 'region'])
   for (const u of fill) {
     if (used.has(u.c.key) || u.c.cls === 'model' || u.ladder.length === 0) continue
-    let r: RRung | null = u.ladder.find((x) => x.segs.length === 1 && x.text.length === room) ?? null
+    let r: RRung | null =
+      u.ladder.find((x) => x.segs.length === 1 && x.text.length === room && (skeletons || x.kind !== 'skeleton')) ??
+      null
     if (r === null && words.has(u.c.cls)) {
       const full = u.ladder.find((x) => x.kind === 'full')?.text ?? u.display
-      if (full.length > room && /^[a-z0-9]+$/.test(full)) {
+      if (full.length > room && /^[a-z0-9]+$/.test(full) && !DECOY.has(full.slice(0, room))) {
         const t = full.slice(0, room)
         r = { text: t, segs: [t], cost: 0, plain: false, verbatim: false }
       }
     }
     if (r === null || !/[a-z]/.test(r.text) || b1(r.text) || b2(r.text) || hardIn(r.text) || i8(r.text)) continue
-    return r
+    return { r, u }
   }
   return null
+}
+
+interface RSeg {
+  t: string
+  cryptic: boolean
+  verb: boolean
+  slot?: number
+  rc?: RC
+}
+
+/** Quality round 2: a segment grows into its own word (cut -> full word, base -> typed form, `sat` -> `satur`). */
+function refGrow(segs: readonly RSeg[], room: number): RSeg[] | null {
+  let pick = -1
+  let grown = ''
+  let whole = false
+  segs.forEach((g, i) => {
+    const u = g.rc
+    if (u === undefined) return
+    const named = u.c.cls === 'weekday' || u.c.cls === 'month'
+    const word = (SLOT[u.c.cls] ?? 2) !== 2 && u.c.cls !== 'code'
+    if (!word && !named) return
+    const full = u.ladder.find((x) => x.kind === 'full')?.text ?? u.display
+    const targets = named ? u.ladder.map((x) => x.text).sort((a, b) => b.length - a.length) : [u.display, full]
+    for (const target of targets) {
+      if (!/^[a-z0-9]+$/.test(target) || !target.startsWith(g.t)) continue
+      if (target.length < g.t.length + room) continue
+      const text = target.slice(0, g.t.length + room)
+      const done = text === target
+      if (!done && ((!g.cryptic && !named) || DECOY.has(text))) continue
+      if (b1(text) || b2(text) || hardIn(text) || i8(text)) continue
+      const cur = segs[pick]
+      if (cur === undefined || g.t.length < cur.t.length) {
+        pick = i
+        grown = text
+        whole = done
+      }
+      break
+    }
+  })
+  const at = segs[pick]
+  if (at === undefined) return null
+  const out = [...segs]
+  out[pick] = { ...at, t: grown, cryptic: !whole, verb: false }
+  return out
+}
+
+/** Quality round 2: a whole unused word shorter than the room (a grown segment takes the rest). */
+function refWholeFill(fill: readonly RC[], used: ReadonlySet<string>, room: number): { r: RRung; u: RC } | null {
+  for (const u of fill) {
+    if (used.has(u.c.key) || u.c.cls === 'model') continue
+    const r = u.ladder.find(
+      (x) => x.plain && x.segs.length === 1 && x.text.length >= 2 && x.text.length < room && /[a-z]/.test(x.text),
+    )
+    if (r === undefined || b1(r.text) || b2(r.text) || hardIn(r.text) || i8(r.text)) continue
+    return { r, u }
+  }
+  return null
+}
+
+/** Quality round 2: a word fill goes before the number segments; a short stub stays at the end. */
+function refWithFill(segs: readonly RSeg[], f: { r: RRung; u: RC }): RSeg[] {
+  const fs: RSeg = { t: f.r.text, cryptic: !f.r.plain, verb: f.r.verbatim, slot: SLOT[f.u.c.cls] ?? 2, rc: f.u }
+  if (fs.cryptic && fs.t.length < FILL_WHOLE) return [...segs, fs]
+  const at = segs.findIndex((x, i) => i > 0 && x.slot !== undefined && x.slot > (fs.slot as number))
+  return at < 0 ? [...segs, fs] : [...segs.slice(0, at), fs, ...segs.slice(at)]
 }
 
 /** B3: no list word of 4+ chars across the joined body, unless soft and strictly inside a verbatim segment. */
@@ -709,7 +817,11 @@ function refFit(
     if (only !== undefined && [...keys].sort().join('|') !== only) continue
     if (must !== undefined && !s.some((c) => must.has(c.c.key))) continue
     if (s.some((c) => c.c.cls === 'model' && !keys.has(c.c.bond?.with ?? ''))) continue
-    const lost = pool.filter((c) => !s.includes(c)).reduce((x, c) => x + c.score, 0)
+    // quality round 2: a topic word below the first two concepts counts half
+    const lost = pool.reduce(
+      (x, c, i) => (s.includes(c) ? x : x + (i < LOST_FULL || (SLOT[c.c.cls] ?? 2) !== 0 ? c.score : c.score >> 1)),
+      0,
+    )
     let top: RCand | undefined
     const pick = (i: number, rs: RRung[]) => {
       if (i < s.length) {
@@ -717,7 +829,15 @@ function refFit(
         return
       }
       // segments: bonds joined, slot order, title position
-      const items: { slot: number; pos: number; key: string; segs: string[]; cryptic: boolean; verb: boolean }[] = []
+      const items: {
+        slot: number
+        pos: number
+        key: string
+        segs: string[]
+        cryptic: boolean
+        verb: boolean
+        rc?: RC
+      }[] = []
       const kids = new Map<string, RC[]>()
       const child = new Set<string>()
       for (const c of s) {
@@ -739,6 +859,7 @@ function refFit(
             segs: r.segs,
             cryptic: !r.plain,
             verb: r.verbatim,
+            rc: c,
           })
           continue
         }
@@ -754,11 +875,19 @@ function refFit(
         if (b1(text) || b2(text) || hardIn(text) || i8(text)) return
         // SPEC 11.5: the bond uses the 2-digit year (`26q1`), not the 4-digit rung
         if (c.c.cls === 'year' && r.text.length === 4 && c.ladder.some((x) => x.text.length === 2)) return
+        // quality round 2: a bond shows the short month
+        if (ks.some((k) => k.c.cls === 'month' && (rs[s.indexOf(k)] as RRung).text.length > 3)) return
         items.push({ slot: SLOT[c.c.cls] ?? 2, pos, key: c.c.key, segs: [text], cryptic, verb: false })
       }
       items.sort((x, y) => x.slot - y.slot || x.pos - y.pos || lt(x.key, y.key))
-      const segs = items.flatMap((it) =>
-        it.segs.map((t) => ({ t, cryptic: it.cryptic && it.segs.length === 1, verb: it.verb })),
+      const segs: RSeg[] = items.flatMap((it) =>
+        it.segs.map((t) => ({
+          t,
+          cryptic: it.cryptic && it.segs.length === 1,
+          verb: it.verb,
+          slot: it.slot,
+          ...(it.rc !== undefined ? { rc: it.rc } : {}),
+        })),
       )
       if (/^[0-9]/.test(segs[0]?.t ?? '')) segs.unshift({ t: 'doc', cryptic: false, verb: false })
       if (segs.length > cfg.maxSeg) return
@@ -771,7 +900,7 @@ function refFit(
       const content = [...s].sort(rankCmp)
       const base =
         rs.reduce((x, r) => x + r.cost, 0) +
-        40 * segs.filter((x) => x.cryptic).length +
+        segs.reduce((x, g) => x + (g.cryptic ? 40 + (g.t.length <= STUB_LEN ? STUB : 0) : 0), 0) +
         lost +
         CHUNK * Math.max(0, segs.length - 2)
       const offer = (b: string, t: number, tailCost: number) => {
@@ -785,22 +914,45 @@ function refFit(
         }
         if (top === undefined || candCmp(cand, top, pool) < 0) top = cand
       }
-      for (const t of tails) {
-        if (t === 0 && cfg.reserved.includes(body)) continue
-        // quality round 1: a fill segment from an unused word takes the room of a padding tail
-        if (t > 0 && minTail === 0 && cfg.fill && segs.length < cfg.maxSeg) {
-          const f = refFill(fill, keys, t)
-          if (f !== null) {
-            const all = [...segs, { t: f.text, cryptic: false, verb: f.verbatim }]
-            const fb = `${body}${cfg.sep}${f.text}`
-            if (!unsafe(all) && !(cfg.sep === '' && i8(fb))) {
-              offer(fb, 0, 250 + 50 * (Math.min(t, 3) - 2))
-              continue
-            }
+      const offerSegs = (all: readonly RSeg[], cost: number) => {
+        const b = all.map((x) => x.t).join(cfg.sep)
+        if (!unsafe(all) && !(cfg.sep === '' && i8(b))) offer(b, 0, cost)
+      }
+      // padding policy (quality rounds 1 and 2): a whole or 4+ char fill, else a grown segment, else a stub
+      const pad = (t: number): boolean => {
+        if (minTail !== 0 || !cfg.fill) return false
+        const f = t > 0 && segs.length < cfg.maxSeg ? refFill(fill, keys, t) : null
+        if (f !== null && (f.r.plain || f.r.text.length >= FILL_WHOLE)) {
+          offerSegs(refWithFill(segs, f), PAD)
+          return true
+        }
+        const g = refGrow(segs, cfg.length - body.length)
+        if (g !== null) {
+          offerSegs(g, PAD)
+          return true
+        }
+        const w = t > 0 && segs.length < cfg.maxSeg ? refWholeFill(fill, keys, t) : null
+        if (w !== null) {
+          const all = refWithFill(segs, w)
+          const g2 = refGrow(all, cfg.length - all.map((x) => x.t).join(cfg.sep).length)
+          if (g2 !== null) {
+            offerSegs(g2, PAD)
+            return true
           }
         }
+        const h = f ?? (t > 0 && segs.length < cfg.maxSeg ? refFill(fill, keys, t, true) : null)
+        if (h !== null) {
+          offerSegs(refWithFill(segs, h), PAD_STUB)
+          return true
+        }
+        return false
+      }
+      for (const t of tails) {
+        if (t === 0 && cfg.reserved.includes(body)) continue
+        if (t > 0 && pad(t)) continue
         offer(body, t, t === 0 ? 0 : 250 + 50 * (t - 2))
       }
+      if (cfg.mode === 'exact' && tails.length === 0 && body.length < cfg.length) pad(0)
     }
     pick(0, [])
     if (top !== undefined) all.push(top)

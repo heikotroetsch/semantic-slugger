@@ -39,7 +39,7 @@ describe('README', () => {
     for (const m of rows) expect(slug(m[1] ?? ''), m[1]).toBe(m[2])
     expect(slug('🚚📦🚚')).toBe(slug(''))
     expect(slug('   ')).toBe(slug(''))
-    expect(slug('Sommerfest Gärtnerei München 2026')).toBe(slug('SOMMERFEST  gaertnerei muenchen 2026'))
+    expect(slug('Sommerfest Gärtnerei München 2026')).toBe(slug('SOMMERFEST  GAERTNEREI MUENCHEN 2026'))
     expect(slug('x'.repeat(5000))).toHaveLength(16)
   })
 

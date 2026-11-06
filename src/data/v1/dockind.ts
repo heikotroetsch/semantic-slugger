@@ -16,6 +16,11 @@ export const DOCKIND_DE: readonly LexiconEntry[] = [
   { key: 'handbuch', lang: 'de', cls: 'topic', forms: ['handbuecher'], weight: -60, pair: 'handbook' },
   { key: 'auswirkung', lang: 'de', cls: 'topic', forms: ['auswirkungen'], weight: -60, pair: 'effect' },
   { key: 'rezept', lang: 'de', cls: 'topic', forms: ['rezepte'], weight: -60, pair: 'recipe' },
+  { key: 'richtlinie', lang: 'de', cls: 'topic', forms: ['richtlinien'], weight: -60, pair: 'guideline' },
+  { key: 'einfluss', lang: 'de', cls: 'topic', forms: ['einfluesse'], weight: -60, pair: 'impact' },
+  { key: 'verzeichnis', lang: 'de', cls: 'topic', forms: ['verzeichnisse'], weight: -60, pair: 'directory' },
+  { key: 'einfuehrung', lang: 'de', cls: 'topic', forms: ['einfuehrungen'], weight: -60, pair: 'introduction' },
+  { key: 'einsteiger', lang: 'de', cls: 'topic', forms: ['einsteigerin'], weight: -60, pair: 'beginner' },
 ]
 
 export const DOCKIND_EN: readonly LexiconEntry[] = [
@@ -30,4 +35,8 @@ export const DOCKIND_EN: readonly LexiconEntry[] = [
   { key: 'tutorial', lang: 'en', cls: 'topic', forms: ['tutorials'], weight: -60, pair: 'anleitung' },
   { key: 'effect', lang: 'en', cls: 'topic', forms: ['effects'], weight: -60, pair: 'auswirkung' },
   { key: 'recipe', lang: 'en', cls: 'topic', forms: ['recipes'], weight: -60, pair: 'rezept' },
+  { key: 'guideline', lang: 'en', cls: 'topic', forms: ['guidelines'], weight: -60, pair: 'richtlinie' },
+  { key: 'impact', lang: 'en', cls: 'topic', forms: ['impacts'], weight: -60, pair: 'einfluss' },
+  { key: 'directory', lang: 'en', cls: 'topic', forms: ['directories'], weight: -60, pair: 'verzeichnis' },
+  { key: 'beginner', lang: 'en', cls: 'topic', forms: ['beginners'], weight: -60, pair: 'einsteiger' },
 ]

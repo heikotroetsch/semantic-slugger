@@ -13,6 +13,6 @@ export const medicine = createSlugger(medicineConfig)
 
 /** Title -> ID with this config, alone (no store). */
 export const medicineExamples: Readonly<Record<string, string>> = {
-  'Befund Magnetresonanztomographie Schulter rechts': 'befund-mrt-schul',
+  'Befund Magnetresonanztomographie Schulter rechts': 'befund-magnetres',
   'Patient Intake Form': 'intake-form-kh3g',
 }

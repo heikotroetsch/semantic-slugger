@@ -9,7 +9,7 @@
     "id": "t002",
     "kind": "blog",
     "title": "10 Tipps für besseren Schlaf im Homeoffice",
-    "slug": "tipp-bess-schlaf"
+    "slug": "schlaf-homeoffic"
   },
   {
     "id": "t003",
@@ -21,7 +21,7 @@
     "id": "t004",
     "kind": "blog",
     "title": "Mein erstes Jahr als Freelancerin in Leipzig",
-    "slug": "freelanc-leipzig"
+    "slug": "jahr-freelanceri"
   },
   {
     "id": "t025",
@@ -39,25 +39,25 @@
     "id": "t027",
     "kind": "news",
     "title": "Bahnstreik legt Fernverkehr am Montag lahm",
-    "slug": "fernverkehr-lahm"
+    "slug": "fernverke-montag"
   },
   {
     "id": "t028",
     "kind": "news",
     "title": "Neue Studie: Deutsche lesen wieder mehr Bücher",
-    "slug": "studie-buch-dtsc"
+    "slug": "studie-buch-deut"
   },
   {
     "id": "t048",
     "kind": "product",
     "title": "Kabellose Kopfhörer Lumora Air mit Geräuschunterdrückung",
-    "slug": "kab-kopfhoer-air"
+    "slug": "kabellose-lumora"
   },
   {
     "id": "t049",
     "kind": "product",
     "title": "Edelstahl-Wasserkocher 1,7 Liter, mattschwarz",
-    "slug": "mattschwarz-edel"
+    "slug": "edelsta-mattschw"
   },
   {
     "id": "t050",
@@ -69,7 +69,7 @@
     "id": "t051",
     "kind": "product",
     "title": "Ergonomischer Bürostuhl Veltrion Comfort",
-    "slug": "ergon-buero-velt"
+    "slug": "ergon-buerostuhl"
   },
   {
     "id": "t072",
@@ -99,19 +99,19 @@
     "id": "t097",
     "kind": "meeting",
     "title": "Retrospektive Sprint 14",
-    "slug": "retrospektive-zp"
+    "slug": "retrosp-sprint14"
   },
   {
     "id": "t098",
     "kind": "meeting",
     "title": "Elternabend Klasse 4b",
-    "slug": "eltern-kla4b-pff"
+    "slug": "elternaben-kla4b"
   },
   {
     "id": "t120",
     "kind": "recipe",
     "title": "Omas Apfelstrudel mit Vanillesoße",
-    "slug": "omas-apfelstr-va"
+    "slug": "omas-apfelstrude"
   },
   {
     "id": "t121",
@@ -123,13 +123,13 @@
     "id": "t122",
     "kind": "recipe",
     "title": "Käsespätzle wie im Allgäu",
-    "slug": "kaesespaetzle-al"
+    "slug": "kaesespa-allgaeu"
   },
   {
     "id": "t144",
     "kind": "research",
     "title": "Einfluss von Lichtverschmutzung auf nachtaktive Insekten in Mitteleuropa",
-    "slug": "einf-licht-insek"
+    "slug": "lichtve-mitteleu"
   },
   {
     "id": "t145",
@@ -165,7 +165,7 @@
     "id": "t190",
     "kind": "legal",
     "title": "Mietvertrag Wohnung Lindenstraße 12",
-    "slug": "miet-wohn-linden"
+    "slug": "mietvert-wohnung"
   },
   {
     "id": "t191",
@@ -183,7 +183,7 @@
     "id": "t213",
     "kind": "hr",
     "title": "Stellenausschreibung Werkstudent Marketing (m/w/d)",
-    "slug": "werkstudent-mktg"
+    "slug": "stellen-werkstud"
   },
   {
     "id": "t214",
@@ -201,19 +201,19 @@
     "id": "t234",
     "kind": "medical",
     "title": "Überweisung zum Facharzt für Orthopädie",
-    "slug": "fach-orthopaedie"
+    "slug": "ueberweis-orthop"
   },
   {
     "id": "t235",
     "kind": "medical",
     "title": "Impfplan für Kinder bis 6 Jahre",
-    "slug": "impf-kind-6yr-g2"
+    "slug": "impf-kinder-g23w"
   },
   {
     "id": "t236",
     "kind": "medical",
     "title": "Befund MRT Schultergelenk",
-    "slug": "befund-mrt-schul"
+    "slug": "bef-mrt-schulter"
   },
   {
     "id": "t255",
@@ -243,7 +243,7 @@
     "id": "t279",
     "kind": "finance",
     "title": "Haushaltsbuch Oktober",
-    "slug": "haushalt-okt-np7"
+    "slug": "haushalt-oktober"
   },
   {
     "id": "t280",
@@ -261,13 +261,13 @@
     "id": "t302",
     "kind": "software",
     "title": "Anmeldung mit Passkeys einführen",
-    "slug": "anmeld-pass-einf"
+    "slug": "anmeldu-passkeys"
   },
   {
     "id": "t303",
     "kind": "software",
     "title": "Performance-Verbesserungen in der Suche",
-    "slug": "perform-suche-x4"
+    "slug": "performanc-suche"
   },
   {
     "id": "t325",
@@ -291,7 +291,7 @@
     "id": "t348",
     "kind": "travel",
     "title": "Rundreise durch Portugal in zwei Wochen",
-    "slug": "reise-port-woche"
+    "slug": "reise-por-wochen"
   },
   {
     "id": "t349",
@@ -315,7 +315,7 @@
     "id": "t371",
     "kind": "realestate",
     "title": "Einfamilienhaus mit Garten zu verkaufen",
-    "slug": "haus-garten-verk"
+    "slug": "einfamilien-gart"
   },
   {
     "id": "t372",
@@ -393,7 +393,7 @@
     "id": "t456",
     "kind": "edge",
     "title": "Projekt Planung​2026",
-    "slug": "proj-planung-vp8"
+    "slug": "proje-planung-26"
   },
   {
     "id": "t457",
@@ -561,7 +561,7 @@
     "id": "t484",
     "kind": "edge",
     "title": "Vertrag_v2_FINAL_final(3).docx",
-    "slug": "vertrag-v2-final"
+    "slug": "vertrag-final-v2"
   },
   {
     "id": "t485",
@@ -573,25 +573,25 @@
     "id": "t486",
     "kind": "edge",
     "title": "quarterly-report_Q3-2026 (copy).xlsx",
-    "slug": "report-26q3-svhn"
+    "slug": "quarterlyre-26q3"
   },
   {
     "id": "t487",
     "kind": "edge",
     "title": "C++ / C# Schulung & Zertifizierung @ München",
-    "slug": "cpp-csharp-schul"
+    "slug": "cpp-csharp-zerti"
   },
   {
     "id": "t488",
     "kind": "edge",
     "title": "Node.js vs. Deno: Benchmark 2026",
-    "slug": "node-js-vs-bench"
+    "slug": "js-deno-bench-26"
   },
   {
     "id": "t489",
     "kind": "edge",
     "title": "Abschlussbericht zum dreijährigen Forschungs- und Entwicklungsprojekt über die Verbesserung der Wasserqualität in kleinen Seen und Teichen durch naturnahe Uferbepflanzung, regelmäßige Messungen von Sauerstoff, Nitrat und Phosphat, die Einbindung von Schulklassen und Bürgerinitiativen sowie Empfehlungen für Gemeinden, Landwirte und Naturschutzverbände in Bayern, Baden-Württemberg und Thüringen, Teil 1 bis Teil 4",
-    "slug": "abschluss-schulk"
+    "slug": "entwickl-pt1-pt4"
   },
   {
     "id": "t490",
@@ -621,7 +621,7 @@
     "id": "t494",
     "kind": "edge",
     "title": "Ετήσια έκθεση πωλήσεων 2026",
-    "slug": "etis-poliseon-26"
+    "slug": "ekthesi-polis-26"
   },
   {
     "id": "t495",
@@ -687,7 +687,7 @@
     "id": "t505",
     "kind": "edge",
     "title": "Analyse der Nutzerdaten",
-    "slug": "analyse-daten-j2"
+    "slug": "analyse-nutzerda"
   },
   {
     "id": "t506",
@@ -699,7 +699,7 @@
     "id": "t507",
     "kind": "edge",
     "title": "Assessment Center for Trainees",
-    "slug": "assessment-train"
+    "slug": "assessment-cente"
   },
   {
     "id": "t508",
@@ -717,13 +717,13 @@
     "id": "t510",
     "kind": "edge",
     "title": "Scunthorpe Town Walking Tour",
-    "slug": "town-wal-tour-sc"
+    "slug": "town-tour-walkin"
   },
   {
     "id": "t511",
     "kind": "edge",
     "title": "Penistone Hill Walking Route",
-    "slug": "penis-hill-route"
+    "slug": "hill-route-walki"
   },
   {
     "id": "t512",
@@ -741,7 +741,7 @@
     "id": "t514",
     "kind": "edge",
     "title": "Kotflügel austauschen Anleitung",
-    "slug": "kotfluegel-austa"
+    "slug": "kotflueg-anleitu"
   },
   {
     "id": "t515",
@@ -795,13 +795,13 @@
     "id": "t523",
     "kind": "edge",
     "title": "ÄÖÜ äöü ß Straße Größe Übergabe",
-    "slug": "aeoeue-ueb-gross"
+    "slug": "aeoeue-uebergabe"
   },
   {
     "id": "t524",
     "kind": "edge",
     "title": "Übergabe Größe Prüfung",
-    "slug": "ueb-pruefung-gro"
+    "slug": "ueberga-pruefung"
   },
   {
     "id": "t525",
@@ -819,25 +819,25 @@
     "id": "t527",
     "kind": "edge",
     "title": "Kraków Žižkov Øresund Ćevapčići",
-    "slug": "krak-zizkov-ores"
+    "slug": "krakow-cevapcici"
   },
   {
     "id": "t528",
     "kind": "edge",
     "title": "Donaudampfschifffahrtsgesellschaftskapitänsmütze",
-    "slug": "donaudampf-w96yb"
+    "slug": "donaudampfschiff"
   },
   {
     "id": "t529",
     "kind": "edge",
     "title": "Kraftfahrzeughaftpflichtversicherungsbeitragsrechner",
-    "slug": "kraftfahrz-f3j58"
+    "slug": "kraftfahrzeughaf"
   },
   {
     "id": "t530",
     "kind": "edge",
     "title": "Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz",
-    "slug": "rindfleisch-cgdk"
+    "slug": "rindfleischetike"
   },
   {
     "id": "t531",
@@ -873,7 +873,7 @@
     "id": "t564",
     "kind": "edge",
     "title": "20 % Rabatt auf Wintermode",
-    "slug": "rabatt-winter-d7"
+    "slug": "rabatt-wintermod"
   },
   {
     "id": "t565",

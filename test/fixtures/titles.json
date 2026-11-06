@@ -3134,7 +3134,7 @@
     "group": "dup-01",
     "vary": "exact",
     "expect": {
-      "body": "lunch-friday-tea",
+      "body": "lunch-team-frida",
       "tail": 0
     }
   },
@@ -3506,7 +3506,7 @@
     "kind": "edge",
     "title": "Vertrag_v2_FINAL_final(3).docx",
     "expect": {
-      "body": "vertrag-v2-final",
+      "body": "vertrag-final-v2",
       "tail": 0
     }
   },
@@ -4195,7 +4195,7 @@
     "kind": "legal",
     "title": "Mietvertrag Wohnung Kassel 2026",
     "expect": {
-      "body": "miet-woh-kass-26",
+      "body": "mietvert-wohn-26",
       "tail": 0
     }
   },
@@ -4279,7 +4279,7 @@
     "kind": "news",
     "title": "Storm warning for the north coast",
     "expect": {
-      "body": "storm-warn-coast",
+      "body": "storm-warn-north",
       "tail": 0
     }
   },
@@ -4318,7 +4318,7 @@
     "kind": "meeting",
     "title": "Kick-off Meeting KI Strategie Q1 2026",
     "expect": {
-      "body": "kick-ki-strat-26",
+      "body": "ki-strategi-26q1",
       "tail": 0
     }
   },
@@ -4338,7 +4338,7 @@
     "kind": "meeting",
     "title": "Team Lunch Monday",
     "expect": {
-      "body": "lunch-monday-tea",
+      "body": "lunch-team-monda",
       "tail": 0,
       "after": ["t436"]
     }

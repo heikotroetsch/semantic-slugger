@@ -5,19 +5,40 @@
  */
 
 import type { ConceptClass, ResolvedConfig } from '../config.ts'
+import { DECOYS } from '../data/v1/decoys.ts'
 import type { Laddered, Rung } from './ladder.ts'
 import { rankOrder } from './rank.ts'
 import { bodyBlocked, fold, hardHitIn, hasLookalikePair, rungBlocked, segmentBlocked } from './safety.ts'
 
 /** Fit costs (SPEC 11.1, 12). */
-export const FIT_COST: Readonly<{ cryptic: number; chunk: number; tailBase: number; tailStep: number }> = Object.freeze(
-  {
-    cryptic: 40,
-    chunk: 80,
-    tailBase: 250,
-    tailStep: 50,
-  },
-)
+export const FIT_COST: Readonly<{
+  cryptic: number
+  stub: number
+  pad: number
+  chunk: number
+  tailBase: number
+  tailStep: number
+}> = Object.freeze({
+  cryptic: 40,
+  stub: 60,
+  pad: 250,
+  chunk: 80,
+  tailBase: 250,
+  tailStep: 50,
+})
+
+/** A cryptic segment of this length or less is a stub and pays `FIT_COST.stub` on top. */
+export const STUB_LEN = 4
+
+/**
+ * The first concepts in rank order that count their full score when the body drops them; topic
+ * words (slot T) after them count half (docs/DEVIATIONS.md, quality round 2). Qualifiers, places,
+ * numbers and markers always count full: they often tell sibling titles apart. Two whole words read better than three or four
+ * cut stubs, so a long title should not force its minor words into the body.
+ */
+export const LOST_FULL = 2
+
+const DECOY_SET: ReadonlySet<string> = new Set(DECOYS)
 
 /** Shortest fill segment (docs/DEVIATIONS.md, quality round 1). */
 export const FILL_MIN = 2
@@ -124,16 +145,19 @@ function fillSegment(
   room: number,
   cfg: ResolvedConfig,
   cache: Map<string, boolean>,
+  skeletons = false,
 ): FitSeg | null {
   if (room < FILL_MIN) return null
   for (const u of fill) {
     if (used.has(u.key) || u.cls === 'model' || u.ladder.length === 0) continue
-    const exact = u.ladder.find((r) => r.segs.length === 1 && r.text.length === room)
+    const exact = u.ladder.find(
+      (r) => r.segs.length === 1 && r.text.length === room && (skeletons || r.kind !== 'skeleton'),
+    )
     let text: string | undefined = exact?.text
     let rung: Rung | undefined = exact
     if (text === undefined && FILL_WORD.has(u.cls)) {
       const full = u.ladder.find((r) => r.kind === 'full')?.text ?? u.display
-      if (full.length > room && /^[a-z0-9]+$/.test(full)) {
+      if (full.length > room && /^[a-z0-9]+$/.test(full) && !DECOY_SET.has(full.slice(0, room))) {
         text = full.slice(0, room)
         rung = { text, segs: [text], kind: 'coda', cost: 0, plain: false, verbatim: false }
       }
@@ -149,6 +173,93 @@ function fillSegment(
     }
   }
   return null
+}
+
+/** A fill is "whole" when it shows a plain rung (a full word, a number) or at least this many chars. */
+export const FILL_WHOLE = 4
+
+/**
+ * A whole unused title word shorter than the room (docs/DEVIATIONS.md, quality round 2): the first
+ * unused concept in rank order with a plain one-segment rung of 2 to `room - 1` chars. A grown segment
+ * then takes the rest of the room.
+ */
+function wholeFill(
+  fill: readonly Laddered[],
+  used: ReadonlySet<string>,
+  room: number,
+  cfg: ResolvedConfig,
+  cache: Map<string, boolean>,
+): FitSeg | null {
+  for (const u of fill) {
+    if (used.has(u.key) || u.cls === 'model') continue
+    const r = u.ladder.find(
+      (x) =>
+        x.plain && x.segs.length === 1 && x.text.length >= FILL_MIN && x.text.length < room && /[a-z]/.test(x.text),
+    )
+    if (r === undefined || !joinedOk(r.text, cfg, cache)) continue
+    return { text: r.text, kind: segKind(u.cls), cryptic: false, verbatim: r.verbatim, concepts: [u], rungs: [r] }
+  }
+  return null
+}
+
+/**
+ * Extension (docs/DEVIATIONS.md, quality round 2): instead of a padding tail, a segment of the body
+ * grows by `room` chars into the rest of its own word: a cut into the full word
+ * (`employee-hand` -> `employee-handboo`), or a base form into the typed form (`guideline` ->
+ * `guidelines`), or a weekday or month into its full name (`sat` -> `satur`). Only single-concept
+ * segments; a plain word segment only when it grows into a whole word. The shortest segment grows first (the stub gains the most), then the first in body order.
+ * Null when no segment can grow.
+ */
+function extendSegments(
+  segs: readonly FitSeg[],
+  room: number,
+  cfg: ResolvedConfig,
+  cache: Map<string, boolean>,
+): FitSeg[] | null {
+  let pick = -1
+  let grown = ''
+  let whole = false
+  segs.forEach((seg, i) => {
+    const u = seg.concepts[0]
+    if (seg.concepts.length !== 1 || u === undefined) return
+    const named = u.cls === 'weekday' || u.cls === 'month'
+    if (seg.kind !== 'word' && !named) return
+    const full = u.ladder.find((r) => r.kind === 'full')?.text ?? u.display
+    // a weekday or month grows into its full name (`sat` -> `satur`)
+    const targets = named ? u.ladder.map((r) => r.text).sort((a, b) => b.length - a.length) : [u.display, full]
+    for (const target of targets) {
+      if (!/^[a-z0-9]+$/.test(target) || !target.startsWith(seg.text)) continue
+      if (target.length < seg.text.length + room) continue
+      const text = target.slice(0, seg.text.length + room)
+      const done = text === target
+      if ((!done && ((!seg.cryptic && !named) || DECOY_SET.has(text))) || !joinedOk(text, cfg, cache)) continue
+      const cur = segs[pick]
+      if (cur === undefined || seg.text.length < cur.text.length) {
+        pick = i
+        grown = text
+        whole = done
+      }
+      break
+    }
+  })
+  const at = segs[pick]
+  if (at === undefined) return null
+  const rung: Rung = { text: grown, segs: [grown], kind: 'coda', cost: 0, plain: whole, verbatim: false }
+  const out = [...segs]
+  out[pick] = { ...at, text: grown, cryptic: !whole, verbatim: false, rungs: [rung] }
+  return out
+}
+
+/**
+ * The fill segment in slot order (docs/DEVIATIONS.md, quality round 2): a word fill goes before the
+ * number and time segments (`release-note-v23`, not `release-v23-note`), else at the end. A short stub
+ * (cryptic, under 4 chars) stays at the end.
+ */
+function withFill(segs: readonly FitSeg[], f: FitSeg): FitSeg[] {
+  const u = f.concepts[0]
+  if (u === undefined || (f.cryptic && f.text.length < FILL_WHOLE)) return [...segs, f]
+  const at = segs.findIndex((x, i) => i > 0 && x.concepts[0] !== undefined && SLOT[x.concepts[0].cls] > SLOT[u.cls])
+  return at < 0 ? [...segs, f] : [...segs.slice(0, at), f, ...segs.slice(at)]
 }
 
 function cmpStr(a: string, b: string): number {
@@ -275,6 +386,8 @@ function slotOrder(
     if (r.segs.length !== 1 || !joinedOk(text, cfg, cache)) return null
     // a quarter or month bond uses the 2-digit year (`26q1`, `26mrz`), never `2026q1` (SPEC 11.5)
     if (c.cls === 'year' && r.text.length === 4 && c.ladder.some((x) => x.text.length === 2)) return null
+    // a bond shows the short month (`26mar`), never the full name
+    if (kids.some((k) => k.cls === 'month' && (rungOf.get(k.key) as Rung).text.length > 3)) return null
     const isModel = kids.some((k) => k.cls === 'model')
     const main = isModel ? c : (kids[0] as Laddered)
     items.push({
@@ -399,7 +512,8 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
     let lost = 0
     pool.forEach((c, i) => {
       if (mask & (1 << i)) s.push(c)
-      else lost += c.score
+      // a topic word below the first two concepts counts half (docs/DEVIATIONS.md, quality round 2)
+      else lost += i < LOST_FULL || SLOT[c.cls] !== 0 ? c.score : c.score >> 1
     })
     if (s.some((c) => c.ladder.length === 0)) continue
     if (constraint.mustInclude !== undefined && !s.some((c) => constraint.mustInclude?.has(keyOf(c)))) continue
@@ -442,7 +556,11 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
       // max mode: a reserved body without a tail gets a forced tail (SPEC 9.3)
       if (cfg.lengthMode === 'max' && tails[0] === 0 && cfg.reserved.includes(body))
         tails = tailOptions(body.length, cfg, Math.max(cfg.tailMin, minTail))
-      const cryptic = FIT_COST.cryptic * segs.filter((x) => x.cryptic).length
+      // a cryptic stub of 4 chars or less pays more (docs/DEVIATIONS.md, quality round 2)
+      const cryptic = segs.reduce(
+        (acc, x) => acc + (x.cryptic ? FIT_COST.cryptic + (x.text.length <= STUB_LEN ? FIT_COST.stub : 0) : 0),
+        0,
+      )
       const chunks = FIT_COST.chunk * Math.max(0, segs.length - 2)
       const offer = (all: readonly FitSeg[], text: string, t: number, tail: number): void => {
         const cost = rungCost + cryptic + lost + chunks + tail
@@ -466,17 +584,55 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
         }
         if (top === undefined || compareCandidates(c, top, rank) < 0) top = c
       }
-      for (const t of tails) {
-        // padding policy: a fill segment from an unused title word takes the room of a padding tail
-        if (t > 0 && minTail === 0 && fill.length > 0 && segs.length < maxSeg) {
-          const f = fillSegment(fill, used, t, cfg, bondCache)
-          if (f !== null) {
-            offer([...segs, f], body + cfg.separator + f.text, 0, tailCost(Math.min(t, FILL_COST_CAP), cfg))
-            continue
+      // padding policy (docs/DEVIATIONS.md, quality rounds 1 and 2): a whole unused title word (or 4+
+      // of its chars), else a cut of the body that grows into its own word, else a short unused word,
+      // takes the room of a padding tail. Letters cost `FIT_COST.pad` (a 2-char tail) at any length; a
+      // short stub costs a 3-char tail.
+      const pad = (t: number): boolean => {
+        if (minTail !== 0 || fill.length === 0) return false
+        const cost = FIT_COST.pad
+        const stub = tailCost(Math.max(cfg.tailMin, FILL_COST_CAP), cfg)
+        const f = t > 0 && segs.length < maxSeg ? fillSegment(fill, used, t, cfg, bondCache) : null
+        if (f !== null && (!f.cryptic || f.text.length >= FILL_WHOLE)) {
+          const all = withFill(segs, f)
+          offer(all, all.map((x) => x.text).join(cfg.separator), 0, cost)
+          return true
+        }
+        const ext = extendSegments(segs, cfg.length - body.length, cfg, bondCache)
+        if (ext !== null) {
+          offer(ext, ext.map((x) => x.text).join(cfg.separator), 0, cost)
+          return true
+        }
+        // a shorter whole word, then a grown segment
+        const w = t > 0 && segs.length < maxSeg ? wholeFill(fill, used, t, cfg, bondCache) : null
+        if (w !== null) {
+          const all = withFill(segs, w)
+          const grown = extendSegments(
+            all,
+            cfg.length - all.map((x) => x.text).join(cfg.separator).length,
+            cfg,
+            bondCache,
+          )
+          if (grown !== null) {
+            offer(grown, grown.map((x) => x.text).join(cfg.separator), 0, cost)
+            return true
           }
         }
+        // a skeleton of an unused word is the last resort before a random tail
+        const g = f ?? (t > 0 && segs.length < maxSeg ? fillSegment(fill, used, t, cfg, bondCache, true) : null)
+        if (g !== null) {
+          const all = withFill(segs, g)
+          offer(all, all.map((x) => x.text).join(cfg.separator), 0, stub)
+          return true
+        }
+        return false
+      }
+      for (const t of tails) {
+        if (t > 0 && pad(t)) continue
         offer(segs, body, t, tailCost(t, cfg))
       }
+      // a body one or two chars short of the length can take no tail: only a grown segment fills it
+      if (cfg.lengthMode === 'exact' && tails.length === 0 && body.length < cfg.length) pad(0)
     }
     // rung combinations in odometer order (last concept fastest); a branch whose lower bound is above
     // the limit is skipped, which never changes the result

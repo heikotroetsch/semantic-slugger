@@ -10,6 +10,8 @@ import type { LexiconEntry } from '../../config.ts'
 export const WEAK_DE: readonly LexiconEntry[] = [
   { key: 'bericht', lang: 'de', cls: 'topic', forms: ['berichte'], weak: true, pair: 'report' },
   { key: 'uebersicht', lang: 'de', cls: 'topic', weak: true, pair: 'overview' },
+  { key: 'ueberblick', lang: 'de', cls: 'topic', weak: true, pair: 'overview' },
+  { key: 'ergebnis', lang: 'de', cls: 'topic', forms: ['ergebnisse'], weak: true, pair: 'result' },
   { key: 'entwurf', lang: 'de', cls: 'topic', forms: ['entwuerfe'], weak: true, pair: 'draft' },
   { key: 'neu', lang: 'de', cls: 'topic', forms: ['neue', 'neuer', 'neues', 'neuen'], weak: true, pair: 'new' },
   { key: 'aktualisierung', lang: 'de', cls: 'topic', weak: true },
@@ -48,6 +50,7 @@ export const WEAK_DE: readonly LexiconEntry[] = [
 export const WEAK_EN: readonly LexiconEntry[] = [
   { key: 'report', lang: 'en', cls: 'topic', forms: ['reports'], weak: true, pair: 'bericht' },
   { key: 'overview', lang: 'en', cls: 'topic', weak: true, pair: 'uebersicht' },
+  { key: 'result', lang: 'en', cls: 'topic', forms: ['results'], weak: true, pair: 'ergebnis' },
   { key: 'draft', lang: 'en', cls: 'topic', forms: ['drafts'], weak: true, pair: 'entwurf' },
   { key: 'new', lang: 'en', cls: 'topic', weak: true, pair: 'neu' },
   { key: 'note', lang: 'en', cls: 'topic', forms: ['notes'], weak: true, pair: 'notiz' },
@@ -105,13 +108,13 @@ export const FILLER_EN: readonly LexiconEntry[] = fillers('en', [
   'using uses used', 'get gets getting', 'make makes making made', 'take takes taking', 'give gives', 'keep keeps',
   'find finds', 'raises raised', 'win wins', 'approves approved', 'expands expanded', 'leaves',
   'announces announced', 'learn learned', 'switched', 'need needs', 'want wants', 'become becomes', 'helps',
-  'says said', 'reveals revealed', 'hits', 'falls', 'opens opened', 'explains explained', 'managing',
-  'implement implementing', 'worrying', 'love', 'survive survives', 'goes going', 'comes coming', 'does',
+  'says said', 'warns warned', 'reveals revealed', 'hits', 'falls', 'opens opened', 'explains explained', 'managing',
+  'implement implementing', 'measuring', 'worrying', 'love', 'survive survives', 'goes going', 'comes coming', 'does',
   // adjectives and adverbs
   'best', 'top', 'ultimate', 'great', 'rare', 'severe', 'early', 'next', 'latest', 'local', 'quick', 'easy',
   'simple', 'complete', 'comprehensive', 'essential', 'perfect', 'amazing', 'awesome', 'better', 'good',
   'beautiful', 'real', 'whole', 'entire', 'several', 'many', 'much', 'few', 'certain', 'empirical', 'always',
-  'really', 'finally', 'ever', 'quiet', 'hidden', 'two', 'three', 'five', 'ten',
+  'really', 'finally', 'ever', 'quiet', 'hidden', 'classic', 'charming', 'cozy', 'two', 'three', 'five', 'ten',
 ])
 
 // biome-ignore format: word list, one line per group
@@ -119,11 +122,11 @@ export const FILLER_DE: readonly LexiconEntry[] = fillers('de', [
   // verbs
   'legt', 'sinkt', 'steigt', 'beschliesst', 'oeffnet', 'begruesst', 'startet', 'bricht', 'braucht', 'flackert', 'funktioniert', 'enthaelt', 'zeigt', 'bringt', 'gibt', 'geht', 'kommt',
   'machen macht gemacht', 'tun', 'lesen liest', 'erklaert', 'verbessern', 'einfuehren', 'beantragen',
-  'ansetzen', 'reparierst', 'wechseln', 'austauschen', 'schreiben schreibe',
+  'ansetzen', 'reparierst', 'warnt warnen', 'hinzufuegen', 'wechseln', 'austauschen', 'schreiben schreibe',
   // adjectives and adverbs
   'schnell schnelle schneller schnellen', 'einfach einfache einfacher einfachen', 'beste besten bester bestes',
   'lecker leckere leckerer leckeren', 'perfekt perfekte', 'ultimativ ultimative', 'schoenste schoensten',
-  'leicht leichte', 'lange', 'langsam', 'selbst', 'rund', 'entlang', 'heute', 'wieder', 'erste ersten erstes',
+  'leicht leichte', 'lahm', 'lange', 'langsam', 'selbst', 'rund', 'entlang', 'heute', 'wieder', 'erste ersten erstes',
   'zwei', 'drei', 'fuenf', 'zehn',
 ])
 
