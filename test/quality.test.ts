@@ -100,12 +100,14 @@ const q = seq.metrics
 describe('sequential quality gates (SPEC 19.6, M5)', () => {
   it('report values (Q11, Q14 near pairs)', () => {
     console.log(
-      `Q5 ${pct(q.q5.rate)}% Q6 ${pct(q.q6.rate)}% (${q.q6.ok}/${q.q6.pairs}) Q11 ${pct(q.q11.rate)}% (${q.q11.repick}/${q.q11.collisions}) Q14 ${q.q14.pairs - q.q14.failed.length}/${q.q14.pairs} near ${q.q14near.pairs - q.q14near.failed.length}/${q.q14near.pairs}`,
+      `Q5 ${pct(q.q5.collisionRate)}% of collisions (${pct(q.q5.rate)}% of titles) Q6 ${pct(q.q6.rate)}% (${q.q6.ok}/${q.q6.pairs}) Q11 ${pct(q.q11.rate)}% (${q.q11.repick}/${q.q11.collisions}) Q14 ${q.q14.pairs - q.q14.failed.length}/${q.q14.pairs} near ${q.q14near.pairs - q.q14near.failed.length}/${q.q14near.pairs}`,
     )
     expect(q.n).toBe(rep.rows.length)
   })
 
-  it('Q5 collision fallback rate <= 3%', () => {
+  it('Q5 collision fallback rate <= 3%, over collisions and over content titles', () => {
+    expect(q.q5.collisions).toBeGreaterThan(0)
+    expect(q.q5.collisionRate, q.q5.hits.join('\n')).toBeLessThanOrEqual(0.03)
     expect(q.q5.rate, q.q5.hits.join('\n')).toBeLessThanOrEqual(0.03)
   })
 

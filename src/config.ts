@@ -126,6 +126,7 @@ export interface SluggerConfig {
   fallbackWord?: string
   onEmpty?: 'fallback' | 'throw'
   maxPlans?: number
+  /** Tail IDs tried per window in tiers B and C, 2 to 256 (default 8). */
   maxAttempts?: number
   maxScan?: number
   maxInputLength?: number

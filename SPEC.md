@@ -1244,7 +1244,7 @@ function divSmall(w: U64, d: number): [U64, number] {   // d <= 64; four 16-bit 
   return [{ hi: ((l[0] << 16) | l[1]) >>> 0, lo: ((l[2] << 16) | l[3]) >>> 0 }, r]
 }
 function makeTail(K, canonical, k, t, body, cfg): string {
-  for (let draw = 0; draw < 4; draw++) {
+  for (let draw = 0; draw < 16; draw++) {             // 16 draws (M5 fix: rev 3 had 4, a blank index lags the walk)
     let s = '', i = 0, w = word(K, canonical, k, draw, i), left = 13, r = 0
     const first = cfg.tailFirst, rest = cfg.tailAlphabet
     ;[w, r] = divSmall(w, first.length); s += first[r]; left--
@@ -1435,7 +1435,9 @@ Drivers:
 - `suggest(title, { taken })`: tier A. `exists` -> ids in `taken`.
 - `generate(title, { store, scope })`: maps each request to `existsMany ?? exists x n`, `countBodies ?? countBody x n ?? null`, `countStems ?? countStem x n ?? null` plus `total`, `findByBody ?? null`. Calls for one request run in parallel (`Promise.all`), results are mapped by key. `signal` is checked before every request. The tier is fixed per store object at the first call (methods present).
 
-Round trips with batching: 3 per call without a collision (stats, countBodies, exists), 5 to 8 with a collision or re-pick.
+Round trips with batching: 3 per call without a collision (stats, countBodies, exists), 5 to 8 with a collision or re-pick. (M5: the resolver asks the count of a body once per call and reuses the phase 1 answer in phase 3, so a padded title without a collision also needs 3.)
+
+Scan window (M5 fix): `maxAttempts` and `maxScan` count tail IDs that are asked, not tail indexes. An index that renders `''` (every draw blocked, or a reserved ID) is skipped and does not count; at most `4 x span` indexes are looked at. With 16 draws per index (13.1) a blank index is very rare, so a blank does not move the used indexes ahead of `n` for good (docs/DEVIATIONS.md, M5).
 
 ### 13.5 `createUnique` (race safety)
 
@@ -1464,6 +1466,7 @@ export function isUniqueViolation(e: unknown, field?: string): boolean {
 
 - The DB `UNIQUE(scope, slug)` is the only guarantee. `exists` is an optimization.
 - Two concurrent identical titles compute the same ID. One insert wins. The loser runs again, `countBody` is now n+1 (tier B, C) or the walk skips the taken ID (tier A), so it gets a new tail.
+- (M5 decision) n concurrent identical titles run in lockstep: in each round they all compute the same next ID and only one wins, so without help the last one needs n rounds. Option `retryKey` (a value unique to the call, for example the primary key of the new row) fixes this without randomness: retry r >= 1 starts its tail scan at index `2^32 + lo32(SipHash(keyFor(cfg), 'ssr1' \x1f retryKey \x1f r))`, a range that row counts never reach, so the losers try different IDs and no later row is pushed off its index. Without `retryKey`, set `maxInsertRetries` to at least the number of parallel calls with the same title (the README states this limit, M7). The same key, round and store state give the same ID.
 - Two concurrent different titles that re-pick to the same free body both succeed with different tails or the loser moves on. Body uniqueness is best effort.
 - Inside a Prisma interactive `$transaction`, a thrown `P2002` aborts the Postgres transaction (`25P02`). The Prisma adapter therefore inserts with `createMany({ skipDuplicates: true })` (`ON CONFLICT DO NOTHING`). When the slug is a column on the entity table, retry the whole transaction (README recipe):
 
@@ -1912,6 +1915,7 @@ export interface CreateUniqueOptions<T> extends GenerateOptions {
   insert?: (result: SlugResult) => Promise<T>
   isConflict?: (error: unknown) => boolean
   maxInsertRetries?: number          // 5
+  retryKey?: string                  // M5: unique per call (e.g. the new row's primary key); spreads retries (13.5)
 }
 ```
 
@@ -2518,7 +2522,7 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 
 - Memory (tier C): insert `Chocolate Cake Recipe` 2,000 times. All IDs unique, at most 3 tail indexes tried per insert, tail grows at n = 35 (t=3) and n = 980 (t=4). (M5: tested as measured, docs/DEVIATIONS.md #97; tail collisions make "at most 3" false.)
 - Exists-only store (tier A): the same title 64 times works, the 65th throws `ExhaustedError` with a hint to use a counting store. (M5: exact only without tail collisions in the 64-index window, docs/DEVIATIONS.md #97.)
-- pglite + SQL adapter: 50 parallel `createUnique` with the same title. All succeed, all unique, <= 5 retries each.
+- pglite + SQL adapter: 50 parallel `createUnique` with the same title, each with its own `retryKey`. All succeed, all unique, <= 5 retries each (default `maxInsertRetries`). Without `retryKey`, the test sets `maxInsertRetries: 50` and checks all unique (13.5 lockstep limit). (M5: the memory version of this test is in `test/unit/generate.test.ts`.)
 - pglite + Prisma-shaped delegate (a small fake that implements the delegate on SQL): conflict inside a transaction is retried, no `25P02`. A real `@prisma/client` test runs only in an optional CI job.
 
 ### 19.5 Package and runtime tests
@@ -2540,7 +2544,7 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 | Q2 | Top concept kept | top-ranked pool concept appears in the ID | report (rev 3.1: it measures the fit against the ranker, not the result against a reader) |
 | Q3 | Skeleton share | segments with rung `skeleton` / all body segments | <= 5% (gate) |
 | Q4 | Padding tail rate | exact, independent: IDs with a tail that is not caused by a collision, overall and per domain | report until M4. At M4 the gate is set from the measured value (overall and per domain, rounded up to the next 5%) and written into this table; it may only go down later. Rev 3 had a 45% gate copied from the rev 2 procurement corpus; on the new corpus 23% of content titles have 2 or fewer content words and always get a padding tail. **M4 gates** (measured 24.4% overall; 23.9% after the M4 fix round 1, where 3 config copies became `edge`): overall <= 25%; blog 20, education 20, event 10, finance 55, hr 25, legal 35, marketing 25, medical 30, meeting 65, news 5, procurement 25, product 5, project 45, realestate 25, recipe 20, research 5, software 45, ticket 10, travel 25 (%, `test/quality.test.ts`) |
-| Q5 | Collision fallback rate | sequential: titles with `reason: 'shared-body'` whose stems differ from the rows on that body (a content collision that re-pick did not solve). Same-stem titles (`dup-*` and `norm-*` groups and real `near` pairs, 19.7) are not counted, because sharing the body is the wanted result for them. Group siblings (rows with `vary`) are counted | <= 3% (gate) |
+| Q5 | Collision fallback rate | sequential: titles with `reason: 'shared-body'` whose stems differ from the rows on that body (a content collision that re-pick did not solve). Same-stem titles (`dup-*` and `norm-*` groups and real `near` pairs, 19.7) are not counted, because sharing the body is the wanted result for them. Group siblings (rows with `vary`) are counted | <= 3% (gate), as unsolved / collisions and as unsolved / content titles (M5 fix: both are gated) |
 | Q6 | Sibling distinguishability | sequential, per sibling `group` (19.7): for each pair of siblings whose **canonical titles** (4.1) differ, the IDs differ in at least one body segment whose concept is in one title and not in the other. A pair whose only difference is a token the core drops by design counts as a failure, unless the group has `skip.Q6` (19.7) | >= 90% (gate); skipped pairs at most 3% of all sibling pairs |
 | Q7 | Avg semantic segments | mean body segments over content titles | 2.5 to 3.5 (gate); max = `maxSegments` |
 | Q8 | Normalization | each `norm-*` group (for example `norm-variants`) alone: identical IDs | 100% (gate) |
@@ -2748,6 +2752,7 @@ Each milestone ends with green CI and a short changeset (pre-1.0, private until 
 | Q15 | Code segments up to 8 chars (so ticket keys like `proj1234` show), rev 2 had 6. OK? | 8. |
 | Q16 | Package wording: description "Short, readable, unique IDs from any title. German + English built in." and keywords without `procurement`. OK? | Yes (section 23). |
 | Q17 | (rev 3.1) Compound head and morph rungs are cryptic now. In `Elternabend Klasse 4b Grundschule Nord` (section 20 row 10) a head rung (`abend`) still beats the full word. Raise their cost, or drop head rungs when the modifier is strong? | Cryptic at cost 60 (7.3, 11.1). Decide at M8 with Q19 and Q13 data. |
+| Q18 | (M5) Q14 near pairs: two titles with different canonical text but the same stems (`Classic Buttermilk Pancakes` -> `classic-pancakes`, `Classic Buttermilk Pancake` -> `classic-btrk-pan`) get different content. The 13.4 resolver looks up bodies by exact text, not by stems, and 2.1 orders segments by title position, so it cannot give them one body. Gate near pairs (needs a stem-based body lookup in 13.4), or keep them report only? | Report only (3 of 7 pass at M5); identical canonical titles stay gated (docs/DEVIATIONS.md #99). Decide at M8. |
 
 ---
 

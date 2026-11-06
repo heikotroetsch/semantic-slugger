@@ -396,8 +396,13 @@ export interface SeqRow {
 export interface SeqMetrics {
   readonly n: number
   readonly contentN: number
-  /** Q5: content collisions that re-pick did not solve. */
-  readonly q5: { readonly hits: readonly string[]; readonly rate: number; readonly collisions: number }
+  /** Q5: content collisions that re-pick did not solve; `rate` over content titles, `collisionRate` over collisions. */
+  readonly q5: {
+    readonly hits: readonly string[]
+    readonly rate: number
+    readonly collisionRate: number
+    readonly collisions: number
+  }
   /** Q6: sibling pairs (canonical titles differ) told apart by a body segment. */
   readonly q6: {
     readonly pairs: number
@@ -554,7 +559,12 @@ export async function buildSequential(
     metrics: {
       n: rows.length,
       contentN,
-      q5: { hits: q5hits, rate: share(q5hits.length, contentN), collisions },
+      q5: {
+        hits: q5hits,
+        rate: share(q5hits.length, contentN),
+        collisionRate: share(q5hits.length, collisions),
+        collisions,
+      },
       q6: { pairs, ok, rate: share(ok, pairs), failed, skippedPairs, allPairs },
       q9: { dups },
       q11: { repick, collisions, rate: share(repick, collisions) },
@@ -588,7 +598,7 @@ export function formatSequential(m: SeqMetrics): string {
     '',
     '| # | Metric | Value |',
     '|---|---|---|',
-    `| Q5 | Collision fallback rate | ${pct(m.q5.rate)} (${m.q5.hits.length} of ${m.contentN} content titles; ${m.q5.collisions} collisions) |`,
+    `| Q5 | Collision fallback rate | ${pct(m.q5.collisionRate)} of ${m.q5.collisions} collisions, ${pct(m.q5.rate)} of ${m.contentN} content titles (${m.q5.hits.length} unsolved) |`,
     `| Q6 | Sibling distinguishability | ${pct(m.q6.rate)} (${m.q6.ok}/${m.q6.pairs}; skipped pairs ${m.q6.skippedPairs}/${m.q6.allPairs}) |`,
     `| Q9 | Uniqueness | ${m.q9.dups.length === 0 ? 'all distinct' : `${m.q9.dups.length} duplicates`} |`,
     `| Q11 | Re-pick share (report) | ${pct(m.q11.rate)} (${m.q11.repick}/${m.q11.collisions}) |`,

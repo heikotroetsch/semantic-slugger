@@ -26,7 +26,13 @@ export type {
 } from './core/resolve.ts'
 export { isUniqueViolation } from './core/unique.ts'
 export { ALGORITHM_VERSION } from './data/v1/constants.ts'
-export type { ConfigErrorDetails, ConflictErrorDetails, ExhaustedErrorDetails, SluggerErrorCode } from './errors.ts'
+export type {
+  ConfigErrorDetails,
+  ConflictErrorDetails,
+  ExhaustedErrorDetails,
+  ExhaustedErrorOptions,
+  SluggerErrorCode,
+} from './errors.ts'
 export {
   ConfigError,
   ConflictError,

@@ -87,17 +87,22 @@ describe('store properties (SPEC 19.3)', () => {
         const own = s.suggest(t).id
         if (!m.exists(own, { scope: '' })) m.add(own)
         const taken = new Set(m.snapshot().map((r) => r.id))
+        // only E_EXHAUSTED may match on both sides; any other error (an invariant failure) fails the test
+        const exhausted = (e: unknown): string => {
+          if (isSluggerError(e, 'E_EXHAUSTED')) return 'E_EXHAUSTED'
+          throw e
+        }
         let a: unknown
         let b: unknown
         try {
           a = s.suggest(t, { taken })
         } catch (e) {
-          a = (e as Error).name
+          a = exhausted(e)
         }
         try {
           b = await s.generate(t, { store: existsOnly(memoryStore(taken)) })
         } catch (e) {
-          b = (e as Error).name
+          b = exhausted(e)
         }
         expect(b).toEqual(a)
       }),

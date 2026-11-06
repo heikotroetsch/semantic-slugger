@@ -14,8 +14,8 @@ export const HASH_FIELD_SEP = '\x1f'
 /** Number of base-|alphabet| digits taken from one 64-bit hash word (SPEC 13.1). */
 export const DIGITS_PER_WORD = 13
 
-/** Draws per tail index before the resolver moves to k + 1 (SPEC 9.2 B5). */
-export const TAIL_DRAWS = 4
+/** Draws per tail index before the resolver moves to k + 1 (SPEC 9.2 B5, 13.1). 16, not 4: a blank index lags the tail index walk for good (docs/DEVIATIONS.md, M5). */
+export const TAIL_DRAWS = 16
 
 /** Load rule: keep the share of taken tails per attempt at or below 1/16 (SPEC 13.2). */
 export const TAIL_LOAD_FACTOR = 16

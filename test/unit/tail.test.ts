@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { resolveConfig } from '../../src/config.ts'
-import { drawTail, keyFor, keyV1, makeTail, tailCapacity, tailNeed, titleKeyOf } from '../../src/core/tail.ts'
+import {
+  drawTail,
+  keyFor,
+  keyV1,
+  makeTail,
+  RETRY_INDEX_BASE,
+  retryStart,
+  tailCapacity,
+  tailNeed,
+  titleKeyOf,
+  windowIds,
+} from '../../src/core/tail.ts'
 import { hexBytes } from '../../src/hash/encode.ts'
 
 const safe = resolveConfig()
@@ -112,5 +123,29 @@ describe('drawTail and makeTail', () => {
       }
     }
     expect(found).toBe(true)
+  })
+})
+
+describe('scan window and retry start (SPEC 13.4, 13.5)', () => {
+  it('an index that renders an empty ID does not count against the window', () => {
+    const render = (k: number) => (k === 3 || k === 4 ? '' : `id${k}`)
+    expect(windowIds(2, 3, 100, render)).toEqual({
+      ids: [
+        { k: 2, id: 'id2' },
+        { k: 5, id: 'id5' },
+        { k: 6, id: 'id6' },
+      ],
+      next: 7,
+    })
+    expect(windowIds(0, 8, 5, () => '')).toEqual({ ids: [], next: 5 })
+  })
+
+  it('retryStart is deterministic, above every row count, and differs by key and round', () => {
+    const a = retryStart(safe, 'row-1', 1)
+    expect(a).toBe(retryStart(safe, 'row-1', 1))
+    expect(a).toBeGreaterThanOrEqual(RETRY_INDEX_BASE)
+    expect(Number.isSafeInteger(a)).toBe(true)
+    expect(retryStart(safe, 'row-2', 1)).not.toBe(a)
+    expect(retryStart(safe, 'row-1', 2)).not.toBe(a)
   })
 })

@@ -96,6 +96,10 @@ function then<T, U>(v: MaybePromise<T>, f: (t: T) => U): MaybePromise<U> {
   return isThenable(v) ? Promise.resolve(v).then(f) : f(v as T)
 }
 
+function isIterable(v: unknown): v is Iterable<unknown> {
+  return typeof v === 'object' && v !== null && isFn((v as Iterable<unknown>)[Symbol.iterator])
+}
+
 function all<T>(vs: readonly MaybePromise<T>[]): MaybePromise<T[]> {
   return vs.some(isThenable) ? Promise.all(vs) : (vs as T[])
 }
@@ -128,15 +132,17 @@ function answerStore(
       if (caps.existsMany) {
         const ids = req.ids
         return then(store.existsMany?.(ids, ctx) as MaybePromise<Iterable<string>>, (got) => {
+          if (!isIterable(got)) throw new StoreError(got, 'store.existsMany must return an iterable of ids')
           const asked = new Set(ids)
           const taken = new Set<string>()
-          for (const id of got ?? []) if (asked.has(id)) taken.add(id)
+          for (const id of got) if (asked.has(id)) taken.add(id)
           return taken
         })
       }
+      // any truthy answer counts as taken (a row object, 1): never return an unchecked ID (13.3)
       return then(
         all(req.ids.map((id) => store.exists(id, ctx))),
-        (bs) => new Set(req.ids.filter((_, i) => bs[i] === true)),
+        (bs) => new Set(req.ids.filter((_, i) => Boolean(bs[i]))),
       )
     }
     case 'countBodies': {
@@ -196,7 +202,7 @@ function checkSignal(ctx: StoreContext): void {
 /** A store error becomes StoreError; when the signal was aborted, its reason is rethrown as is. */
 function wrap(e: unknown, ctx: StoreContext): unknown {
   if (ctx.signal?.aborted === true) return abortReason(ctx.signal)
-  return new StoreError(e)
+  return e instanceof StoreError ? e : new StoreError(e)
 }
 
 /** Run a resolver generator against a store (SPEC 13.4 `generate`). */

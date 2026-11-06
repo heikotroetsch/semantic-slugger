@@ -50,14 +50,23 @@ export class InputError extends SluggerError {
   }
 }
 
+export interface ExhaustedErrorOptions {
+  /** Custom message. */
+  readonly message?: string
+  /** The store counts bodies (tier B or C). Without it the message adds the counting-store hint. */
+  readonly counting?: boolean
+}
+
 export class ExhaustedError extends SluggerError {
   declare readonly details: ExhaustedErrorDetails
-  constructor(details: ExhaustedErrorDetails, message?: string) {
+  constructor(details: ExhaustedErrorDetails, opts: ExhaustedErrorOptions = {}) {
+    const base = `all ${details.tries} tried tail IDs from index ${details.tailIndex} are taken for body "${details.body}".`
     super(
       'E_EXHAUSTED',
-      message ??
-        `all ${details.tries} tried tail IDs from index ${details.tailIndex} are taken for body "${details.body}". ` +
-          'Use a store that implements countBody (tier B or C) for many rows with the same title.',
+      opts.message ??
+        (opts.counting === true
+          ? `${base} Raise maxAttempts or the length.`
+          : `${base} Use a store that implements countBody (tier B or C) for many rows with the same title.`),
       details,
     )
     this.name = 'ExhaustedError'

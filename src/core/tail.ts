@@ -76,7 +76,7 @@ export function drawTail(
 }
 
 /**
- * Tail for index k: the first of up to 4 draws that passes B5 and B7 against `body`.
+ * Tail for index k: the first of up to TAIL_DRAWS (16) draws that passes B5 and B7 against `body`.
  * Returns '' when all draws are blocked; the caller then moves to k + 1 (SPEC 13.1).
  */
 export function makeTail(
@@ -112,4 +112,47 @@ export function tailNeed(
 /** titleKey: 16 hex chars of SipHash(keyFor(cfg), canonical title) (SPEC 13.3). */
 export function titleKeyOf(canonical: string, cfg: Pick<ResolvedConfig, 'secret'>): string {
   return u64hex(siphash(keyFor(cfg), utf8(canonical)))
+}
+
+/** One tail ID of a scan window: its tail index and the rendered ID. */
+export interface WindowId {
+  readonly k: number
+  readonly id: string
+}
+
+/**
+ * The next up to `need` IDs of a scan window, from tail index `k` (SPEC 13.4). An index that renders
+ * '' (every draw blocked, or a reserved ID) does not count against the window; at most `end - k`
+ * indexes are looked at. Returns the IDs and the next index.
+ */
+export function windowIds(
+  k: number,
+  need: number,
+  end: number,
+  render: (k: number) => string,
+): { ids: WindowId[]; next: number } {
+  const ids: WindowId[] = []
+  while (ids.length < need && k < end) {
+    const id = render(k)
+    if (id !== '') ids.push({ k, id })
+    k++
+  }
+  return { ids, next: k }
+}
+
+/** Indexes looked at per window, as a multiple of the window size (bounds `windowIds` for blocked tails). */
+export const WINDOW_SCAN_FACTOR: number = 4
+
+/** Tail indexes of `createUnique` retries with a `retryKey` start here; row counts never get this high. */
+export const RETRY_INDEX_BASE: number = 2 ** 32
+
+/**
+ * Start index of retry r (r >= 1) of a `createUnique` call with `retryKey` (SPEC 13.5): RETRY_INDEX_BASE
+ * plus 32 bits of SipHash(keyFor(cfg), 'ssr1', retryKey, r). Parallel losers with different keys scan
+ * different index ranges, so they do not all try the same next ID. No randomness: the same key, round
+ * and store state give the same ID.
+ */
+export function retryStart(cfg: Pick<ResolvedConfig, 'secret'>, retryKey: string, r: number): number {
+  const w = siphash(keyFor(cfg), utf8(['ssr1', retryKey, r].join(HASH_FIELD_SEP)))
+  return RETRY_INDEX_BASE + (w.lo >>> 0)
 }

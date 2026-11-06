@@ -15,7 +15,7 @@ import { type Candidate, type FitSeg, fitBody, refitWithTail } from './fit.ts'
 import { assertInvariants } from './invariants.ts'
 import { buildLadder, type Laddered, type RungKind } from './ladder.ts'
 import { type Ranked, rankConcepts } from './rank.ts'
-import { keyFor, makeTail, tailNeed } from './tail.ts'
+import { keyFor, makeTail, tailNeed, WINDOW_SCAN_FACTOR, windowIds } from './tail.ts'
 
 export type MaybePromise<T> = T | Promise<T>
 export interface AbortSignalLike {
@@ -187,12 +187,6 @@ export function renderCandidate(c: Candidate, canonical: string, k: number, cfg:
   return cfg.reserved.includes(id) ? '' : id
 }
 
-function range(from: number, to: number): number[] {
-  const out: number[] = []
-  for (let k = from; k < to; k++) out.push(k)
-  return out
-}
-
 function finish(
   c: Candidate,
   id: string,
@@ -220,15 +214,17 @@ function finish(
 
 /**
  * Resolve one analyzed title against the store (SPEC 13.4): body choice with re-pick (tier C),
- * the body-only ID, then the tail with the load rule and the tail index walk.
+ * the body-only ID, then the tail with the load rule and the tail index walk. `spread` > 0 is the
+ * start index of a `createUnique` retry with a `retryKey` (SPEC 13.5); 0 means the normal start.
  */
 export function* resolveDoc(
   doc: Doc,
   cfg: ResolvedConfig,
   comp: Compiled,
   exclude: ReadonlySet<string>,
+  spread = 0,
 ): Generator<Req, ResolveOut, AnyAnswer> {
-  if (cfg.leak === 'opaque' || doc.empty) return yield* emptyPath(doc, cfg, exclude)
+  if (cfg.leak === 'opaque' || doc.empty) return yield* emptyPath(doc, cfg, exclude, spread)
 
   const stats = (yield { op: 'stats', stems: [...doc.storedStems] }) as Stats | null
   const { ranked, ladders, pool } = rankPool(doc, stats, cfg, comp)
@@ -236,7 +232,7 @@ export function* resolveDoc(
   // fallback chain (SPEC 12): one segment, then the empty path
   if (cands.length === 0 && cfg.maxSegments > 1) cands = fitBody(pool, cfg, { maxSegments: 1 })
   const first = cands[0]
-  if (first === undefined) return yield* emptyPath(doc, cfg, exclude)
+  if (first === undefined) return yield* emptyPath(doc, cfg, exclude, spread)
   const plan = { ranked, ladders, pool, cands }
 
   // Phase 1: body choice. Always look at the best candidate first.
@@ -244,6 +240,8 @@ export function* resolveDoc(
   let reason: SlugReason = 'base'
   const k0 = (yield { op: 'countBodies', bodies: [chosen.body] }) as ReadonlyMap<string, number> | null
   let n = k0 ? (k0.get(chosen.body) ?? 0) : 0
+  const counted = new Map<string, number>()
+  if (k0) counted.set(chosen.body, n)
   if (n > 0) {
     reason = 'shared-body'
     const others = (yield { op: 'findByBody', body: chosen.body, limit: FIND_LIMIT }) as
@@ -258,6 +256,7 @@ export function* resolveDoc(
         const bodies = [...new Set(c2.map((c) => c.body))]
         const k2 =
           bodies.length > 0 ? ((yield { op: 'countBodies', bodies }) as ReadonlyMap<string, number> | null) : null
+        if (k2) for (const [b, v] of k2) counted.set(b, v)
         const free = c2.find((c) => (k2?.get(c.body) ?? 1) === 0 && !(c.tailLen === 0 && exclude.has(c.body)))
         if (free) {
           chosen = free
@@ -280,9 +279,10 @@ export function* resolveDoc(
   }
 
   // Phase 3: tail. First fix the final body and its tail length, then the start index.
-  // Tail growth (docs/DEVIATIONS.md #22, M5): in tiers B and C, when all maxAttempts indexes from the
+  // Tail growth (docs/DEVIATIONS.md #22, M5): in tiers B and C, when all maxAttempts IDs from the
   // start are taken at tail length t, the tail grows to t + 1 (refitWithTail) and the scan starts again
   // on the final body of that length. Tier A scans one window at one length.
+  // Body counts are asked once per body: the store state does not change during one call.
   const before = chosen
   const span = k0 ? cfg.maxAttempts : cfg.maxScan
   let t = Math.max(chosen.tailLen, cfg.tailMin, tailNeed(n, cfg))
@@ -294,14 +294,19 @@ export function* resolveDoc(
       if (t !== chosen.tailLen) {
         const r = refitWithTail(pool, cfg, chosen, t)
         if (r === null) {
-          if (firstStart < 0) return yield* emptyPath({ canonical: doc.canonical, empty: false }, cfg, exclude)
-          throw new ExhaustedError({ body: chosen.body, tailIndex: firstStart, tries })
+          if (firstStart < 0) return yield* emptyPath({ canonical: doc.canonical, empty: false }, cfg, exclude, spread)
+          throw new ExhaustedError({ body: chosen.body, tailIndex: firstStart, tries }, { counting: k0 !== null })
         }
         chosen = r
       }
       if (!k0) break // tier A: no counts
-      const kb = (yield { op: 'countBodies', bodies: [chosen.body] }) as ReadonlyMap<string, number> | null
-      m = kb?.get(chosen.body) ?? 0
+      let known = counted.get(chosen.body)
+      if (known === undefined) {
+        const kb = (yield { op: 'countBodies', bodies: [chosen.body] }) as ReadonlyMap<string, number> | null
+        known = kb?.get(chosen.body) ?? 0
+        counted.set(chosen.body, known)
+      }
+      m = known
       if (tailNeed(m, cfg) <= chosen.tailLen) break
       t = tailNeed(m, cfg)
     }
@@ -314,12 +319,17 @@ export function* resolveDoc(
           : false
       start = Math.max(0, m - (bodyOnly ? 1 : 0))
     }
+    // a createUnique retry with a retryKey scans its own index range (SPEC 13.5)
+    if (spread > 0) start = spread
     if (firstStart < 0) firstStart = start
-    for (let a = 0; a < span; a += BATCH) {
-      const batch = range(start + a, start + Math.min(a + BATCH, span))
-        .map((k) => ({ k, id: renderCandidate(chosen, doc.canonical, k, cfg) }))
-        .filter((x) => x.id !== '' && !exclude.has(x.id))
-      tries += Math.min(BATCH, span - a)
+    const end = start + span * WINDOW_SCAN_FACTOR
+    let k = start
+    for (let asked = 0; asked < span && k < end; ) {
+      const w = windowIds(k, Math.min(BATCH, span - asked), end, (i) => renderCandidate(chosen, doc.canonical, i, cfg))
+      k = w.next
+      asked += w.ids.length
+      tries += w.ids.length
+      const batch = w.ids.filter((x) => !exclude.has(x.id))
       if (batch.length === 0) continue
       const taken = (yield { op: 'exists', ids: batch.map((x) => x.id) }) as ReadonlySet<string>
       const free = batch.find((x) => !taken.has(x.id))
@@ -327,7 +337,7 @@ export function* resolveDoc(
     }
     // tier A, or no room for a longer tail
     if (!k0 || chosen.tailLen + 1 > cfg.length - 1 - cfg.separator.length)
-      throw new ExhaustedError({ body: chosen.body, tailIndex: firstStart, tries })
+      throw new ExhaustedError({ body: chosen.body, tailIndex: firstStart, tries }, { counting: k0 !== null })
     t = chosen.tailLen + 1
   }
 }

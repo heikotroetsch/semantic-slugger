@@ -19,6 +19,7 @@ import {
   type SlugStore,
   type StoreContext,
 } from './core/resolve.ts'
+import { retryStart } from './core/tail.ts'
 import { isUniqueViolation } from './core/unique.ts'
 import { ConfigError, ConflictError, StoreError } from './errors.ts'
 import type { SlugResult, SlugWarning, StoreTier } from './result.ts'
@@ -59,8 +60,17 @@ export interface CreateUniqueOptions<T> extends GenerateOptions {
   readonly insert?: (result: SlugResult) => Promise<T>
   /** Default: `store.isConflict`, else `isUniqueViolation`. */
   readonly isConflict?: (error: unknown) => boolean
-  /** Default 5. */
+  /**
+   * Default 5. Without `retryKey`, n parallel calls for the same title can need up to n rounds: they all
+   * compute the same next ID and one wins per round.
+   */
   readonly maxInsertRetries?: number
+  /**
+   * A value unique to this call, for example the primary key of the new row. After a lost race the
+   * retry scans a tail index range that depends on this key, so parallel calls for the same title try
+   * different IDs (SPEC 13.5). It is not stored and not part of the ID.
+   */
+  readonly retryKey?: string
 }
 
 /** Result of `createUnique()`: `record` is what `insert` returned (undefined with `store.insert`). */
@@ -175,6 +185,7 @@ export async function generateTrace(
   fp: string,
   title: string,
   o: GenerateOptions,
+  spread = 0,
 ): Promise<SuggestTrace> {
   if (typeof o !== 'object' || o === null)
     throw new ConfigError('generate options with a store are required', {
@@ -185,7 +196,7 @@ export async function generateTrace(
   storeCaps(o.store)
   const ctx = contextOf(o)
   const doc = analyzeDoc(title, cfg, o.lang === undefined ? {} : { lang: o.lang })
-  const gen = resolveDoc(doc, cfg, compile(cfg), new Set<string>(o.exclude ?? []))
+  const gen = resolveDoc(doc, cfg, compile(cfg), new Set<string>(o.exclude ?? []), spread)
   const { out, tier } = await driveStore(gen, o.store, ctx, cfg)
   return { result: buildResult(doc, out, tier, fp), out, tier }
 }
@@ -223,6 +234,9 @@ export async function createUniqueWith<T>(
       value: undefined,
       reason: 'no-insert',
     })
+  const retryKey = o.retryKey
+  if (retryKey !== undefined && typeof retryKey !== 'string')
+    throw new ConfigError('retryKey must be a string', { field: 'retryKey', value: retryKey, reason: 'not-string' })
   const ctx = contextOf(o)
   const storeConflict = o.store.isConflict
   const isConflict =
@@ -230,7 +244,8 @@ export async function createUniqueWith<T>(
     (typeof storeConflict === 'function' ? (e: unknown) => storeConflict.call(o.store, e) : isUniqueViolation)
   const tried = new Set<string>(o.exclude ?? [])
   for (let r = 0; r < max; r++) {
-    const { result } = await generateTrace(cfg, fp, title, { ...o, exclude: tried })
+    const spread = r > 0 && retryKey !== undefined ? retryStart(cfg, retryKey, r) : 0
+    const { result } = await generateTrace(cfg, fp, title, { ...o, exclude: tried }, spread)
     if (insert !== undefined) {
       try {
         return { result, record: await insert(result) }

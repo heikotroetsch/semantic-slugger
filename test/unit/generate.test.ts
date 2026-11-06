@@ -51,6 +51,53 @@ describe('generate() (SPEC 13.4 drivers)', () => {
     expect(s.calls).toEqual([...Array(stems).fill('countStem'), 'total', 'countBody', 'exists'])
   })
 
+  it('3 round trips for a padded title without a collision (exact mode): no second countBody', async () => {
+    const s = asyncSingles(memoryStore())
+    const r = await generate('Team Lunch Friday', { store: s })
+    expect(r.reason).toBe('base')
+    expect(r.tail).not.toBe('')
+    const stems = createSlugger().analyze('Team Lunch Friday').storedStems.length
+    // one exists batch of 8 tail IDs, asked in parallel (no existsMany)
+    const exists = Array(8).fill('exists')
+    expect(s.calls).toEqual([...Array(stems).fill('countStem'), 'total', 'countBody', ...exists])
+  })
+
+  it('a truthy non-boolean from exists counts as taken (13.3)', async () => {
+    const own = suggest('Sommerfest 2026').id
+    const r = await generate('Sommerfest 2026', { store: { exists: (id) => (id === own ? 1 : 0) as never } })
+    expect(r.id).not.toBe(own)
+    expect(r.checked).toBe(true)
+    const row = await generate('Sommerfest 2026', {
+      store: { exists: (id) => (id === own ? ({ id } as never) : (null as never)) },
+    })
+    expect(row.id).not.toBe(own)
+  })
+
+  it('existsMany that answers no iterable is a StoreError', async () => {
+    const e = await rejection(generate(T, { store: { exists: () => false, existsMany: () => undefined as never } }))
+    expect(e).toBeInstanceOf(StoreError)
+  })
+
+  it('ExhaustedError: the counting-store hint only for tier A', async () => {
+    const a = await rejection(generate(T, { store: { exists: () => true } }))
+    expect(isSluggerError(a, 'E_EXHAUSTED')).toBe(true)
+    expect((a as Error).message).toContain('countBody')
+    const b = await rejection(generate(T, { store: { exists: () => true, countBody: () => 0 } }))
+    expect(isSluggerError(b, 'E_EXHAUSTED')).toBe(true)
+    expect((b as Error).message).not.toContain('countBody')
+    expect((b as Error).message).toContain('maxAttempts')
+  })
+
+  it('maxAttempts 1: 200 identical titles keep their body in tier C (no blank-index lag)', async () => {
+    const s = createSlugger({ maxAttempts: 1 })
+    const m = memoryStore()
+    const bodies = new Set<string>()
+    for (let i = 0; i < 200; i++)
+      bodies.add((await s.createUnique('Quarterly Board Meeting Minutes', { store: m })).result.body)
+    expect([...bodies]).toEqual(['board'])
+    expect(m.size).toBe(200)
+  })
+
   it('rarity static asks no df', async () => {
     const s = asyncSingles(memoryStore())
     await createSlugger({ rarity: 'static' }).generate(T, { store: s })
@@ -256,6 +303,58 @@ describe('createUnique() (SPEC 13.5)', () => {
       },
     })
     expect(out.record).toBe('ok')
+  })
+
+  it('50 parallel calls with the same title and a retryKey each: all unique, <= 5 inserts each (13.5)', async () => {
+    const m = memoryStore()
+    const inserts: number[] = Array(50).fill(0)
+    const all = await Promise.all(
+      Array.from({ length: 50 }, (_, i) =>
+        createUnique('Team Lunch Friday', {
+          store: m,
+          retryKey: `row-${i}`,
+          insert: async (r) => {
+            inserts[i] = (inserts[i] ?? 0) + 1
+            await Promise.resolve()
+            m.add({ id: r.id, body: r.body, stems: r.stems, titleKey: r.titleKey })
+            return i
+          },
+        }),
+      ),
+    )
+    expect(new Set(all.map((x) => x.result.id)).size).toBe(50)
+    expect(all.map((x) => x.record)).toEqual(Array.from({ length: 50 }, (_, i) => i))
+    expect(Math.max(...inserts)).toBeLessThanOrEqual(5)
+    expect(m.size).toBe(50)
+  })
+
+  it('retryKey: the same key and store state give the same ID; a bad key is a ConfigError', async () => {
+    const run = async () => {
+      const m = memoryStore()
+      let n = 0
+      return (
+        await createUnique('Team Lunch Friday', {
+          store: m,
+          retryKey: 'k1',
+          isConflict: () => true,
+          insert: async (r) => {
+            if (n++ < 2) throw Object.assign(new Error('dup'), { code: '23505' })
+            return r.id
+          },
+        })
+      ).record
+    }
+    expect(await run()).toBe(await run())
+    const e = await rejection(createUnique(T, { store: memoryStore(), retryKey: 1 as never }))
+    expect((e as ConfigError).details?.reason).toBe('not-string')
+  })
+
+  it('without a retryKey, 6 parallel identical calls with the default 5 retries can lose (13.5 limit)', async () => {
+    const m = memoryStore()
+    const out = await Promise.allSettled(
+      Array.from({ length: 6 }, () => createUnique('Release Planning Workshop', { store: m })),
+    )
+    expect(out.filter((x) => x.status === 'rejected')).toHaveLength(1)
   })
 
   // The calls run in lockstep on a sync store: every round, all of them compute the same next ID and
