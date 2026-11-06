@@ -5,7 +5,7 @@
 | id | lang | kind | title | slug | reason | rungs |
 |---|---|---|---|---|---|---|
 | t001 | de | blog | Warum wir unser Büro in eine Bibliothek verwandelt haben | `buero-bibliothek` | base | full full |
-| t002 | de | blog | 10 Tipps für besseren Schlaf im Homeoffice | `tipps-schlaf-hom` | base | full full coda |
+| t002 | de | blog | 10 Tipps für besseren Schlaf im Homeoffice | `tipp-bess-schlaf` | base | full coda full |
 | t003 | de | blog | Gartenarbeit im Herbst: Was jetzt zu tun ist | `gartenarbeit-tun` | base | full full |
 | t004 | de | blog | Mein erstes Jahr als Freelancerin in Leipzig | `jahr-leipzig-p25` | base | full full |
 | t005 | de | blog | Minimalismus im Alltag – ein ehrlicher Erfahrungsbericht | `minim-alltag-erf` | base | coda full coda |
@@ -71,7 +71,7 @@
 | t483 | en | edge | Hello, World! (Again?) [Draft] {v2} | `hello-world-w8c4` | base | full full |
 | t484 | de | edge | Vertrag_v2_FINAL_final(3).docx | `vertrag-v2-bjvy5` | base | full number |
 | t485 | und | edge | IMG_20260512_143022.jpg | `img-0512-3022-qp` | base | full number number |
-| t486 | und | edge | quarterly-report_Q3-2026 (copy).xlsx | `quarterly-2026q3` | base | morph number |
+| t486 | und | edge | quarterly-report_Q3-2026 (copy).xlsx | `report-26q3-svhn` | base | morph number |
 | t487 | de | edge | C++ / C# Schulung & Zertifizierung @ München | `cpp-csharp-schul` | base | full full coda |
 | t488 | und | edge | Node.js vs. Deno: Benchmark 2026 | `js-vs-deno-bench` | base | full full full syll |
 | t489 | de | edge | Abschlussbericht zum dreijährigen Forschungs- und Entwicklungsprojekt über die Verbesserung der Wasserqualität in kleinen Seen und Teichen durch naturnahe Uferbepflanzung, regelmäßige Messungen von Sauerstoff, Nitrat und Phosphat, die Einbindung von Schulklassen und Bürgerinitiativen sowie Empfehlungen für Gemeinden, Landwirte und Naturschutzverbände in Bayern, Baden-Württemberg und Thüringen, Teil 1 bis Teil 4 | `entw-schul-baden` | base | lexicon morph morph |
@@ -108,8 +108,8 @@
 | t520 | en | edge | Meeting <b>Budget</b> &nbsp; Raum Nord | `budget-raum-nord` | base | full full full |
 | t521 | en | edge | '; DROP TABLE users; -- | `drop-table-users` | base | full full full |
 | t522 | und | edge | Robert'); DROP TABLE Students;-- | `robert-drop-stud` | base | full full coda |
-| t523 | de | edge | ÄÖÜ äöü ß Straße Größe Übergabe | `aeoeue-uebergabe` | base | full full |
-| t524 | de | edge | Übergabe Größe Prüfung | `pruefung-groesse` | base | full full |
+| t523 | de | edge | ÄÖÜ äöü ß Straße Größe Übergabe | `aeoeue-ueb-gross` | base | full coda full |
+| t524 | de | edge | Übergabe Größe Prüfung | `ueberg-pfg-gross` | base | coda skeleton full |
 | t525 | de | edge | STRASSE Strasse Straße STRAẞE | `strasse-y6vwx5f4` | base | full |
 | t526 | de | edge | Café Crème Façade Ångström Łódź Señor | `cafe-creme-senor` | base | full full full |
 | t527 | und | edge | Kraków Žižkov Øresund Ćevapčići | `krak-zizkov-ores` | base | coda full coda |
@@ -227,9 +227,9 @@
 | t293 | und | finance | Investor Update November | `investor-nov-vt7` | base | full number |
 | t294 | en | finance | Profit and Loss Statement | `profit-loss-stat` | base | full full coda |
 | t295 | und | finance | Forecast vs. Ist-Zahlen Vergleich | `vs-istzahlen-ver` | base | full full syll |
-| t296 | und | finance | Quartalsbericht Q1 2026 | `quart-2026q1-m3w` | base | coda number |
-| t297 | und | finance | Quartalsbericht Q2 2026 | `quart-2026q2-mfc` | base | coda number |
-| t298 | und | finance | Quartalsbericht Q3 2026 | `quart-2026q3-c9j` | base | coda number |
+| t296 | und | finance | Quartalsbericht Q1 2026 | `quart-26q1-m3wvx` | base | coda number |
+| t297 | und | finance | Quartalsbericht Q2 2026 | `quart-26q2-mfcx5` | base | coda number |
+| t298 | und | finance | Quartalsbericht Q3 2026 | `quart-26q3-c9jzv` | base | coda number |
 | t299 | en | finance | Zentara Annual Report 2024 | `zentara-2024-vzq` | base | full number |
 | t300 | en | finance | Zentara Annual Report 2025 | `zentara-2025-wwb` | base | full number |
 | t559 | und | finance | Forecast Cash Flow | `for-cash-flow-fw` | base | coda full full |
@@ -243,7 +243,7 @@
 | t213 | de | hr | Stellenausschreibung Werkstudent Marketing (m/w/d) | `werkstudent-mktg` | base | full lexicon |
 | t214 | de | hr | Onboarding-Checkliste für neue Mitarbeitende | `checkliste-ma-wt` | base | morph lexicon |
 | t215 | de | hr | Urlaubsantrag Sommerferien | `url-sommerferien` | base | coda full |
-| t216 | de | hr | Richtlinie mobiles Arbeiten | `mobiles-arbeiten` | base | full full |
+| t216 | de | hr | Richtlinie mobiles Arbeiten | `richt-mob-arbeit` | base | syll coda full |
 | t217 | de | hr | Mitarbeiterbefragung Zufriedenheit | `mitar-zufried-vk` | base | syll coda |
 | t218 | de | hr | Arbeitszeugnis Vorlage | `arb-vorlage-swm9` | base | coda full |
 | t219 | de | hr | Elternzeit beantragen – so geht's | `eltern-bean-geht` | base | morph syll full |
@@ -275,7 +275,7 @@
 | t193 | de | legal | Widerspruch gegen Bußgeldbescheid | `widerspruch-buss` | base | full syll |
 | t194 | de | legal | Testament und Patientenverfügung Vorlage | `test-pat-vorlage` | base | coda coda full |
 | t195 | de | legal | Gesellschaftervertrag Brightwave UG | `brightwave-dhyrz` | base | full |
-| t196 | de | legal | Abmahnung wegen Urheberrechtsverletzung | `abhg-wegen-urheb` | base | skeleton full coda |
+| t196 | de | legal | Abmahnung wegen Urheberrechtsverletzung | `abmahn-urheb-c8p` | base | coda coda |
 | t197 | de | legal | Auftragsverarbeitungsvertrag nach Art. 28 DSGVO | `vertrag-dsgvo-g4` | base | morph full |
 | t198 | en | legal | Non-Disclosure Agreement Template | `nond-agreem-temp` | base | coda coda syll |
 | t199 | en | legal | Terms of Service Update | `terms-service-sv` | base | full full |
@@ -387,8 +387,8 @@
 | t119 | de | meeting | Abteilungsrunde Vertrieb KW 13 | `abteil-vert-kw13` | base | coda syll number |
 | t436 | und | meeting | Team Lunch Friday | `lunch-friday-hp6` | base | full number |
 | t437 | und | meeting | Team Lunch Friday | `lunch-friday-hp6` | base | full number |
-| t536 | en | meeting | Board Minutes March 2026 | `board-2026mar-s7` | base | full number |
-| t537 | en | meeting | Board Minutes April 2026 | `board-2026apr-zk` | base | full number |
+| t536 | en | meeting | Board Minutes March 2026 | `board-26mar-s7m8` | base | full number |
+| t537 | en | meeting | Board Minutes April 2026 | `board-26apr-zk7m` | base | full number |
 | t578 | de | meeting | Protokoll Teamsitzung 12.03.2026 | `protok-team-2026` | base | coda morph number |
 | t587 | en | meeting | Kick-off Meeting KI Strategie Q1 2026 | `kick-ki-strat-26` | base | coda lexicon coda number |
 | t589 | und | meeting | Team Lunch Monday | `lunch-monday-wvk` | base | full number |
@@ -400,7 +400,7 @@
 | t025 | de | news | Stadtrat beschließt neuen Radweg an der Isar | `stad-radweg-isar` | base | syll full full |
 | t026 | und | news | Hochwasser in Passau: Pegel sinkt langsam | `passau-peg-sinkt` | base | full coda full |
 | t027 | und | news | Bahnstreik legt Fernverkehr am Montag lahm | `legt-lahm-montag` | base | full full number |
-| t028 | de | news | Neue Studie: Deutsche lesen wieder mehr Bücher | `studie-lesen-bcr` | base | full full skeleton |
+| t028 | de | news | Neue Studie: Deutsche lesen wieder mehr Bücher | `studie-dtsc-buch` | base | full skeleton full |
 | t029 | de | news | Freibad Nordstadt öffnet nach Sanierung | `freib-stadt-nord` | base | coda full full |
 | t030 | de | news | Landesregierung plant kostenloses Schulessen | `land-plant-essen` | base | coda full morph |
 | t031 | de | news | Rekordhitze im Juli: Wetterdienst warnt vor Trockenheit | `rekord-trock-jul` | base | syll coda number |
@@ -420,8 +420,8 @@
 | t045 | en | news | Severe Weather Warning for South Wales | `severe-war-wales` | base | full syll full |
 | t046 | de | news | Verkehrschaos in Köln nach Brückensperrung | `ver-koeln-brueck` | base | syll full coda |
 | t047 | de | news | Verkehrschaos in Hamburg nach Brückensperrung | `ver-hamburg-bckg` | base | syll full skeleton |
-| t544 | de | news | Stadtgeschichte: Der große Brand von 1842 | `stadt-brand-1842` | base | syll full number |
-| t553 | en | news | City Council Approves New Riverside Parks | `city-river-parks` | base | full syll full |
+| t544 | de | news | Stadtgeschichte: Der große Brand von 1842 | `brand-gross-1842` | base | full full number |
+| t553 | en | news | City Council Approves New Riverside Parks | `city-approv-park` | base | full coda full |
 | t585 | en | news | Storm warning for the north coast | `storm-warn-coast` | base | full coda full |
 
 ## procurement
@@ -442,7 +442,7 @@
 | t404 | en | procurement | Master Service Agreement Altmark Logistics | `master-ser-logis` | base | full syll syll |
 | t405 | en | procurement | Vendor Risk Assessment | `vendor-risk-asmt` | base | full full skeleton |
 | t406 | en | procurement | Price Review Meeting Packaging | `price-rev-packag` | base | full coda coda |
-| t407 | en | procurement | Framework Agreement Cleaning Services | `framew-clean-ser` | base | coda coda syll |
+| t407 | en | procurement | Framework Agreement Cleaning Services | `cleaning-service` | base | full full |
 | t408 | en | procurement | Statement of Work Data Migration | `statem-work-data` | base | coda full full |
 | t409 | de | procurement | Purchase Order Stahlträger – dringend | `purch-order-sttr` | base | coda full skeleton |
 | t410 | de | procurement | Ausschreibung Reinigung Los 1 | `reinigung-los-ph` | base | full full |
@@ -589,7 +589,7 @@
 | t151 | de | research | Akzeptanz autonomer Busse im ländlichen Raum | `akzep-busse-raum` | base | syll full full |
 | t152 | en | research | Attention Is Not Always What You Need: Sparse Models for Small Data | `always-need-data` | base | full full full |
 | t153 | en | research | A Survey of Graph Neural Networks for Molecule Design | `survey-graph-mol` | base | full full coda |
-| t154 | en | research | Effects of Sleep Deprivation on Working Memory in Adolescents | `eff-sleep-memory` | base | coda full full |
+| t154 | en | research | Effects of Sleep Deprivation on Working Memory in Adolescents | `effect-sleep-mem` | base | full full coda |
 | t155 | en | research | Measuring Urban Heat Islands with Satellite Imagery | `urb-heat-islands` | base | coda full full |
 | t156 | en | research | On the Convergence of Stochastic Gradient Descent with Momentum | `con-grad-des-mom` | base | syll coda syll coda |
 | t157 | en | research | Coral Reef Recovery After Bleaching Events: A Ten-Year Study | `cor-reef-rec-ten` | base | coda full coda morph |
@@ -641,14 +641,14 @@
 
 | id | lang | kind | title | slug | reason | rungs |
 |---|---|---|---|---|---|---|
-| t072 | de | ticket | Drucker im 3. OG druckt nur leere Seiten | `drucker-og-leere` | base | full full full |
+| t072 | de | ticket | Drucker im 3. OG druckt nur leere Seiten | `drucker-og-seite` | base | full full full |
 | t073 | de | ticket | VPN-Verbindung bricht nach 10 Minuten ab | `vpn-bricht-10min` | base | morph full number |
 | t074 | de | ticket | Passwort zurücksetzen funktioniert nicht | `passwort-zurueck` | base | full syll |
 | t075 | de | ticket | Outlook synchronisiert keine Kalendereinträge | `outlook-scrt-kal` | base | full skeleton coda |
 | t076 | de | ticket | Neuer Mitarbeiter braucht Zugang zum Laufwerk | `mit-zug-laufwerk` | base | coda coda full |
 | t077 | de | ticket | Bildschirm flackert nach Windows-Update | `flackert-windows` | base | full full |
 | t078 | de | ticket | Bestellbestätigung wird nicht per E-Mail versendet | `bes-mail-versend` | base | syll lexicon coda |
-| t079 | de | ticket | Rechnungs-PDF enthält falsche Adresse | `rech-fal-adresse` | base | syll syll full |
+| t079 | de | ticket | Rechnungs-PDF enthält falsche Adresse | `rechnung-adresse` | base | full full |
 | t080 | en | ticket | Login page shows 500 error after deploy | `login-page-shows` | base | full full full |
 | t081 | en | ticket | Dark mode toggle resets on page reload | `dark-mode-toggle` | base | full full full |
 | t082 | en | ticket | CSV export truncates rows over 10,000 | `export-trun-rows` | base | full syll full |
@@ -676,10 +676,10 @@
 
 | id | lang | kind | title | slug | reason | rungs |
 |---|---|---|---|---|---|---|
-| t348 | de | travel | Rundreise durch Portugal in zwei Wochen | `rund-port-wochen` | base | syll coda full |
+| t348 | de | travel | Rundreise durch Portugal in zwei Wochen | `run-portug-woche` | base | syll coda full |
 | t349 | de | travel | Packliste für den Skiurlaub | `packliste-skiurl` | base | full coda |
 | t350 | de | travel | Zugfahrt von München nach Rom | `zug-muenchen-rom` | base | morph full full |
-| t351 | de | travel | Camping am Gardasee mit Kindern | `camping-see-kind` | base | full morph coda |
+| t351 | de | travel | Camping am Gardasee mit Kindern | `cam-garda-kinder` | base | syll morph full |
 | t352 | de | travel | Visum für Japan beantragen | `visum-japan-bean` | base | full full syll |
 | t353 | de | travel | Wochenendtrip nach Wien | `wochen-wien-m3c8` | base | coda full |
 | t354 | de | travel | Hotelbuchung Dienstreise Frankfurt | `hot-dienst-frank` | base | coda morph syll |

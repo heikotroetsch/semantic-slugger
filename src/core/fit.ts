@@ -207,6 +207,8 @@ function slotOrder(
       if (k.bond?.kind === 'year') pos = Math.min(pos, k.pos)
     }
     if (r.segs.length !== 1 || !joinedOk(text, cfg, cache)) return null
+    // a quarter or month bond uses the 2-digit year (`26q1`, `26mrz`), never `2026q1` (SPEC 11.5)
+    if (c.cls === 'year' && r.text.length === 4 && c.ladder.some((x) => x.text.length === 2)) return null
     const isModel = kids.some((k) => k.cls === 'model')
     const main = isModel ? c : (kids[0] as Laddered)
     items.push({
@@ -241,6 +243,13 @@ function minSegs(s: readonly Laddered[]): number {
     n += Math.min(...c.ladder.map((r) => r.segs.length))
   }
   return n
+}
+
+/** Cheapest rung cost of a concept. */
+function minCost(c: Laddered): number {
+  let m = Number.POSITIVE_INFINITY
+  for (const r of c.ladder) if (r.cost < m) m = r.cost
+  return m
 }
 
 /** Rank comparator over pool positions. */
@@ -317,7 +326,7 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
   const rank = rankIndex(pool)
   const n = pool.length
   const keyOf = (c: Laddered) => c.key
-  const subsets: { s: Laddered[]; mask: number; lb: number }[] = []
+  const subsets: { s: Laddered[]; mask: number; lost: number; fixed: number; lb: number }[] = []
   for (let mask = 1; mask < 1 << n; mask++) {
     const s: Laddered[] = []
     let lost = 0
@@ -332,7 +341,9 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
     if (!s.every((c) => c.cls !== 'model' || (c.bond !== undefined && s.some((w) => w.key === c.bond?.with)))) continue
     const ms = minSegs(s)
     if (ms > maxSeg) continue
-    subsets.push({ s, mask, lb: lost + FIT_COST.chunk * Math.max(0, ms - 2) })
+    // lower bound of every candidate of this subset: lost score, the fewest chunks and the cheapest rungs
+    const fixed = lost + FIT_COST.chunk * Math.max(0, ms - 2)
+    subsets.push({ s, mask, lost, fixed, lb: fixed + s.reduce((acc, c) => acc + minCost(c), 0) })
   }
   subsets.sort((a, b) => a.lb - b.lb || a.mask - b.mask)
 
@@ -340,58 +351,70 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
   const best: Candidate[] = []
   const bondCache = new Map<string, boolean>()
   const safeCache = new Map<string, boolean>()
-  for (const { s, lb } of subsets) {
+  for (const { s, lost, fixed, lb } of subsets) {
     if (best.length >= maxPlans && lb > (best[maxPlans - 1] as Candidate).cost) break
-    const lost = pool.reduce((acc, c) => (s.includes(c) ? acc : acc + c.score), 0)
     const content = [...s].sort(rankOrder)
     const contentKey = contentKeyOf(s)
     let top: Candidate | undefined
-    const idx = s.map(() => 0)
-    for (;;) {
-      const rungs = s.map((c, i) => c.ladder[idx[i] as number] as Rung)
-      const segs = slotOrder(s, rungs, cfg, bondCache)
-      if (segs !== null && segs.length <= maxSeg) {
-        const body = segs.map((x) => x.text).join(cfg.separator)
-        let tails = tailOptions(body.length, cfg, minTail)
-        // max mode: a reserved body without a tail gets a forced tail (SPEC 9.3)
-        if (cfg.lengthMode === 'max' && tails[0] === 0 && cfg.reserved.includes(body))
-          tails = tailOptions(body.length, cfg, Math.max(cfg.tailMin, minTail))
-        for (const t of tails) {
-          const sk = `${t === 0 ? 0 : 1}|${segs.map((x) => (x.verbatim ? '1' : '0')).join('')}|${body}`
-          let ok = safeCache.get(sk)
-          if (ok === undefined) {
-            ok = safeBody(segs, body, t, cfg)
-            safeCache.set(sk, ok)
-          }
-          if (!ok) continue
-          const rungCost = rungs.reduce((acc, r) => acc + r.cost, 0)
-          const cryptic = FIT_COST.cryptic * segs.filter((x) => x.cryptic).length
-          const chunks = FIT_COST.chunk * Math.max(0, segs.length - 2)
-          const tail = tailCost(t, cfg)
-          const c: Candidate = {
-            body,
-            segs,
-            tailLen: t,
-            content,
-            contentKey,
-            cost: rungCost + cryptic + lost + chunks + tail,
-            parts: { rungs: rungCost, cryptic, lost, chunks, tail },
-            idLength: body.length + (t === 0 ? 0 : cfg.separator.length + t),
-          }
-          if (top === undefined || compareCandidates(c, top, rank) < 0) top = c
-        }
-      }
-      // next rung combination (odometer)
-      let i = s.length - 1
-      while (i >= 0) {
-        const c = s[i] as Laddered
-        idx[i] = (idx[i] as number) + 1
-        if ((idx[i] as number) < c.ladder.length) break
-        idx[i] = 0
-        i--
-      }
-      if (i < 0) break
+    // cheapest rung cost of concepts i.. (for pruning)
+    const restMin: number[] = new Array<number>(s.length + 1).fill(0)
+    for (let i = s.length - 1; i >= 0; i--) restMin[i] = (restMin[i + 1] as number) + minCost(s[i] as Laddered)
+    const rungs: Rung[] = new Array<Rung>(s.length)
+    /** No candidate with a cost above this can enter `best` (equal costs still compete on tie-breaks). */
+    const limit = (): number => {
+      let l = top === undefined ? Number.POSITIVE_INFINITY : top.cost
+      if (best.length >= maxPlans) l = Math.min(l, (best[maxPlans - 1] as Candidate).cost)
+      return l
     }
+    const visit = (rungCost: number): void => {
+      const segs = slotOrder(s, rungs, cfg, bondCache)
+      if (segs === null || segs.length > maxSeg) return
+      const body = segs.map((x) => x.text).join(cfg.separator)
+      let tails = tailOptions(body.length, cfg, minTail)
+      // max mode: a reserved body without a tail gets a forced tail (SPEC 9.3)
+      if (cfg.lengthMode === 'max' && tails[0] === 0 && cfg.reserved.includes(body))
+        tails = tailOptions(body.length, cfg, Math.max(cfg.tailMin, minTail))
+      for (const t of tails) {
+        const cryptic = FIT_COST.cryptic * segs.filter((x) => x.cryptic).length
+        const chunks = FIT_COST.chunk * Math.max(0, segs.length - 2)
+        const tail = tailCost(t, cfg)
+        const cost = rungCost + cryptic + lost + chunks + tail
+        if (cost > limit()) continue
+        const sk = `${t === 0 ? 0 : 1}|${segs.map((x) => (x.verbatim ? '1' : '0')).join('')}|${body}`
+        let ok = safeCache.get(sk)
+        if (ok === undefined) {
+          ok = safeBody(segs, body, t, cfg)
+          safeCache.set(sk, ok)
+        }
+        if (!ok) continue
+        const c: Candidate = {
+          body,
+          segs,
+          tailLen: t,
+          content,
+          contentKey,
+          cost,
+          parts: { rungs: rungCost, cryptic, lost, chunks, tail },
+          idLength: body.length + (t === 0 ? 0 : cfg.separator.length + t),
+        }
+        if (top === undefined || compareCandidates(c, top, rank) < 0) top = c
+      }
+    }
+    // rung combinations in odometer order (last concept fastest); a branch whose lower bound is above
+    // the limit is skipped, which never changes the result
+    const walk = (i: number, rungCost: number): void => {
+      if (i === s.length) {
+        visit(rungCost)
+        return
+      }
+      const c = s[i] as Laddered
+      for (const r of c.ladder) {
+        if (fixed + rungCost + r.cost + (restMin[i + 1] as number) > limit()) continue
+        rungs[i] = r
+        walk(i + 1, rungCost + r.cost)
+      }
+    }
+    walk(0, 0)
     if (top !== undefined) insertSorted(best, top, rank, maxPlans)
   }
   return best

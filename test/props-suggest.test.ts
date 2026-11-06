@@ -14,7 +14,7 @@ import { STOP_EN } from '../src/data/v1/stop-en.ts'
 import { createSlugger, isSluggerError, isValidSlug, type SluggerConfig } from '../src/index.ts'
 
 const seed = Number(process.env.FC_SEED ?? Date.now() % 2 ** 31)
-const numRuns = Math.max(1, Math.floor(Number(process.env.FC_RUNS ?? 1000) / 2))
+const numRuns = Math.max(1, Number(process.env.FC_RUNS ?? 1000))
 console.log(`fast-check seed ${seed} (set FC_SEED to replay), runs ${numRuns}`)
 
 const STRICT_4 = [...BLOCK_SHORT_DE, ...TAIL_BLOCK_EXTRA].filter((w) => w.length >= 4)
@@ -54,7 +54,7 @@ const word = fc.constantFrom(
   '1488',
 )
 const title = fc.oneof(
-  fc.string({ unit: 'grapheme', maxLength: 120 }),
+  fc.string({ unit: 'grapheme', maxLength: 300 }),
   fc.array(word, { maxLength: 12 }).map((w) => w.join(' ')),
 )
 const cfgArb = fc
@@ -126,7 +126,7 @@ describe('suggest(): properties', () => {
         const a = s.slug(t)
         expect(s.slug(`  ${t.replace(/ /g, '   ')}`)).toBe(a)
       }),
-      { seed, numRuns: Math.max(1, Math.floor(numRuns / 4)) },
+      { seed, numRuns },
     )
   })
 
@@ -148,7 +148,7 @@ describe('suggest(): properties', () => {
         }
         expect(taken.size).toBe(n)
       }),
-      { seed, numRuns: Math.max(1, Math.floor(numRuns / 4)) },
+      { seed, numRuns },
     )
   })
 })

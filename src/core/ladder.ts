@@ -383,9 +383,31 @@ function tokenParts(c: ConceptX): readonly PartInfo[] {
   return c.tok.split?.parts ?? []
 }
 
+const RE_ONE_WORD = /^[a-z0-9]+$/
+
+/**
+ * The word the rungs are built from (SPEC 4.4 step 2, 11.1). A single-word lexicon entry that has the
+ * same stem as the typed word (an inflected form: `umzuege`, `haeuser`, `besprechungen`) gives its key,
+ * so every inflection of one entry gets the same ladder. Other words (no entry, a compound concept, a
+ * phrase, or a form with another stem such as `kita`) keep the typed ascii. The typed word stays a
+ * verbatim form of the concept.
+ */
+export function rungBase(c: ConceptX, comp: Compiled): string {
+  const word = c.display
+  const lex = c.lex
+  if (lex === undefined || c.parts !== undefined || c.tok.words !== undefined) return word
+  const key = lex.key
+  if (key === word || !RE_ONE_WORD.test(key) || key.length < 2) return word
+  for (const lang of new Set<string>([c.lang, lex.lang ?? c.lang])) {
+    const st = comp.stemmer(lang)
+    if (st.stem(key) === st.stem(word)) return key
+  }
+  return word
+}
+
 function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
   const out: Draft[] = []
-  const word = c.display
+  const word = rungBase(c, comp)
   const isName = c.cls === 'name'
   const all = tokenParts(c)
   const lowly = (p: PartInfo) => p.kind === 'weak' || p.kind === 'generic'

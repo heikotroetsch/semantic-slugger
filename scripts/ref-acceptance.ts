@@ -40,7 +40,14 @@ import {
   WEEKDAYS_EN,
 } from '../src/data/index.ts'
 import type { SluggerConfig } from '../src/index.ts'
-import { type Analysis, type AnalysisConcept, analyze, createSlugger, type LexiconEntry } from '../src/index.ts'
+import {
+  type Analysis,
+  type AnalysisConcept,
+  analyze,
+  createSlugger,
+  type Lang,
+  type LexiconEntry,
+} from '../src/index.ts'
 import { runInto, SyncMemoryStore } from './lib/corpus.ts'
 
 // ---------------------------------------------------------------------------------------------
@@ -244,6 +251,8 @@ interface RC {
   readonly display: string
   readonly lang: string
   readonly tokAscii: string
+  /** Same stem in a language (SPEC 4.4 step 2), from the public `analyze()` stored stems. */
+  readonly sameStem: (x: string, y: string, langs: readonly string[]) => boolean
   ladder: RRung[]
 }
 
@@ -456,6 +465,17 @@ function refLadder(
         }
     }
     const compound = core.length > 1 && row !== undefined && row.kept.length > 0
+    // rung base (SPEC 4.4 step 2, 11.1): a one-word lexicon key with the same stem as the typed word
+    const key = c.lex?.key ?? ''
+    const base =
+      core.length <= 1 &&
+      key !== '' &&
+      key !== w &&
+      /^[a-z0-9]+$/.test(key) &&
+      key.length >= 2 &&
+      rc.sameStem(key, w, [rc.lang, c.lex?.lang ?? ''])
+        ? key
+        : w
     if (c.lex !== undefined && c.lex.cls !== 'marker' && !compound)
       (c.lex.abbr ?? []).forEach((x, i) => {
         drafts.push({
@@ -467,8 +487,9 @@ function refLadder(
         })
       })
     if (c.cls === 'name') {
-      if (w.length <= 12) drafts.push({ text: w, segs: [w], cost: w.length <= 8 ? 0 : 40, plain: true, verbatim: true })
-    } else drafts.push({ text: w, segs: [w], cost: w.length <= 6 ? 0 : 40, plain: true, verbatim: true })
+      if (base.length <= 12)
+        drafts.push({ text: base, segs: [base], cost: base.length <= 8 ? 0 : 40, plain: true, verbatim: true })
+    } else drafts.push({ text: base, segs: [base], cost: base.length <= 6 ? 0 : 40, plain: true, verbatim: true })
     const bounds = new Set<number>()
     if (core.length > 1) {
       let acc = ''
@@ -501,12 +522,12 @@ function refLadder(
         walk(0, '', 0, false, true)
       }
     }
-    for (const cut of refCuts(w, rc.lang, bounds, (p) => lex.words.has(p))) {
+    for (const cut of refCuts(base, rc.lang, bounds, (p) => lex.words.has(p))) {
       if (c.cls === 'name' && cut.cost === 60) continue
       drafts.push({ ...cut, plain: cut.cost === 60 && plainPart(cut.text) })
     }
     if (c.cls !== 'name') {
-      const sk = refSkeleton(w)
+      const sk = refSkeleton(base)
       if (sk !== null) drafts.push({ text: sk, segs: [sk], cost: 200, plain: false, verbatim: false })
     }
   }
@@ -610,6 +631,8 @@ function refFit(
           if (k.c.bond?.kind === 'year') pos = Math.min(pos, k.c.pos)
         }
         if (b1(text) || b2(text) || hardIn(text) || i8(text)) return
+        // SPEC 11.5: the bond uses the 2-digit year (`26q1`), not the 4-digit rung
+        if (c.c.cls === 'year' && r.text.length === 4 && c.ladder.some((x) => x.text.length === 2)) return
         items.push({ slot: SLOT[c.c.cls] ?? 2, pos, key: c.c.key, segs: [text], cryptic, verb: false })
       }
       items.sort((x, y) => x.slot - y.slot || x.pos - y.pos || lt(x.key, y.key))
@@ -704,6 +727,21 @@ function refPool(
       if (scores.get(c.key) !== c.score) mismatch.push(`${c.key}: ref ${scores.get(c.key)} src ${c.score}`)
   const lex = lexWords(cfg.lexicon)
   const stop = new Set(cfg.stopWords)
+  const stemsOf = new Map<string, string>()
+  const stemSet = (word: string, lang: string): string => {
+    const k = `${lang}:${word}`
+    let v = stemsOf.get(k)
+    if (v === undefined) {
+      v = [...s.analyze(word, { lang: lang as Lang }).storedStems].sort().join(',')
+      stemsOf.set(k, v)
+    }
+    return v
+  }
+  const sameStem = (x: string, y: string, langs: readonly string[]): boolean =>
+    [...new Set(langs)].some(
+      (l) =>
+        (cfg.languages as readonly string[]).includes(l) && stemSet(x, l) !== '' && stemSet(x, l) === stemSet(y, l),
+    )
   const rcs: RC[] = a.concepts.map((c) => {
     const tok = a.tokens[c.pos]
     const display = c.cls === 'month' || c.cls === 'weekday' ? (tok?.ascii ?? c.key) : (c.verbatim[0] ?? c.key)
@@ -713,6 +751,7 @@ function refPool(
       display,
       lang: tok?.lang ?? a.lang,
       tokAscii: tok?.ascii ?? display,
+      sameStem,
       ladder: [],
     }
   })

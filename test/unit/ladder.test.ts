@@ -5,7 +5,7 @@ import { buildLadder, cuts, graphemes, type Laddered, phonologyOf, skeleton } fr
 import { rankPool } from '../../src/core/resolve.ts'
 import { hasLookalikePair, rungBlocked, segmentBlocked } from '../../src/core/safety.ts'
 import { CODAS_DE, ONSETS_DE } from '../../src/data/v1/phonology.ts'
-import { analyze } from '../../src/index.ts'
+import { analyze, createSlugger } from '../../src/index.ts'
 import { doc } from '../helpers/concepts.ts'
 import { cfgOf } from '../helpers/front.ts'
 
@@ -255,6 +255,16 @@ describe('safety on rungs (SPEC 9.2)', () => {
     for (const c of ladders('Polo 1 Shirt Test')) for (const r of c.ladder) expect(hasLookalikePair(r.text)).toBe(false)
   })
 
+  it('I8: the model bond `pro14` (SPEC 11.5 example) is removed like `polo1`', () => {
+    expect(hasLookalikePair('pro14')).toBe(true)
+    expect(hasLookalikePair('polo1')).toBe(true)
+    for (const config of [undefined, { lengthMode: 'max', length: 32 } as const]) {
+      const s = createSlugger(config)
+      expect(s.slug('Brightwave Pro 14 Review')).not.toContain('pro14')
+      expect(s.slug('Polo 1 Shirt Test')).not.toContain('polo1')
+    }
+  })
+
   it('every built-in abbr, compound part and marker prefix passes B1, B2 and I8', () => {
     const comp = compile(cfgOf())
     const bad: string[] = []
@@ -267,6 +277,26 @@ describe('safety on rungs (SPEC 9.2)', () => {
       if (segmentBlocked(m.prefix, comp.cfg) || rungBlocked(m.prefix, comp.cfg) || hasLookalikePair(m.prefix))
         bad.push(`${w}:${m.prefix}`)
     expect(bad).toEqual([])
+  })
+
+  it('inflected forms of one lexicon entry give the same ladder (SPEC 4.4 step 2)', () => {
+    const pairs: [string, string, string][] = [
+      ['Umzug Planung Büro', 'Umzüge Planung Büro', 'umzug'],
+      ['Haus Verkauf Nord', 'Häuser Verkauf Nord', 'haus'],
+      ['Besprechung Vertrieb Nord', 'Besprechungen Vertrieb Nord', 'besprechung'],
+    ]
+    for (const [a, b, key] of pairs) {
+      const la = ladderOf(a, key)
+      const lb = ladderOf(b, key)
+      expect(show(lb), b).toEqual(show(la))
+      expect(texts(la)).toContain(key)
+      // the typed form stays a verbatim form of the concept
+      expect(lb.verbatim).not.toContain(key)
+    }
+    expect(texts(ladderOf('Besprechungen Vertrieb Nord', 'besprechung'))).toContain('bspg')
+    // a form with another stem keeps the typed word (`kita` is a form of `kindertagesstaette`)
+    expect(texts(ladderOf('Kita Fest', 'kindertagesstaette'))).toContain('kita')
+    expect(texts(ladderOf('Kita Fest', 'kindertagesstaette'))).not.toContain('kindertagesstaette')
   })
 
   it('buildLadder is pure: the same concept gives the same ladder', () => {

@@ -23,7 +23,7 @@ const Q4_GATES: Readonly<Record<string, number>> = {
   meeting: 65,
   news: 5,
   procurement: 25,
-  product: 10,
+  product: 5,
   project: 45,
   realestate: 25,
   recipe: 20,

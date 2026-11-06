@@ -558,8 +558,8 @@ fast frau fuer gegen gem gemaess ggf habe haben hast hat hatte hatten herr hier 
 ihre im immer in indem inkl inklusive ins ist je jede jedem jeden jeder jedes jetzt kann kein keine
 koennen laut man mehr mein meine meinem meinen meiner mit moechte muss muessen nach neben nicht nie
 noch nur ob oder ohne per pro prof samt schon seit sehr sein seine sich sie sind so soll sollen sowie
-ueber um und uns unser unsere unserem unseren unserer unter usw vom von vor waehrend wann war warum
-was weil welche wenn wer werden weshalb wie wieder wieso will wir wird worden wurde wurden wo zu zum
+trotz ueber um und uns unser unsere unserem unseren unserer unter usw vom von vor waehrend wann war warum
+was wegen weil welche wenn wer werden weshalb wie wieder wieso will wir wird worden wurde wurden wo zu zum
 zur zwar zwischen zzgl
 ```
 
@@ -1090,13 +1090,13 @@ function skeleton(ascii: string): string | null {
 | fy year | `fy26` (0) |
 | range 2025/2026 | `2526` (0). Range over different decades `2029/2031` -> `2931`. Only when the span is 9 years or less and both years are in one century |
 | wide range 1950–2020 (rev 3.1) | `1950-2020` (0): one rung that fills **two segments** (counted in `maxSegments` and `chunks`, each segment checked by B1 and I8). With separator `''` it reads `19502020`. Rev 3 gave `5020`, which a reader cannot read |
-| quarter + year bond | `26q1` when both chosen (joined, one segment) |
-| month | `mrz` / `mar` (0); month + year bond `26mrz` / `26mar` when both chosen (joined, one segment) |
+| quarter + year bond | `26q1` when both chosen (joined, one segment). The bond always uses the 2-digit year rung; `2026q1` is not a form (M4). A year that has only a 4-digit rung (historic, B6 blocked 2-digit) bonds with that rung |
+| month | `mrz` / `mar` (0); month + year bond `26mrz` / `26mar` when both chosen (joined, one segment), 2-digit year only (`2026mar` is not a form, M4) |
 | week | `kw12` / `wk12` (0) |
 | weekday (rev 3.1) | en `fri` (0), `friday` (cost by length); de `freitag` (cost by length) |
 | version | `v2`, `v24` (0) |
 | marker | `pt1`, `sprint14`, `nr4521`, `art28`, `sz` + `m` = `szm` (0) only |
-| model + word bond (rev 3.1) | joined `<word rung><digits>` (`phone8`, `pro14`, `hist101`) at the cost of the word rung, in the word's slot and position. The model concept has no rung alone: the fit can choose it only together with its word. A joined form that fails B1, B2 or I8 (`polo1`) is removed; then the model concept is lost |
+| model + word bond (rev 3.1) | joined `<word rung><digits>` (`phone8`, `hist101`; `pro14` fails I8 because `o1` is a look-alike pair, so it is always removed, M4) at the cost of the word rung, in the word's slot and position. The model concept has no rung alone: the fit can choose it only together with its word. A joined form that fails B1, B2 or I8 (`polo1`) is removed; then the model concept is lost |
 | quantity (rev 3.1) | `128gb`, `50mw`, `85m2` (0); decimal quantities have no rung |
 | longnum | last 4 digits (0) |
 
@@ -2305,7 +2305,7 @@ export default defineConfig([
 
 Legal comments (`/*! ... */`) of vendored files are kept in `dist`.
 
-`.size-limit.json`: `dist/index.js` (import `{ slug }`) <= 30 KB min+gz including data and the `de`/`en` packs; `dist/adapters/memory.js` <= 1 KB; `prisma.js` <= 1.5 KB; `sql.js` <= 1.5 KB.
+`.size-limit.json`: `dist/index.js` (import `{ slug }`) <= 30 KB min+gz including data and the `de`/`en` packs (M4 decision: 30 KB is not reachable; measured 43.5 KB = v1 data tables about 16 KB, vendored Porter2 + CISTEM about 5.5 KB, pipeline code about 22 KB. Limit 48 KB at M4, 52 KB for 1.0, see docs/DEVIATIONS.md); `dist/adapters/memory.js` <= 1 KB; `prisma.js` <= 1.5 KB; `sql.js` <= 1.5 KB.
 
 ### 18.4 CI (`.github/workflows/ci.yml`)
 
@@ -2539,7 +2539,7 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 | Q1 | Recognizable token | ID has at least one segment that is a lexicon abbr of a title concept, or a prefix (3+ chars) of a title word or compound part (ascii) | >= 95% (gate), aim 98%. A sanity check only: it passes for bodies a reader cannot use; Q19 is the readability gate |
 | Q2 | Top concept kept | top-ranked pool concept appears in the ID | report (rev 3.1: it measures the fit against the ranker, not the result against a reader) |
 | Q3 | Skeleton share | segments with rung `skeleton` / all body segments | <= 5% (gate) |
-| Q4 | Padding tail rate | exact, independent: IDs with a tail that is not caused by a collision, overall and per domain | report until M4. At M4 the gate is set from the measured value (overall and per domain, rounded up to the next 5%) and written into this table; it may only go down later. Rev 3 had a 45% gate copied from the rev 2 procurement corpus; on the new corpus 23% of content titles have 2 or fewer content words and always get a padding tail. **M4 gates** (measured 24.4% overall; 23.9% after the M4 fix round 1, where 3 config copies became `edge`): overall <= 25%; blog 20, education 20, event 10, finance 55, hr 25, legal 35, marketing 25, medical 30, meeting 65, news 5, procurement 25, product 10, project 45, realestate 25, recipe 20, research 5, software 45, ticket 10, travel 25 (%, `test/quality.test.ts`) |
+| Q4 | Padding tail rate | exact, independent: IDs with a tail that is not caused by a collision, overall and per domain | report until M4. At M4 the gate is set from the measured value (overall and per domain, rounded up to the next 5%) and written into this table; it may only go down later. Rev 3 had a 45% gate copied from the rev 2 procurement corpus; on the new corpus 23% of content titles have 2 or fewer content words and always get a padding tail. **M4 gates** (measured 24.4% overall; 23.9% after the M4 fix round 1, where 3 config copies became `edge`): overall <= 25%; blog 20, education 20, event 10, finance 55, hr 25, legal 35, marketing 25, medical 30, meeting 65, news 5, procurement 25, product 5, project 45, realestate 25, recipe 20, research 5, software 45, ticket 10, travel 25 (%, `test/quality.test.ts`) |
 | Q5 | Collision fallback rate | sequential: titles with `reason: 'shared-body'` whose stems differ from the rows on that body (a content collision that re-pick did not solve). Same-stem titles (`dup-*` and `norm-*` groups and real `near` pairs, 19.7) are not counted, because sharing the body is the wanted result for them. Group siblings (rows with `vary`) are counted | <= 3% (gate) |
 | Q6 | Sibling distinguishability | sequential, per sibling `group` (19.7): for each pair of siblings whose **canonical titles** (4.1) differ, the IDs differ in at least one body segment whose concept is in one title and not in the other. A pair whose only difference is a token the core drops by design counts as a failure, unless the group has `skip.Q6` (19.7) | >= 90% (gate); skipped pairs at most 3% of all sibling pairs |
 | Q7 | Avg semantic segments | mean body segments over content titles | 2.5 to 3.5 (gate); max = `maxSegments` |
@@ -2625,6 +2625,8 @@ Rev 3.1 corpus work (part of M1.5, section 23 #18): rename `near` to `vary` on t
 
 ## 20. Acceptance examples (guidance until regenerated)
 
+> **Regenerated at M4.** The current values of every row are in `docs/acceptance.md` (`pnpm acceptance --out docs/acceptance.md`, reference script and `src` agree on all rows). This table keeps the rev 3.1 hand values. Changed `ref` rows: 11 (now `miet-woh-kass-26`, 500) and 26 (now `kick-ki-strat-26`, 595); the `unv` rows 9, 10, 22, 38 and 43 have computed values there. See docs/DEVIATIONS.md entry 82.
+
 Default config: length 16, exact, `-`, leak `normal`, no store df (priors only), unless the row says otherwise. `[tN]` = a tail of N chars from the safe alphabet (first char a consonant). "Alone" = empty memory store. "After X" = inserted in order into one memory store. The body and the tail length are the target. Tail chars depend on the hash.
 
 Rev 3: all rows are new. The titles are illustrative and come from many fields; they are not tied to fixture ids. Rows that are also in the corpus get an `expect` field at M4 (19.7). Rev 3.1: every row was checked against I1 (in exact mode 16 a body is exactly 16 chars, or 13 or less plus a tail of 16 - 1 - body length) and recomputed with the rev 3.1 rules; several rev 3 values were impossible (17 chars, or 14 to 15 chars without a tail).
@@ -2649,7 +2651,7 @@ At M4, `scripts/ref-acceptance.ts` (a small, separate re-implementation of ranki
 | 8 | procurement | same title, default config | `vertrag-strom-26` | unv | hand result about 800: three compound concepts (`rahmen`+`vertrag`, `strom`+`lieferung`, `stand`+`orte`), cryptic head and morph rungs, `standorte` and `nord` lost; `vertrag-stand-26` (815) and `rahmen-nord-2026` (855) are close. Shows why a field adds a lexicon |
 | 9 | hr | Mitarbeitergespräch Anna Weber 2026, with `denyTokens: ['anna', 'weber']` | `mitarb-2026-[t4]` | unv | hand result 510; the names never show. `mitarbeitergespraech` does not split (`gespraech` is a part only from rev 3.1 on, and then the rules give `gespraech-26-[t3]` at 400; check at M4). Without deny tokens the names are plain topics in a `de` title, also in `minimal` (6.6) |
 | 10 | education | Elternabend Klasse 4b Grundschule Nord | `elternabend-nord` | unv | `Klasse 4b` is the marker `kla4b` (255). Hand result: `abend-kla4b-nord` (500) and `abend-grund-nord` (515) beat `elternabend-nord` (635), because a cryptic head rung (100) costs less than losing `grundschule` (340). Input for the head-rung cost at M8 (Q19 data) |
-| 11 | legal | Mietvertrag Wohnung Kassel 2026 | `miet-kassel-2026` | ref | 530: `mietvertrag` one compound concept, morph rung `miet` cryptic (100), `kassel` an unknown topic (full word 0), `wohnung` (340) lost. `mietvertrag-26-[t2]` would be 17 chars; `mietvertrag-2026` costs 725 |
+| 11 | legal | Mietvertrag Wohnung Kassel 2026 | `miet-kassel-2026` | ref | **Changed at M4: `miet-woh-kass-26` (500), see `docs/acceptance.md`.** 530: `mietvertrag` one compound concept, morph rung `miet` cryptic (100), `kassel` an unknown topic (full word 0), `wohnung` (340) lost. `mietvertrag-26-[t2]` would be 17 chars; `mietvertrag-2026` costs 725 |
 | 12 | meeting | Protokoll Teamsitzung 12.03.2026 | `protok-team-2026` | ref | 320: only weak words, so the back-off restores `protokoll` and `teamsitzung`; the date gives the year only. `protok` coda cut 130, `team` morph rung cryptic (4 chars) 100, `2026` 30, chunks 60. `protokoll-team-26` would be 17 chars |
 | 13 | software | Versionshinweise 5.1 | `versionshinweise` | ref | 235: decimal version after a version compound (5.4) gives `v51` (195, lost); the all-weak compound is restored by the back-off. `hinweise-v51-[t3]` 360 |
 | 14 | software | Versionshinweise 5.2, after 13 | `hinweise-v52-[t3]` | ref | 360, reason `repick`: the diff boosts `v52` to 495, so keeping `versionshinweise` costs 535. Head rung `hinweise` is plain (the other part `version` is a noise word, 7.3) |
@@ -2669,7 +2671,7 @@ At M4, `scripts/ref-acceptance.ts` (a small, separate re-implementation of ranki
 | 23 | research | Effects of Sleep on Memory in Older Adults | `eff-sleep-memory` | unv | hand result about 800: `effects` is a doc-kind word (310), the decreasing position bonus keeps `memory` ahead of `older` and `adults`; `sleep-memory-old` (804) and `sleep-mem-adults` (808) are close. Rev 3 listed `sleep-memory-[t4]`, which is 17 chars |
 | 24 | news | Storm warning for the north coast | `storm-warn-coast` | ref | 405: `warn` coda cut 130, chunks 60, `north` (215) lost; `storm-warn-north` 505. Rev 3 listed `storm-north-coast` (17 chars) |
 | 25 | software | Kubernetes Upgrade Plan Q3 2026, with the software recipe (15.8) | `k8s-upgrade-26q3` | ref | 100: `kubernetes` lexicon name with known `k8s`, `upgrade` 40, bond `26q3`, chunks 60; `plan` weak |
-| 26 | mixed | Kick-off Meeting KI Strategie Q1 2026 | `kickoff-ki-strat` | ref | 640: `kick off` phrase (known `kickoff`), `meeting` weak, `KI` known (`upperOnly`), `strat` coda cut 130, chunks 60, year and quarter (450) lost. Rev 3 listed `ki-strategie-26q1` (17 chars) |
+| 26 | mixed | Kick-off Meeting KI Strategie Q1 2026 | `kickoff-ki-strat` | ref | **Changed at M4: `kick-ki-strat-26` (595), see `docs/acceptance.md`.** 640: `kick off` phrase (known `kickoff`), `meeting` weak, `KI` known (`upperOnly`), `strat` coda cut 130, chunks 60, year and quarter (450) lost. Rev 3 listed `ki-strategie-26q1` (17 chars) |
 | 27 | mixed | Release 2.4 Hinweise zur Migration | `migration-v24-[t2]` | ref | 290: `Release 2.4` is a version, `hinweise` is weak (rev 3.1, pair of `notes`). Rev 3 listed `migration-v24`, 13 chars without a tail |
 | 28 | event | Team Lunch Friday | `lunch-friday-[t3]` | ref | 300: `team` weak, `friday` a weekday (175, full word 0). `lunch-fri-[t6]` 450 |
 | 29 | event | Team Lunch Monday, after 28 | `lunch-monday-[t3]` | ref | free body, reason `base`; siblings differ in the weekday |

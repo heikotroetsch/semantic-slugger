@@ -130,6 +130,12 @@ describe('fit rules', () => {
     expect(cands('Board Minutes March 2026')[0]?.body).toContain('26mar')
   })
 
+  it('a bond uses the 2-digit year only, never `2026mar` or `2026q1` (SPEC 11.5)', () => {
+    for (const config of [undefined, { length: 24 }, { lengthMode: 'max', length: 32 }] as const)
+      for (const t of ['Board Minutes March 2026', 'Quartalsbericht Q1 2026', 'Newsletter März 2026'])
+        for (const c of cands(t, config)) expect(c.body, t).not.toMatch(/20\d\d(q\d|[a-z]{3})/)
+  })
+
   it('a year with a quarter and a month joins the first by title position, not by rank', () => {
     // the month has tf 2 and ranks above Q1, but Q1 comes first in the title
     const config: SluggerConfig = { lengthMode: 'max', length: 24 }
@@ -240,8 +246,12 @@ describe('lower-bound cut (SPEC 12)', () => {
     )
   })
 
-  it('worst case (pool 6, maxSegments 5) stays under 10 ms', () => {
-    const config: SluggerConfig = { maxSegments: 5 }
+  const worst: readonly SluggerConfig[] = [
+    { maxSegments: 5 },
+    { maxSegments: 5, length: 32 },
+    { maxSegments: 5, length: 32, lengthMode: 'max' },
+  ]
+  it.each(worst)('worst case (pool 6, maxSegments 5) stays under 10 ms: %o', (config) => {
     const title = 'Kraftwerk Nordsee Windpark Turbine Wartung Planung Leistung Netzanschluss Q3 2026'
     const pool = poolOf(title, config)
     expect(pool.length).toBe(6)
