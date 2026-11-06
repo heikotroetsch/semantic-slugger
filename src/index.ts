@@ -32,6 +32,7 @@ export type {
   ExhaustedErrorDetails,
   ExhaustedErrorOptions,
   SluggerErrorCode,
+  StoreErrorDetails,
 } from './errors.ts'
 export {
   ConfigError,

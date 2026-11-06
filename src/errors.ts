@@ -81,9 +81,15 @@ export class ConflictError extends SluggerError {
   }
 }
 
+export interface StoreErrorDetails {
+  /** Why the store call failed, for example `insert-blocked` (SPEC 17.2). */
+  reason: string
+}
+
 export class StoreError extends SluggerError {
-  constructor(cause: unknown, message = 'store call failed') {
-    super('E_STORE', message, undefined, { cause })
+  declare readonly details: StoreErrorDetails | undefined
+  constructor(cause: unknown, message = 'store call failed', details?: StoreErrorDetails) {
+    super('E_STORE', message, details, { cause })
     this.name = 'StoreError'
   }
 }

@@ -258,7 +258,7 @@ export async function createUniqueWith<T>(
         got = await (o.store.insert as NonNullable<SlugStore['insert']>)(toRecord(result), ctx)
       } catch (e) {
         if (ctx.signal?.aborted === true) throw ctx.signal.reason ?? e
-        throw new StoreError(e, 'store.insert failed')
+        throw e instanceof StoreError ? e : new StoreError(e, 'store.insert failed')
       }
       if (got === 'inserted') return { result, record: undefined }
       if (got !== 'conflict') throw new StoreError(got, 'store.insert must return "inserted" or "conflict"')

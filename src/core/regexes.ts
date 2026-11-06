@@ -131,3 +131,8 @@ export const RE_SENTENCE_BREAK: RegExp = /^[:!?]$/
 export const RE_STANDARD_PREFIX: RegExp = /^(?:din|en|iso|iec|ieee|rfc)$/
 export const RE_UNDERSCORE: RegExp = /_/g
 export const RE_DOT: RegExp = /\./g
+
+// ---- SQL identifiers of the DB adapters (SPEC 17.3) ----
+
+export const RE_SQL_TABLE: RegExp = /^[A-Za-z_][A-Za-z0-9_]{0,62}(?:\.[A-Za-z_][A-Za-z0-9_]{0,62})?$/
+export const RE_SQL_IDENT: RegExp = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/

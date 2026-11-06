@@ -1,0 +1,48 @@
+// semantic-slugger with Prisma (SPEC 17.2). Postgres only (String[] with `has`).
+// Use with: prismaStore({ delegate: prisma.slugEntry, queryRaw: (sql, v) => prisma.$queryRawUnsafe(sql, ...v) })
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Layout 1: one table for all IDs. The adapter defaults match these field names.
+model SlugEntry {
+  id        String    @id @default(uuid())
+  scope     String
+  slug      String    @db.VarChar(64)
+  body      String    @db.VarChar(64)
+  stems     String[]  @default([])
+  titleKey  String    @map("title_key")
+  algorithm Int       @db.SmallInt
+  createdAt DateTime  @default(now()) @map("created_at")
+  retiredAt DateTime? @map("retired_at")
+
+  @@unique([scope, slug])
+  @@index([scope, body])
+  @@index([stems], type: Gin)
+  @@map("slug_entry")
+}
+
+// Layout 2: the slug as columns on your own entity. Map them with `fields` and `scopeWhere`:
+// prismaStore({
+//   delegate: tx.document,
+//   fields: { slug: 'slug', body: 'slugBody', stems: 'slugStems', retiredAt: null },
+//   scopeWhere: (tenantId) => ({ tenantId }),
+// })
+model Document {
+  id        String   @id @default(uuid())
+  tenantId  String
+  title     String
+  slug      String   @db.VarChar(64)
+  slugBody  String   @db.VarChar(64)
+  slugStems String[] @default([])
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, slugBody])
+  @@index([slugStems], type: Gin)
+}
