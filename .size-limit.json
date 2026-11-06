@@ -4,7 +4,7 @@
     "path": "dist/index.js",
     "import": "{ createSlugger, isValidSlug }",
     "gzip": true,
-    "limit": "30 KB"
+    "limit": "40 KB"
   },
   { "name": "adapters/memory", "path": "dist/adapters/memory.js", "gzip": true, "limit": "1 KB" },
   { "name": "adapters/prisma", "path": "dist/adapters/prisma.js", "gzip": true, "limit": "1.5 KB" },

@@ -37,6 +37,13 @@ export interface Compiled {
   readonly lexicon: Lexicon
   /** Part indexes of the packs with compound data. */
   readonly parts: ReadonlyMap<string, PartIndex>
+  /**
+   * Weak heads of a language (SPEC 7.1): the pack list, all weak lexicon words of that language and
+   * `*`, and all noise words. `und` gets the weak words of every language.
+   */
+  weakHeads(lang: string): ReadonlySet<string>
+  /** Generic modifiers of a language (SPEC 7.1); empty without compound data. */
+  genericModifiers(lang: string): ReadonlySet<string>
   readonly stop: {
     /** The resolved `stopWords` list (function and noise tiers after user changes). */
     readonly words: ReadonlySet<string>
@@ -198,9 +205,30 @@ export function compile(cfg: ResolvedConfig): Compiled {
       parts: set,
       linkers: p.compound.linkers,
       genericModifiers: new Set(p.compound.genericModifiers ?? []),
+      linkSuffixes: p.hints?.suffixes ?? [],
       hasExact: (w) => lexicon.hasExact(w),
     })
   }
+
+  // weak heads per language (SPEC 7.1), built on first use
+  const weakHeadSets = new Map<string, ReadonlySet<string>>()
+  const weakHeads = (lang: string): ReadonlySet<string> => {
+    let set = weakHeadSets.get(lang)
+    if (set === undefined) {
+      const s = new Set<string>(noise)
+      for (const w of byCode.get(lang)?.compound?.weakHeads ?? []) s.add(w)
+      for (const e of lexicon.entries) {
+        if (e.weak !== true) continue
+        if (lang !== 'und' && e.lang !== lang && e.lang !== '*') continue
+        for (const w of [e.key, ...(e.forms ?? [])]) if (!w.includes(' ')) s.add(w)
+      }
+      set = s
+      weakHeadSets.set(lang, set)
+    }
+    return set
+  }
+  const noModifiers: ReadonlySet<string> = new Set()
+  const genericModifiers = (lang: string): ReadonlySet<string> => parts.get(lang)?.genericModifiers ?? noModifiers
 
   const deny = { single: new Set<string>(), multi: [] as string[][] }
   for (const d of cfg.denyTokens) {
@@ -219,6 +247,8 @@ export function compile(cfg: ResolvedConfig): Compiled {
     stemmer: (lang) => stemmers.get(lang) ?? UND_STEMMER,
     lexicon,
     parts,
+    weakHeads,
+    genericModifiers,
     stop: { words, functionLangs, conflictLangs, noise, upperExempt },
     onlyStop,
     numberWords,

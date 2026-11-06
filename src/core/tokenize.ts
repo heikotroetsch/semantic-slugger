@@ -8,6 +8,7 @@
 import type { DetectedLang, LexiconEntry } from '../config.ts'
 import { MARKER_HASH_PREFIX, MARKER_PARAGRAPH_PREFIX, MARKER_ROMAN, MARKER_SIZES } from '../data/v1/markers.ts'
 import type { Compiled, MarkerSpec } from './compile.ts'
+import type { CompoundPlan } from './compound.ts'
 import type { CaseFlag } from './lexicon.ts'
 import { asciiFold, type Normalized } from './normalize.ts'
 import {
@@ -122,6 +123,8 @@ export interface Tok {
   modelOf?: number
   /** A legal-form token follows directly (name signal 3). */
   beforeLegal?: boolean
+  /** Compound plan (SPEC 7.3) of a splittable topic token. */
+  split?: CompoundPlan
 }
 
 interface Ctx {

@@ -1,10 +1,17 @@
 /**
- * createSlugger and the Slugger instance (SPEC 16.1). M1 ships config validation, the ID pattern,
- * the config fingerprint and `isValid`. The generating methods follow with the pipeline (M4, M5).
+ * createSlugger and the Slugger instance (SPEC 16.1): config validation, the ID pattern, the config
+ * fingerprint, `isValid` and `analyze`. The generating methods follow with the pipeline (M4, M5).
  */
 
-import { fingerprint, type ResolvedConfig, resolveConfig, type SluggerConfig } from './config.ts'
+import { fingerprint, type Lang, type ResolvedConfig, resolveConfig, type SluggerConfig } from './config.ts'
+import { type Analysis, analyzeTitle } from './core/analyze.ts'
 import { isValidSlugResolved, patternFor } from './core/invariants.ts'
+
+/** Options of `analyze()`. */
+export interface AnalyzeOptions {
+  /** Per-call language; must be an enabled code. */
+  readonly lang?: Lang
+}
 
 export interface Slugger {
   readonly config: ResolvedConfig
@@ -14,6 +21,11 @@ export interface Slugger {
   readonly fingerprint: string
   /** Same as isValidSlug(id, config). */
   isValid(id: string): boolean
+  /**
+   * Normalized title, language, tokens, concepts and stored stems (SPEC 16.1). Use `storedStems` to
+   * backfill the `stems` of old rows. Throws InputError when the title is not a string.
+   */
+  analyze(title: string, opts?: AnalyzeOptions): Analysis
 }
 
 /** Validate the config, compile it and freeze the result. Throws ConfigError. */
@@ -25,6 +37,8 @@ export function createSlugger(config?: SluggerConfig): Slugger {
     pattern: patternFor(cfg.separator),
     fingerprint: fp,
     isValid: (id: string) => isValidSlugResolved(id, cfg),
+    analyze: (title: string, opts?: AnalyzeOptions) =>
+      analyzeTitle(title, cfg, opts?.lang === undefined ? {} : { lang: opts.lang }),
   })
 }
 
@@ -54,4 +68,9 @@ function sluggerFor(config: SluggerConfig | undefined): Slugger {
  */
 export function isValidSlug(id: string, config?: SluggerConfig): boolean {
   return sluggerFor(config).isValid(id)
+}
+
+/** Analyze a title with the default slugger (SPEC 16.1). */
+export function analyze(title: string, opts?: AnalyzeOptions): Analysis {
+  return getDefaultSlugger().analyze(title, opts)
 }

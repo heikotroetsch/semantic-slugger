@@ -14,6 +14,9 @@ export type {
   SluggerConfig,
 } from './config.ts'
 export { DEFAULTS } from './config.ts'
+export type { Analysis, AnalysisConcept, AnalysisToken } from './core/analyze.ts'
+export type { Concept } from './core/concepts.ts'
+export type { RankRow } from './core/rank.ts'
 export type {
   AbortSignalLike,
   MaybePromise,
@@ -36,4 +39,4 @@ export {
 /** @experimental (SPEC 6.7) */
 export type { LanguagePack } from './lang/pack.ts'
 export type { Segment, SlugReason, SlugResult, SlugWarning, StoreTier } from './result.ts'
-export { createSlugger, isValidSlug, type Slugger } from './slugger.ts'
+export { type AnalyzeOptions, analyze, createSlugger, isValidSlug, type Slugger } from './slugger.ts'
