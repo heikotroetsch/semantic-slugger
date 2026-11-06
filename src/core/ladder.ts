@@ -23,6 +23,7 @@ export type RungKind =
   | 'head'
   | 'coda'
   | 'syll'
+  | 'bridge'
   | 'skeleton'
 
 /** One display form of a concept (SPEC 11.1). */
@@ -53,18 +54,51 @@ export interface Laddered extends ConceptX {
 
 /** Rung costs (SPEC 11.1). */
 export const RUNG_COST: Readonly<
-  Record<'abbrStep' | 'fullShort' | 'fullLong' | 'numberLong' | 'morph' | 'head' | 'coda' | 'syll' | 'skeleton', number>
+  Record<
+    'abbrStep' | 'fullShort' | 'fullLong' | 'numberLong' | 'morph' | 'head' | 'coda' | 'syll' | 'bridge' | 'skeleton',
+    number
+  >
 > = Object.freeze({
   abbrStep: 15,
   fullShort: 0,
   fullLong: 40,
   numberLong: 30,
   morph: 60,
-  head: 60,
+  head: 80,
   coda: 90,
   syll: 110,
-  skeleton: 200,
+  bridge: 70,
+  skeleton: 600,
 })
+
+/** Bridge cuts (docs/DEVIATIONS.md, quality round 1): words of this length or more. */
+export const BRIDGE_MIN_WORD = 10
+/** Bridge cut lengths. */
+export const BRIDGE_MIN = 8
+export const BRIDGE_MAX = 12
+/** Coda and syllable cuts of a bridgeable word are this long or longer. */
+export const SHORT_CUT = 5
+
+/**
+ * Bridge cuts (docs/DEVIATIONS.md, quality round 1): long prefixes of a long word that end on a
+ * consonant grapheme and, in a compound, reach at least two letters into the second part
+ * (`spesenab`, `versionshinw`). They keep the specific first part and the start of the head, and
+ * their many lengths let the fit fill the ID with letters of real words.
+ */
+export function bridgeCuts(ascii: string, firstPart: number): string[] {
+  if (ascii.length < BRIDGE_MIN_WORD) return []
+  const g = graphemes(ascii)
+  const ok: string[] = []
+  let len = 0
+  for (let i = 0; i < g.length - 1; i++) {
+    const u = g[i] as Grapheme
+    len += u.text.length
+    if (len < BRIDGE_MIN || len < firstPart + 2) continue
+    if (len > BRIDGE_MAX || len > ascii.length - 2) break
+    if (!u.vowel) ok.push(ascii.slice(0, len))
+  }
+  return ok
+}
 
 /** Rungs kept per concept (SPEC 11.1). */
 export const LADDER_SIZE = 4
@@ -271,6 +305,8 @@ interface Draft {
   kind: RungKind
   cost: number
   plain: boolean
+  /** A short cut of a long word: dropped unless no other rung passes the safety rules. */
+  short?: boolean
 }
 
 function fullCost(text: string): number {
@@ -458,6 +494,7 @@ function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
   }
   // cuts (no morph kind for names) and the skeleton (not for names)
   const ph = phonologyOf(comp.pack(c.lang)?.phonology)
+  const bridgeable = !isName && word.length >= BRIDGE_MIN_WORD
   for (const cut of cuts({ ascii: word, phonology: ph, boundaries, lexForm: (p) => comp.lexicon.hasExact(p) })) {
     if (isName && cut.kind === 'morph') continue
     out.push({
@@ -466,10 +503,16 @@ function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
       kind: cut.kind,
       cost: cut.cost,
       plain: cut.kind === 'morph' && plainPart(cut.text),
+      // a long word shows a bridge cut, not a short cut of 3 or 4 chars (docs/DEVIATIONS.md, quality round 1)
+      ...(bridgeable && cut.kind !== 'morph' && cut.text.length < SHORT_CUT ? { short: true } : {}),
     })
   }
   if (!isName) {
-    const sk = skeleton(word)
+    const firstPart = parts !== undefined && parts.length > 1 ? (parts[0] as PartInfo).text.length : 0
+    const bc = bridgeCuts(word, firstPart)
+    for (const b of bc) out.push({ text: b, segs: [b], kind: 'bridge', cost: RUNG_COST.bridge, plain: false })
+    // no skeleton when the word has bridge cuts (docs/DEVIATIONS.md, quality round 1)
+    const sk = bc.length > 0 ? null : skeleton(word)
     if (sk !== null) out.push({ text: sk, segs: [sk], kind: 'skeleton', cost: RUNG_COST.skeleton, plain: false })
   }
   return out
@@ -518,6 +561,7 @@ export function buildLadder(c: ConceptX, cfg: ResolvedConfig, comp: Compiled): L
     c.verbatim.includes(text) || tokenParts(c).some((p) => p.text === text) || (c.tok.parts ?? []).includes(text)
   const ownWords = new Set<string>([...(c.lex?.abbr ?? []), c.lex?.key ?? '', ...(c.lex?.forms ?? [])])
   const byText = new Map<string, Rung>()
+  const shortCuts = new Set(drafts.filter((d) => d.short === true).map((d) => d.text))
   for (const d of drafts) {
     const verbatim = verbatimOf(d.text)
     let rule: RejectedRung['rule'] | undefined
@@ -531,16 +575,35 @@ export function buildLadder(c: ConceptX, cfg: ResolvedConfig, comp: Compiled): L
       (comp.stop.words.has(d.text) || comp.lexicon.hasExact(d.text) || allAbbrs(comp).has(d.text))
     )
       rule = 'name'
+    else if (
+      (d.kind === 'coda' || d.kind === 'syll') &&
+      !ownWords.has(d.text) &&
+      (comp.stop.words.has(d.text) ||
+        comp.lexicon.exactAll(d.text).some((e) => e.partOnly !== true || comp.parts.get(c.lang) === undefined))
+    )
+      // a cut that is another known word misleads (`for` from `forecast`, `ein` from `einfluss`; in a
+      // language without compound data also a known part: `bus` from `business`; docs/DEVIATIONS.md,
+      // quality round 1)
+      rule = 'name'
     else if (c.score < LOW_SCORE && d.cost > LOW_SCORE_MAX_COST) rule = 'low-score'
     if (rule !== undefined) {
       rejected.push({ text: d.text, rule })
       continue
     }
-    const r: Rung = { ...d, verbatim }
+    const { short: _short, ...rest } = d
+    const r: Rung = { ...rest, verbatim }
     const old = byText.get(d.text)
     if (old === undefined || r.cost < old.cost || (r.cost === old.cost && r.plain && !old.plain)) byText.set(d.text, r)
   }
-  let ladder = [...byText.values()].sort(cmpRung).slice(0, LADDER_SIZE)
+  // the bridge cuts come on top of the LADDER_SIZE other rungs: the shortest, the middle and the
+  // longest one (docs/DEVIATIONS.md, quality round 1)
+  let all = [...byText.values()].sort(cmpRung)
+  const isShort = (r: Rung) => (r.kind === 'coda' || r.kind === 'syll') && shortCuts.has(r.text)
+  if (all.some((r) => !isShort(r))) all = all.filter((r) => !isShort(r))
+  const bridges = all.filter((r) => r.kind === 'bridge')
+  const pick =
+    bridges.length <= 3 ? bridges : [0, bridges.length >> 1, bridges.length - 1].map((i) => bridges[i] as Rung)
+  let ladder = [...all.filter((r) => r.kind !== 'bridge').slice(0, LADDER_SIZE), ...pick].sort(cmpRung)
   if (cfg.consistentRungs) ladder = ladder.slice(0, 1)
   return { ...c, ladder, rejected }
 }

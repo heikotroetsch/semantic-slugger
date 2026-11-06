@@ -63,10 +63,14 @@ describe('resolve branches (SPEC 13.4)', () => {
   })
 
   it('shared-body with an empty diff: identical, case variant and plural variant keep the body', async () => {
+    // the first copy is body-only (a fill segment takes the padding room, quality round 1); the later
+    // copies refit to one tailed body with the same content
     const id = await seq(['Team Lunch Friday', 'Team Lunch Friday', 'Team Lunch Friday'])
     expect(id.out.map((r) => r.reason)).toEqual(['base', 'shared-body', 'shared-body'])
-    expect(new Set(id.out.map((r) => r.body)).size).toBe(1)
-    expect(id.out.map((r) => r.tailIndex)).toEqual([0, 1, 2])
+    expect(id.out[0]?.tail).toBe('')
+    expect(id.out[0]?.body.startsWith(id.out[1]?.body ?? '?')).toBe(true)
+    expect(new Set(id.out.slice(1).map((r) => r.body)).size).toBe(1)
+    expect(id.out.map((r) => r.tailIndex)).toEqual([0, 0, 1])
 
     const cs = await seq(['Chocolate Cake Recipe', 'chocolate cake recipe', 'CHOCOLATE cake recipe'])
     expect(cs.out[1]).toMatchObject({ reason: 'shared-body', body: 'choc-cake-rec' })

@@ -90,7 +90,7 @@ describe('skeleton (SPEC 11.4)', () => {
 describe('ladders (SPEC 11.1, 12.2)', () => {
   it('Jahresbericht Vertrieb Nord 2026', () => {
     const t = 'Jahresbericht Vertrieb Nord 2026'
-    expect(show(ladderOf(t, 'vertrieb'))).toEqual(['vertrieb(40)', 'ver(110*)', 'vert(110*)', 'vtb(200*)'])
+    expect(show(ladderOf(t, 'vertrieb'))).toEqual(['vertrieb(40)', 'ver(110*)', 'vert(110*)', 'vtb(600*)'])
     expect(show(ladderOf(t, 'nord'))).toEqual(['nord(0)'])
     expect(show(ladderOf(t, 'y2026'))).toEqual(['26(0)', '2026(30)'])
   })
@@ -105,7 +105,7 @@ describe('ladders (SPEC 11.1, 12.2)', () => {
 
   it('Chocolate Cake Recipe', () => {
     const t = 'Chocolate Cake Recipe'
-    expect(show(ladderOf(t, 'chocolate'))).toEqual(['chocolate(40)', 'choc(90*)', 'chocol(90*)', 'chct(200*)'])
+    expect(show(ladderOf(t, 'chocolate'))).toEqual(['chocolate(40)', 'choc(90*)', 'chocol(90*)', 'chct(600*)'])
     expect(show(ladderOf(t, 'cake'))).toEqual(['cake(0)'])
   })
 
@@ -118,7 +118,8 @@ describe('ladders (SPEC 11.1, 12.2)', () => {
 
   it('compounds: morph and head rungs are cryptic; joined known abbr is plain', () => {
     const c = ladderOf('Sommerfest 2026', 'sommerfest')
-    expect(show(c)).toEqual(['sommerfest(40)', 'fest(60*)', 'sommer(60*)', 'somm(90*)'])
+    // the head rung costs more than the morph rung (docs/DEVIATIONS.md, quality round 1)
+    expect(show(c)).toEqual(['sommerfest(40)', 'sommer(60*)', 'fest(80*)', 'sommerf(90*)'])
     const k = ladderOf('Kindertagesstättenfest 2026', ladders('Kindertagesstättenfest 2026')[0]?.key ?? '')
     expect(k.ladder[0]).toMatchObject({ text: 'kitafest', kind: 'joined', cost: 0, plain: true })
   })
@@ -293,7 +294,8 @@ describe('safety on rungs (SPEC 9.2)', () => {
       // the typed form stays a verbatim form of the concept
       expect(lb.verbatim).not.toContain(key)
     }
-    expect(texts(ladderOf('Besprechungen Vertrieb Nord', 'besprechung'))).toContain('bspg')
+    // a long word gets a bridge cut and no skeleton (docs/DEVIATIONS.md, quality round 1)
+    expect(texts(ladderOf('Besprechungen Vertrieb Nord', 'besprechung'))).toContain('besprech')
     // a form with another stem keeps the typed word (`kita` is a form of `kindertagesstaette`)
     expect(texts(ladderOf('Kita Fest', 'kindertagesstaette'))).toContain('kita')
     expect(texts(ladderOf('Kita Fest', 'kindertagesstaette'))).not.toContain('kindertagesstaette')

@@ -263,7 +263,8 @@ describe('transactions (SPEC 13.5)', () => {
     const b = await create('Team Offsite Planning', 'tenant-1')
     expect(rounds).toBe(3)
     expect(b.slug).not.toBe(a.slug)
-    expect(b.slugBody).toBe(a.slugBody)
+    // the first copy may be body-only with a fill segment (quality round 1); the copy keeps its content
+    expect(String(a.slugBody).startsWith(String(b.slugBody))).toBe(true)
     const c = await create('Team Offsite Planning', 'tenant-2')
     expect(c.slug).toBe(a.slug)
   })

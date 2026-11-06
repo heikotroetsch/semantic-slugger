@@ -15,13 +15,13 @@
     "id": "t003",
     "kind": "blog",
     "title": "Gartenarbeit im Herbst: Was jetzt zu tun ist",
-    "slug": "gartenarbeit-tun"
+    "slug": "gartenarb-herbst"
   },
   {
     "id": "t004",
     "kind": "blog",
     "title": "Mein erstes Jahr als Freelancerin in Leipzig",
-    "slug": "jahr-leipzig-p25"
+    "slug": "freelanc-leipzig"
   },
   {
     "id": "t025",
@@ -33,43 +33,43 @@
     "id": "t026",
     "kind": "news",
     "title": "Hochwasser in Passau: Pegel sinkt langsam",
-    "slug": "passau-peg-sinkt"
+    "slug": "hochwasser-pegel"
   },
   {
     "id": "t027",
     "kind": "news",
     "title": "Bahnstreik legt Fernverkehr am Montag lahm",
-    "slug": "legt-lahm-montag"
+    "slug": "fernverkehr-lahm"
   },
   {
     "id": "t028",
     "kind": "news",
     "title": "Neue Studie: Deutsche lesen wieder mehr Bücher",
-    "slug": "studie-dtsc-buch"
+    "slug": "studie-buch-dtsc"
   },
   {
     "id": "t048",
     "kind": "product",
     "title": "Kabellose Kopfhörer Lumora Air mit Geräuschunterdrückung",
-    "slug": "kab-kopf-lum-air"
+    "slug": "kab-kopfhoer-air"
   },
   {
     "id": "t049",
     "kind": "product",
     "title": "Edelstahl-Wasserkocher 1,7 Liter, mattschwarz",
-    "slug": "edel-mattschwarz"
+    "slug": "mattschwarz-edel"
   },
   {
     "id": "t050",
     "kind": "product",
     "title": "Kinderfahrrad 16 Zoll mit Stützrädern",
-    "slug": "kind-stzn-16inch"
+    "slug": "kinderfah-stuetz"
   },
   {
     "id": "t051",
     "kind": "product",
     "title": "Ergonomischer Bürostuhl Veltrion Comfort",
-    "slug": "erg-buer-comfort"
+    "slug": "ergon-buero-velt"
   },
   {
     "id": "t072",
@@ -81,7 +81,7 @@
     "id": "t073",
     "kind": "ticket",
     "title": "VPN-Verbindung bricht nach 10 Minuten ab",
-    "slug": "vpn-bricht-10min"
+    "slug": "vpnverbind-10min"
   },
   {
     "id": "t074",
@@ -93,13 +93,13 @@
     "id": "t096",
     "kind": "meeting",
     "title": "Wöchentliches Team-Meeting Marketing",
-    "slug": "marketing-kwxh48"
+    "slug": "teammeeting-mktg"
   },
   {
     "id": "t097",
     "kind": "meeting",
     "title": "Retrospektive Sprint 14",
-    "slug": "ret-sprint14-zpd"
+    "slug": "retrospektive-zp"
   },
   {
     "id": "t098",
@@ -111,55 +111,55 @@
     "id": "t120",
     "kind": "recipe",
     "title": "Omas Apfelstrudel mit Vanillesoße",
-    "slug": "apfelstrudel-van"
+    "slug": "omas-apfelstr-va"
   },
   {
     "id": "t121",
     "kind": "recipe",
     "title": "Schnelle Linsensuppe mit Kokosmilch",
-    "slug": "schnelle-lin-kok"
+    "slug": "linsens-kokosmil"
   },
   {
     "id": "t122",
     "kind": "recipe",
     "title": "Käsespätzle wie im Allgäu",
-    "slug": "kaes-allgaeu-nwq"
+    "slug": "kaesespaetzle-al"
   },
   {
     "id": "t144",
     "kind": "research",
     "title": "Einfluss von Lichtverschmutzung auf nachtaktive Insekten in Mitteleuropa",
-    "slug": "ein-ins-mitteleu"
+    "slug": "einf-licht-insek"
   },
   {
     "id": "t145",
     "kind": "research",
     "title": "Eine empirische Untersuchung zur Lesekompetenz von Grundschulkindern",
-    "slug": "emp-unters-lesek"
+    "slug": "empirische-lesek"
   },
   {
     "id": "t146",
     "kind": "research",
     "title": "Messung der Bodenfeuchte mit kostengünstigen Sensoren",
-    "slug": "messung-bod-sens"
+    "slug": "messung-sensoren"
   },
   {
     "id": "t166",
     "kind": "event",
     "title": "Sommerfest im Stadtpark 2026",
-    "slug": "sommer-park-2026"
+    "slug": "sommerf-stadt-26"
   },
   {
     "id": "t167",
     "kind": "event",
     "title": "Weihnachtsmarkt am Rathausplatz",
-    "slug": "weih-rathaus-jw9"
+    "slug": "weihnach-rathaus"
   },
   {
     "id": "t168",
     "kind": "event",
     "title": "Jazzabend im Kulturhaus Lindenhof",
-    "slug": "jazzab-haus-lind"
+    "slug": "jazzabend-kultur"
   },
   {
     "id": "t190",
@@ -171,13 +171,13 @@
     "id": "t191",
     "kind": "legal",
     "title": "Datenschutzerklärung für die Website",
-    "slug": "daten-website-rr"
+    "slug": "datensch-website"
   },
   {
     "id": "t192",
     "kind": "legal",
     "title": "Allgemeine Geschäftsbedingungen Onlineshop",
-    "slug": "gscn-shop-online"
+    "slug": "geschaeftsb-shop"
   },
   {
     "id": "t213",
@@ -189,13 +189,13 @@
     "id": "t214",
     "kind": "hr",
     "title": "Onboarding-Checkliste für neue Mitarbeitende",
-    "slug": "checkliste-ma-wt"
+    "slug": "onboarding-mitar"
   },
   {
     "id": "t215",
     "kind": "hr",
     "title": "Urlaubsantrag Sommerferien",
-    "slug": "url-sommerferien"
+    "slug": "urlaub-sommerfer"
   },
   {
     "id": "t234",
@@ -225,13 +225,13 @@
     "id": "t256",
     "kind": "education",
     "title": "Stundenplan Wintersemester",
-    "slug": "stundenplan-wint"
+    "slug": "stundenp-winters"
   },
   {
     "id": "t257",
     "kind": "education",
     "title": "Hausaufgabe: Gedichtinterpretation Erlkönig",
-    "slug": "haus-ged-erlkoen"
+    "slug": "hausaufg-gedicht"
   },
   {
     "id": "t278",
@@ -249,13 +249,13 @@
     "id": "t280",
     "kind": "finance",
     "title": "Kreditvertrag Baufinanzierung",
-    "slug": "kredit-baufin-w2"
+    "slug": "kredit-baufinanz"
   },
   {
     "id": "t301",
     "kind": "software",
     "title": "Neue Exportfunktion für Berichte",
-    "slug": "export-xh7qs9f7b"
+    "slug": "exportfun-berich"
   },
   {
     "id": "t302",
@@ -267,31 +267,31 @@
     "id": "t303",
     "kind": "software",
     "title": "Performance-Verbesserungen in der Suche",
-    "slug": "perf-suche-x4rwm"
+    "slug": "perform-suche-x4"
   },
   {
     "id": "t325",
     "kind": "marketing",
     "title": "Newsletter Oktober: Herbstaktion",
-    "slug": "new-herbstaktion"
+    "slug": "herbstaktion-okt"
   },
   {
     "id": "t326",
     "kind": "marketing",
     "title": "Social-Media-Plan Weihnachten",
-    "slug": "socialmedia-weih"
+    "slug": "social-weihnacht"
   },
   {
     "id": "t327",
     "kind": "marketing",
     "title": "Landingpage für Produktlaunch",
-    "slug": "landingpage-prod"
+    "slug": "landing-produktl"
   },
   {
     "id": "t348",
     "kind": "travel",
     "title": "Rundreise durch Portugal in zwei Wochen",
-    "slug": "run-portug-woche"
+    "slug": "reise-port-woche"
   },
   {
     "id": "t349",
@@ -309,7 +309,7 @@
     "id": "t370",
     "kind": "realestate",
     "title": "3-Zimmer-Wohnung mit Balkon in Leipzig-Plagwitz",
-    "slug": "zimm-balkon-leip"
+    "slug": "zimmerwoh-balkon"
   },
   {
     "id": "t371",
@@ -327,7 +327,7 @@
     "id": "t393",
     "kind": "procurement",
     "title": "Rahmenvertrag Büromaterial",
-    "slug": "rahmen-buerom-tw"
+    "slug": "vertrag-bueromat"
   },
   {
     "id": "t394",
@@ -339,7 +339,7 @@
     "id": "t395",
     "kind": "procurement",
     "title": "Bestellung Arbeitsschutzkleidung",
-    "slug": "bestell-arb-tpdv"
+    "slug": "bestell-arbeitss"
   },
   {
     "id": "t414",
@@ -351,13 +351,13 @@
     "id": "t415",
     "kind": "project",
     "title": "Statusbericht Digitalisierung Kundenservice",
-    "slug": "digit-service-qc"
+    "slug": "digitalis-kunden"
   },
   {
     "id": "t416",
     "kind": "project",
     "title": "Risikoanalyse Rollout CRM",
-    "slug": "rsks-rollout-crm"
+    "slug": "risikoan-rollout"
   },
   {
     "id": "t451",
@@ -393,7 +393,7 @@
     "id": "t456",
     "kind": "edge",
     "title": "Projekt Planung​2026",
-    "slug": "projekt-plg-2026"
+    "slug": "proj-planung-vp8"
   },
   {
     "id": "t457",
@@ -519,25 +519,25 @@
     "id": "t477",
     "kind": "edge",
     "title": "🎉🎂 Geburtstag Oma 🎂🎉",
-    "slug": "geburt-oma-b3mvq"
+    "slug": "geburtst-oma-b3m"
   },
   {
     "id": "t478",
     "kind": "edge",
     "title": "👨‍👩‍👧‍👦 Family Trip Planning",
-    "slug": "family-trip-q5n8"
+    "slug": "family-trip-plan"
   },
   {
     "id": "t479",
     "kind": "edge",
     "title": "QUARTERLY ALL HANDS MEETING - URGENT!!!",
-    "slug": "allhands-j7yyczr"
+    "slug": "allhands-meeting"
   },
   {
     "id": "t480",
     "kind": "edge",
     "title": "WICHTIG: SERVERWARTUNG HEUTE NACHT",
-    "slug": "svwg-heute-nacht"
+    "slug": "serverwart-nacht"
   },
   {
     "id": "t481",
@@ -555,13 +555,13 @@
     "id": "t483",
     "kind": "edge",
     "title": "Hello, World! (Again?) [Draft] {v2}",
-    "slug": "hello-world-w8c4"
+    "slug": "hello-world-agai"
   },
   {
     "id": "t484",
     "kind": "edge",
     "title": "Vertrag_v2_FINAL_final(3).docx",
-    "slug": "vertrag-v2-bjvy5"
+    "slug": "vertrag-v2-final"
   },
   {
     "id": "t485",
@@ -585,19 +585,19 @@
     "id": "t488",
     "kind": "edge",
     "title": "Node.js vs. Deno: Benchmark 2026",
-    "slug": "js-vs-deno-bench"
+    "slug": "node-js-vs-bench"
   },
   {
     "id": "t489",
     "kind": "edge",
     "title": "Abschlussbericht zum dreijährigen Forschungs- und Entwicklungsprojekt über die Verbesserung der Wasserqualität in kleinen Seen und Teichen durch naturnahe Uferbepflanzung, regelmäßige Messungen von Sauerstoff, Nitrat und Phosphat, die Einbindung von Schulklassen und Bürgerinitiativen sowie Empfehlungen für Gemeinden, Landwirte und Naturschutzverbände in Bayern, Baden-Württemberg und Thüringen, Teil 1 bis Teil 4",
-    "slug": "entw-schul-baden"
+    "slug": "abschluss-schulk"
   },
   {
     "id": "t490",
     "kind": "edge",
     "title": "A comprehensive step-by-step guide to planning, building and maintaining a small vegetable garden on a city balcony, including soil selection, container sizes, watering schedules, companion planting, pest control without chemicals, seasonal planting calendars for spring, summer and autumn, and tips from experienced urban gardeners in London, Berlin and Toronto, updated for the 2026 season",
-    "slug": "step-lon-ber-tor"
+    "slug": "step-london-berl"
   },
   {
     "id": "t491",
@@ -693,7 +693,7 @@
     "id": "t506",
     "kind": "edge",
     "title": "Shiitake Risotto Recipe",
-    "slug": "shiit-ris-recipe"
+    "slug": "shiitake-risotto"
   },
   {
     "id": "t507",
@@ -711,13 +711,13 @@
     "id": "t509",
     "kind": "edge",
     "title": "Sexton Family Reunion",
-    "slug": "sexton-family-bq"
+    "slug": "sexton-family-re"
   },
   {
     "id": "t510",
     "kind": "edge",
     "title": "Scunthorpe Town Walking Tour",
-    "slug": "town-wal-tour-qm"
+    "slug": "town-wal-tour-sc"
   },
   {
     "id": "t511",
@@ -729,7 +729,7 @@
     "id": "t512",
     "kind": "edge",
     "title": "Titanium Bike Frame Review",
-    "slug": "ttnm-bike-review"
+    "slug": "titanium-bike-fr"
   },
   {
     "id": "t513",
@@ -741,13 +741,13 @@
     "id": "t514",
     "kind": "edge",
     "title": "Kotflügel austauschen Anleitung",
-    "slug": "ktfl-austauschen"
+    "slug": "kotfluegel-austa"
   },
   {
     "id": "t515",
     "kind": "edge",
     "title": "Scheibenwischer wechseln leicht gemacht",
-    "slug": "wechseln-gemacht"
+    "slug": "scheiben-wechsel"
   },
   {
     "id": "t516",
@@ -801,7 +801,7 @@
     "id": "t524",
     "kind": "edge",
     "title": "Übergabe Größe Prüfung",
-    "slug": "ueberg-pfg-gross"
+    "slug": "ueb-pruefung-gro"
   },
   {
     "id": "t525",
@@ -825,19 +825,19 @@
     "id": "t528",
     "kind": "edge",
     "title": "Donaudampfschifffahrtsgesellschaftskapitänsmütze",
-    "slug": "donaud-w96yb3hp6"
+    "slug": "donaudampf-w96yb"
   },
   {
     "id": "t529",
     "kind": "edge",
     "title": "Kraftfahrzeughaftpflichtversicherungsbeitragsrechner",
-    "slug": "kraft-f3j58vh849"
+    "slug": "kraftfahrz-f3j58"
   },
   {
     "id": "t530",
     "kind": "edge",
     "title": "Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz",
-    "slug": "rind-cgdkvwvh7qb"
+    "slug": "rindfleisch-cgdk"
   },
   {
     "id": "t531",
@@ -873,7 +873,7 @@
     "id": "t564",
     "kind": "edge",
     "title": "20 % Rabatt auf Wintermode",
-    "slug": "rabatt-wint-d79x"
+    "slug": "rabatt-winter-d7"
   },
   {
     "id": "t565",
@@ -915,7 +915,7 @@
     "id": "t583",
     "kind": "edge",
     "title": "Trip report from Lisbon",
-    "slug": "trip-lisbon-zchf"
+    "slug": "trip-lisbon-repo"
   },
   {
     "id": "t591",

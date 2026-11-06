@@ -11,8 +11,18 @@ import { bodyBlocked, fold, hardHitIn, hasLookalikePair, rungBlocked, segmentBlo
 
 /** Fit costs (SPEC 11.1, 12). */
 export const FIT_COST: Readonly<{ cryptic: number; chunk: number; tailBase: number; tailStep: number }> = Object.freeze(
-  { cryptic: 40, chunk: 60, tailBase: 250, tailStep: 50 },
+  {
+    cryptic: 40,
+    chunk: 80,
+    tailBase: 250,
+    tailStep: 50,
+  },
 )
+
+/** Shortest fill segment (docs/DEVIATIONS.md, quality round 1). */
+export const FILL_MIN = 2
+/** A fill costs what a tail of its length costs, but never more than a tail of this length. */
+export const FILL_COST_CAP = 3
 
 /** Slots of the body: T topic, Q qualifier, N number and time (SPEC 2.1). */
 const SLOT: Readonly<Record<ConceptClass, number>> = Object.freeze({
@@ -83,6 +93,62 @@ export interface FitConstraint {
   readonly onlyContent?: string
   /** Override of `cfg.maxSegments` (fallback chain, SPEC 12). */
   readonly maxSegments?: number
+  /**
+   * Concepts (in rank order, weak ones included) whose words may fill the room of a padding tail
+   * (docs/DEVIATIONS.md, quality round 1). Empty or missing: no fill segments.
+   */
+  readonly fill?: readonly Laddered[]
+}
+
+/** Classes whose word may be cut to any prefix for a fill segment. */
+const FILL_WORD: ReadonlySet<ConceptClass> = new Set<ConceptClass>([
+  'topic',
+  'name',
+  'acronym',
+  'attr',
+  'qualifier',
+  'place',
+  'direction',
+  'region',
+])
+
+/**
+ * The fill segment for `room` chars (docs/DEVIATIONS.md, quality round 1): instead of a padding tail,
+ * the first title word in rank order that the body does not show. It costs what the tail costs, so it
+ * never changes which content the fit picks. A rung of exactly `room` chars, or for word classes the
+ * first `room` chars of the full word. Null when no unused concept gives a safe text.
+ */
+function fillSegment(
+  fill: readonly Laddered[],
+  used: ReadonlySet<string>,
+  room: number,
+  cfg: ResolvedConfig,
+  cache: Map<string, boolean>,
+): FitSeg | null {
+  if (room < FILL_MIN) return null
+  for (const u of fill) {
+    if (used.has(u.key) || u.cls === 'model' || u.ladder.length === 0) continue
+    const exact = u.ladder.find((r) => r.segs.length === 1 && r.text.length === room)
+    let text: string | undefined = exact?.text
+    let rung: Rung | undefined = exact
+    if (text === undefined && FILL_WORD.has(u.cls)) {
+      const full = u.ladder.find((r) => r.kind === 'full')?.text ?? u.display
+      if (full.length > room && /^[a-z0-9]+$/.test(full)) {
+        text = full.slice(0, room)
+        rung = { text, segs: [text], kind: 'coda', cost: 0, plain: false, verbatim: false }
+      }
+    }
+    if (text === undefined || rung === undefined || !/[a-z]/.test(text) || !joinedOk(text, cfg, cache)) continue
+    return {
+      text,
+      kind: segKind(u.cls),
+      cryptic: !rung.plain,
+      verbatim: rung.verbatim,
+      concepts: [u],
+      rungs: [rung],
+    }
+  }
+  return null
 }
 
 function cmpStr(a: string, b: string): number {
@@ -323,6 +389,7 @@ function safeBody(segs: readonly FitSeg[], body: string, tailLen: number, cfg: R
 export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constraint: FitConstraint = {}): Candidate[] {
   const maxSeg = Math.min(constraint.maxSegments ?? cfg.maxSegments, cfg.leak === 'minimal' ? 3 : 5)
   const minTail = constraint.minTail ?? 0
+  const fill = cfg.leak === 'normal' && cfg.lengthMode === 'exact' ? (constraint.fill ?? []) : []
   const rank = rankIndex(pool)
   const n = pool.length
   const keyOf = (c: Laddered) => c.key
@@ -355,6 +422,7 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
     if (best.length >= maxPlans && lb > (best[maxPlans - 1] as Candidate).cost) break
     const content = [...s].sort(rankOrder)
     const contentKey = contentKeyOf(s)
+    const used = new Set(s.map(keyOf))
     let top: Candidate | undefined
     // cheapest rung cost of concepts i.. (for pruning)
     const restMin: number[] = new Array<number>(s.length + 1).fill(0)
@@ -374,30 +442,40 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
       // max mode: a reserved body without a tail gets a forced tail (SPEC 9.3)
       if (cfg.lengthMode === 'max' && tails[0] === 0 && cfg.reserved.includes(body))
         tails = tailOptions(body.length, cfg, Math.max(cfg.tailMin, minTail))
-      for (const t of tails) {
-        const cryptic = FIT_COST.cryptic * segs.filter((x) => x.cryptic).length
-        const chunks = FIT_COST.chunk * Math.max(0, segs.length - 2)
-        const tail = tailCost(t, cfg)
+      const cryptic = FIT_COST.cryptic * segs.filter((x) => x.cryptic).length
+      const chunks = FIT_COST.chunk * Math.max(0, segs.length - 2)
+      const offer = (all: readonly FitSeg[], text: string, t: number, tail: number): void => {
         const cost = rungCost + cryptic + lost + chunks + tail
-        if (cost > limit()) continue
-        const sk = `${t === 0 ? 0 : 1}|${segs.map((x) => (x.verbatim ? '1' : '0')).join('')}|${body}`
+        if (cost > limit()) return
+        const sk = `${t === 0 ? 0 : 1}|${all.map((x) => (x.verbatim ? '1' : '0')).join('')}|${text}`
         let ok = safeCache.get(sk)
         if (ok === undefined) {
-          ok = safeBody(segs, body, t, cfg)
+          ok = safeBody(all, text, t, cfg)
           safeCache.set(sk, ok)
         }
-        if (!ok) continue
+        if (!ok) return
         const c: Candidate = {
-          body,
-          segs,
+          body: text,
+          segs: all,
           tailLen: t,
           content,
           contentKey,
           cost,
           parts: { rungs: rungCost, cryptic, lost, chunks, tail },
-          idLength: body.length + (t === 0 ? 0 : cfg.separator.length + t),
+          idLength: text.length + (t === 0 ? 0 : cfg.separator.length + t),
         }
         if (top === undefined || compareCandidates(c, top, rank) < 0) top = c
+      }
+      for (const t of tails) {
+        // padding policy: a fill segment from an unused title word takes the room of a padding tail
+        if (t > 0 && minTail === 0 && fill.length > 0 && segs.length < maxSeg) {
+          const f = fillSegment(fill, used, t, cfg, bondCache)
+          if (f !== null) {
+            offer([...segs, f], body + cfg.separator + f.text, 0, tailCost(Math.min(t, FILL_COST_CAP), cfg))
+            continue
+          }
+        }
+        offer(segs, body, t, tailCost(t, cfg))
       }
     }
     // rung combinations in odometer order (last concept fastest); a branch whose lower bound is above

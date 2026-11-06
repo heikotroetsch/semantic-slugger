@@ -19,7 +19,7 @@ export const procurement = createSlugger(procurementConfig)
 /** Title -> ID with this config, alone (no store). */
 export const procurementExamples: Readonly<Record<string, string>> = {
   'Rahmenvertrag Stromlieferung Standorte Nord 2026': 'rv-strom-nord-26',
-  'Rahmenverträge Büromaterial 2027': 'rv-bueromaterial',
+  'Rahmenverträge Büromaterial 2027': 'rv-bueromater-27',
   'Leistungsverzeichnis Gebäudereinigung Los 1': 'lv-gebaeude-los1',
   'Leistungsverzeichnis Gebäudereinigung Los 2': 'lv-gebaeude-los2',
 }

@@ -100,8 +100,8 @@ describe('stored stems (SPEC 8.2)', () => {
   })
 
   it('und tokens use the plural fold: plural near-duplicates share stems', () => {
-    expect(doc('Chocolate Cake Recipes').front.lang).toBe('und')
-    expect(stems('Chocolate Cake Recipes')).toEqual(stems('Chocolate Cake Recipe'))
+    expect(doc('Chocolate Cake Muffins').front.lang).toBe('und')
+    expect(stems('Chocolate Cake Muffins')).toEqual(stems('Chocolate Cake Muffin'))
     expect(stems('Bus Status Analysis')).toEqual(['analysis', 'bus', 'status'])
   })
 

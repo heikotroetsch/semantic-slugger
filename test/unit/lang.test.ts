@@ -38,7 +38,9 @@ describe('title language (SPEC 6.1)', () => {
   })
 
   it('no hints: und; a tie: defaultLang', () => {
-    const f = front('Chocolate Cake Recipe')
+    // `recipe` is a doc-kind entry (docs/DEVIATIONS.md, quality round 1), so it gives an `en` hint
+    expect(front('Chocolate Cake Recipe').lang).toBe('en')
+    const f = front('Chocolate Cake Deluxe')
     expect(f.lang).toBe('und')
     expect(f.language.source).toBe('heuristic')
     const t = front('Meeting Besprechung')

@@ -5,6 +5,7 @@
  */
 
 import type { ConceptClass, ResolvedConfig } from '../config.ts'
+import { WEAK_NO_SHOW } from '../data/v1/weak.ts'
 import { type ConceptX, conceptDf } from './concepts.ts'
 
 /** Class weights (SPEC 10.1). `topic` is split into lexicon and unknown topics. */
@@ -13,7 +14,7 @@ export const CLASS_WEIGHT: Readonly<Record<ConceptClass, number>> = Object.freez
   name: 260,
   acronym: 240,
   place: 200,
-  marker: 180,
+  marker: 200,
   year: 160,
   range: 160,
   direction: 140,
@@ -23,7 +24,7 @@ export const CLASS_WEIGHT: Readonly<Record<ConceptClass, number>> = Object.freez
   month: 140,
   week: 140,
   attr: 120,
-  version: 120,
+  version: 160,
   model: 120,
   longnum: 120,
   code: 100,
@@ -61,11 +62,18 @@ export const NUMBER_CLASSES: ReadonlySet<ConceptClass> = new Set<ConceptClass>([
 export const RARITY_NUMBER = 50
 export const BLEND_K = 200
 /** Position bonus of the T concepts in title order (SPEC 10.3, rev 3.1). */
-export const POSITION_BONUS: readonly number[] = [60, 30, 15, 8, 4]
+export const POSITION_BONUS: readonly number[] = [90, 45, 20, 10, 5]
 export const TF_BONUS = 40
 export const DIFF_BOOST = 300
 export const POOL_MIN_SCORE = 100
 export const POOL_SIZE = 6
+/**
+ * Score of a weak concept that fills a free pool slot (docs/DEVIATIONS.md, quality round 1): low, so
+ * it is cheap to drop, but the fit may show it instead of a long padding tail.
+ */
+export const WEAK_POOL_SCORE = 50
+/** Weak concepts join the pool only when it holds at most this many other concepts. */
+export const WEAK_POOL_MAX = 1
 
 /** Classes of slot T that get the position bonus (not attr). */
 const T_BONUS: ReadonlySet<ConceptClass> = new Set<ConceptClass>(['topic', 'name', 'acronym'])
@@ -184,8 +192,9 @@ export function rankConcepts(concepts: readonly ConceptX[], cfg: ResolvedConfig,
   const n = stats === undefined ? undefined : (stats.N ?? cfg.corpusSize)
   // position bonus: non-weak T concepts in title order
   const bonus = new Map<ConceptX, number>()
+  // doc-kind words (negative lexicon weight) take no position bonus (docs/DEVIATIONS.md, quality round 1)
   concepts
-    .filter((c) => !c.weak && T_BONUS.has(c.cls))
+    .filter((c) => !c.weak && T_BONUS.has(c.cls) && (c.lex?.weight ?? 0) >= 0)
     .sort((a, b) => a.pos - b.pos || cmpStr(a.key, b.key))
     .forEach((c, i) => {
       bonus.set(c, POSITION_BONUS[i] ?? 0)
@@ -209,15 +218,28 @@ export function rankConcepts(concepts: readonly ConceptX[], cfg: ResolvedConfig,
   const excluded: { key: string; why: ExcludeWhy }[] = []
   const pool: ConceptX[] = []
   const hasRung = opts.hasRung ?? (() => true)
+  const weakOnes: ConceptX[] = []
   for (const c of scored) {
     let why: ExcludeWhy | undefined
-    if (c.weak) why = 'weak'
-    else if (cfg.leak === 'opaque' || (cfg.leak === 'minimal' && MINIMAL_DROP.has(c.cls))) why = 'leak'
+    if (c.weak) {
+      if (cfg.leak === 'normal' && !WEAK_NO_SHOW.has(c.lex?.key ?? '') && hasRung(c)) {
+        weakOnes.push(c)
+        continue
+      }
+      why = 'weak'
+    } else if (cfg.leak === 'opaque' || (cfg.leak === 'minimal' && MINIMAL_DROP.has(c.cls))) why = 'leak'
     else if (c.score < POOL_MIN_SCORE) why = 'below-100'
     else if (!hasRung(c)) why = 'no-rung'
     else if (pool.length >= POOL_SIZE) why = 'pool-full'
     if (why === undefined) pool.push(c)
     else excluded.push({ key: c.key, why })
+  }
+  // with one concept or less in the pool, weak concepts take the free slots with a low score
+  // (docs/DEVIATIONS.md, quality round 1)
+  const room = pool.length <= WEAK_POOL_MAX ? POOL_SIZE : 0
+  for (const c of weakOnes) {
+    if (pool.length >= room) excluded.push({ key: c.key, why: 'weak' })
+    else pool.push({ ...c, score: Math.min(c.score, WEAK_POOL_SCORE) })
   }
   return {
     concepts: scored,

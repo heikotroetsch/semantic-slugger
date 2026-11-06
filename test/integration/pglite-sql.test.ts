@@ -178,7 +178,8 @@ describe('sqlStore (SPEC 17.3)', () => {
     expect(one.record).toBe(1)
     expect(two.record).toBe(2)
     expect(two.result.id).not.toBe(one.result.id)
-    expect(two.result.body).toBe(one.result.body)
+    // the first copy may be body-only with a fill segment (quality round 1); the copy keeps its content
+    expect(one.result.body.startsWith(two.result.body)).toBe(true)
     expect(two.result.storeTier).toBe('C')
     expect(await store.total({ scope: 't1' })).toBe(2)
   })
@@ -263,7 +264,8 @@ describe('ID parity with the memory store (tier C)', () => {
     }
     expect(a).toEqual(b)
     expect(new Set(a).size).toBe(40)
-    expect(k).toEqual(Array.from({ length: 40 }, (_, i) => i))
+    // the first copy is body-only with a fill segment (quality round 1); the others walk the tail index
+    expect(k).toEqual([0, ...Array.from({ length: 39 }, (_, i) => i)])
   })
 
   it('a sibling that differs re-picks (tier C) as with the memory store', async () => {

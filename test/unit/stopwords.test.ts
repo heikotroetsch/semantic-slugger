@@ -22,7 +22,8 @@ describe('stop word tiers (SPEC 6.3)', () => {
       'leipzig:topic',
     ])
     expect(kept('Cannot reset password')).toEqual(['reset:topic', 'password:topic'])
-    expect(kept('Best Ever Banana Bread')).toEqual(['best:topic', 'banana:topic', 'bread:topic'])
+    // `best` is a weak filler word (docs/DEVIATIONS.md, quality round 1)
+    expect(kept('Best Ever Banana Bread')).toEqual(['best:topic~weak', 'banana:topic', 'bread:topic'])
     expect(kept("Why the Build Doesn't Start")).toEqual(['build:topic', 'start:topic'])
   })
 
@@ -124,7 +125,8 @@ describe('attr words (SPEC 6.4)', () => {
   })
 
   it('EN suffixes', () => {
-    expect(kept('Ten Houseplants That Survive Any Office')).toContain('survive:attr')
+    // `survive` is a weak filler word since quality round 1 (docs/DEVIATIONS.md)
+    expect(kept('Massive Houseplants for Any Office')).toContain('massive:attr')
     expect(kept('Quickly Delivered Gifts for Everyone')).toEqual(
       expect.arrayContaining(['quickly:attr', 'delivered:attr']),
     )

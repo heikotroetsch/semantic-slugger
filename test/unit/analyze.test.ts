@@ -12,7 +12,7 @@ describe('analyze() (SPEC 16.1)', () => {
     expect(a.pool).toEqual(['vertrieb', 'y2026', 'nord'])
     expect(a.concepts.map((c) => c.key)).toEqual(['vertrieb', 'jahresberich', 'y2026', 'nord'])
     expect(a.concepts.find((c) => c.key === 'jahresberich')?.weak).toBe(true)
-    expect(a.rank.map((r) => r.score)).toEqual([370, 235, 215])
+    expect(a.rank.map((r) => r.score)).toEqual([400, 235, 215])
     expect(a.titleKey).toMatch(/^[0-9a-f]{16}$/)
     expect(a.empty).toBe(false)
     expect(a.compounds).toEqual([{ word: 'jahresbericht', parts: ['jahr', 'bericht'], linkers: ['', 'es'], kept: [] }])

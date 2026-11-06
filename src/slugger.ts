@@ -196,9 +196,9 @@ export function candidatesWith(
   const limit = limitOf(opts.limit)
   const doc = analyzeDoc(title, cfg, opts.lang === undefined ? {} : { lang: opts.lang })
   if (cfg.leak === 'opaque' || doc.empty) return Object.freeze([])
-  const { pool } = rankPool(doc, null, cfg, compile(cfg))
-  let cands = fitBody(pool, cfg)
-  if (cands.length === 0 && cfg.maxSegments > 1) cands = fitBody(pool, cfg, { maxSegments: 1 })
+  const { pool, ladders } = rankPool(doc, null, cfg, compile(cfg))
+  let cands = fitBody(pool, cfg, { fill: ladders })
+  if (cands.length === 0 && cfg.maxSegments > 1) cands = fitBody(pool, cfg, { maxSegments: 1, fill: ladders })
   return Object.freeze(
     cands.slice(0, limit).map((c) =>
       Object.freeze({

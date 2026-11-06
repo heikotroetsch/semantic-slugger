@@ -14,7 +14,7 @@ import { CODAS_EN, ONSETS_EN } from '../data/v1/phonology.ts'
 import { QUALIFIERS } from '../data/v1/qualifiers.ts'
 import { STOP_EN } from '../data/v1/stop-en.ts'
 import { VERSION_WORDS } from '../data/v1/versions.ts'
-import { WEAK_EN } from '../data/v1/weak.ts'
+import { FILLER_EN, WEAK_EN } from '../data/v1/weak.ts'
 import { WEEKDAYS_EN } from '../data/v1/weekdays.ts'
 import { porter2 } from '../vendor/porter2.ts'
 import type { LanguagePack } from './pack.ts'
@@ -30,7 +30,7 @@ export function enPack(): LanguagePack {
       stopWords: STOP_EN,
       conflictWords: CONFLICT_EN,
       noiseWords: NOISE_EN,
-      lexicon: [...LEXICON_EN, ...QUALIFIERS.filter((e) => e.lang === 'en'), ...WEAK_EN, ...DOCKIND_EN],
+      lexicon: [...LEXICON_EN, ...QUALIFIERS.filter((e) => e.lang === 'en'), ...WEAK_EN, ...FILLER_EN, ...DOCKIND_EN],
       stem: porter2,
       // plural endings for the stem match (DEVIATIONS: `Market` is no `marketing`)
       inflections: ['s', 'es', 'ies', 'y', 'e', 'd', 'ed', 'is', 'ves', 'f', 'fe', 'ren'],

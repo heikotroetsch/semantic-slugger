@@ -26,7 +26,7 @@ import { QUALIFIERS } from '../../src/data/v1/qualifiers.ts'
 import { STOP_DE } from '../../src/data/v1/stop-de.ts'
 import { STOP_EN } from '../../src/data/v1/stop-en.ts'
 import { UNITS } from '../../src/data/v1/units.ts'
-import { WEAK_DE, WEAK_EN, WEAK_SHARED } from '../../src/data/v1/weak.ts'
+import { FILLER_DE, FILLER_EN, WEAK_DE, WEAK_EN, WEAK_NO_SHOW, WEAK_SHARED } from '../../src/data/v1/weak.ts'
 import { dePack } from '../../src/lang/de.ts'
 import { enPack } from '../../src/lang/en.ts'
 import { validatePack } from '../../src/lang/pack.ts'
@@ -79,10 +79,24 @@ describe('v1 lexicon data (SPEC 15)', () => {
     }
   })
 
-  it('has about 250 entries plus 240 parts (15.2, 15.7)', () => {
+  it('filler words (docs/DEVIATIONS.md, quality round 1): weak, no shared key, never shown', () => {
+    const fillers = [...FILLER_EN, ...FILLER_DE]
+    const keys = [...ENTRIES.map((e) => e.key), ...PART_KEYS, ...fillers.map((e) => e.key)]
+    expect(keys.filter((k, i) => keys.indexOf(k) !== i)).toEqual([])
+    for (const e of fillers) {
+      expect(e.weak, e.key).toBe(true)
+      expect(e.cls, e.key).toBe('topic')
+      for (const w of [e.key, ...(e.forms ?? [])]) {
+        expect(w, w).toMatch(/^[a-z]+$/)
+        expect(WEAK_NO_SHOW.has(w), w).toBe(true)
+      }
+    }
+  })
+
+  it('has about 250 entries plus 239 parts (15.2, 15.7)', () => {
     expect(ENTRIES.length).toBeGreaterThanOrEqual(220)
     expect(ENTRIES.length).toBeLessThanOrEqual(280)
-    expect(PART_KEYS.length).toBe(240)
+    expect(PART_KEYS.length).toBe(239)
   })
 
   it('the known abbreviation list equals the known fields (15.2)', () => {

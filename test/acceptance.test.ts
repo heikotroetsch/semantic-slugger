@@ -20,6 +20,7 @@ describe('acceptance examples (SPEC 20)', () => {
   })
   it('the spec `ref` rows that changed are only the documented ones (docs/DEVIATIONS.md)', () => {
     const changed = results.filter((r) => r.row.status === 'ref' && r.changed).map((r) => r.row.n)
-    expect(changed).toEqual(['11', '26'])
+    // 12 to 14, 19, 20, 27 to 29 and 35 changed in quality round 1 (bridge cuts, fill segments)
+    expect(changed).toEqual(['11', '12', '13', '14', '19', '20', '26', '27', '28', '29', '35'])
   })
 })

@@ -26,16 +26,16 @@ length), made in one batch, so the second "Chocolate Cake Recipe" gets a new ID.
 | Recipe | Chocolate Cake Recipe | `choc-cake-recipe` |
 | Recipe (same title again) | Chocolate Cake Recipe | `choc-cake-rec-fs` |
 | Business report (DE) | Jahresbericht Vertrieb Nord 2026 | `vertrieb-nord-26` |
-| Bug ticket | Login page shows 500 error after deploy | `login-page-shows` |
-| News | City Council Approves New Riverside Park | `city-approv-park` |
-| Meeting (DE) | Retrospektive Sprint 14 | `ret-sprint14-zpd` |
+| Bug ticket | Login page shows 500 error after deploy | `login-page-error` |
+| News | City Council Approves New Riverside Park | `city-rivers-park` |
+| Meeting (DE) | Retrospektive Sprint 14 | `retrospektive-zp` |
 | Release notes | Release Notes Firefox 132 | `release-firef132` |
 | Marketing (DE + EN) | Kick-off Meeting Marketing Kampagne Q3 2026 | `kickoff-kam-26q3` |
-| Research | Effects of Sleep Deprivation on Working Memory in Adolescents | `effect-sleep-mem` |
+| Research | Effects of Sleep Deprivation on Working Memory in Adolescents | `sleep-wor-memory` |
 | Legal (DE) | Mietvertrag Wohnung Lindenstraße 12 | `miet-wohn-linden` |
 | Product | Kestrel X2 Smartwatch with GPS | `kes-smart-gps-x2` |
 | Education (DE) | Mathe-Arbeitsblatt Bruchrechnung Klasse 6 | `mathe-bruch-kla6` |
-| Newsletter | Board Minutes March 2026 | `board-26mar-s7m8` |
+| Newsletter | Board Minutes March 2026 | `board-26mar-minu` |
 | Sales (Cyrillic) | Москва: отчёт о продажах 2026 | `moskva-otchet-26` |
 
 <!-- examples-table:end -->
@@ -257,7 +257,7 @@ const procurement = createSlugger({
   ],
 })
 procurement.slug('Rahmenvertrag Stromlieferung Standorte Nord 2026') // 'rv-strom-nord-26'
-procurement.slug('Rahmenverträge Büromaterial 2027') // 'rv-bueromaterial'
+procurement.slug('Rahmenverträge Büromaterial 2027') // 'rv-bueromater-27'
 procurement.slug('Leistungsverzeichnis Gebäudereinigung Los 1') // 'lv-gebaeude-los1'
 procurement.slug('Leistungsverzeichnis Gebäudereinigung Los 2') // 'lv-gebaeude-los2'
 ```
@@ -298,7 +298,7 @@ console.log(explain('Jahresbericht Vertrieb Nord 2026').toString())
 ```
 
 ```
-semantic-slugger v1 | length 16 exact | sep "-" | leak normal | fp d3bd2340e4aa8ef5
+semantic-slugger v1 | length 16 exact | sep "-" | leak normal | fp 36ea9c7d75dec2e5
 input       "Jahresbericht Vertrieb Nord 2026"
 normalize   jahresbericht vertrieb nord 2026
 language    de (heuristic)  de 3 / en 0  de+1 compound:jahresbericht de+1 lex:vertrieb de+1 lex:nord
@@ -309,17 +309,17 @@ names       -
 compounds   jahresbericht = jahr + es + bericht (all weak or generic: weak word)
 concepts    jahresberich:topic  vertrieb:topic  nord:direction  y2026:year
 rank        key       cls          base  rar  pos  tf  lex  diff  score
-            vertrieb  topic         280   20   60   1    0     0    370
+            vertrieb  topic         280   20   90   1    0     0    400
             y2026     year          160   50    0   1    0     0    235
             nord      direction     140   50    0   1    0     0    215
             df static (priors only)
             excluded: jahresberich (weak)
-ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(200*)
-            jahresberich: jahresbericht(40) jahr(60*) bericht(60) jah(110*)
+ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(600*)
+            jahresberich: jahresbericht(40) jahr(60*) jahresber(70*) bericht(80) jahres(110*)
             y2026: 26(0) 2026(30)
             nord: nord(0)
             (* = cryptic)
-fit         vertrieb-nord-26 100 | vertrieb-nord-<t2> 525 | vertrieb-2026-<t2> 535 | nord-2026-<t6> 850 | vertrieb-<t7> 990
+fit         vertrieb-nord-26 120 | vertrieb-nord-ja 525 | vertrieb-2026-ja 535 | nord-26-vertrieb 700 | vertrieb-bericht 790
 resolve     vertrieb-nord-26 ok (not checked)
 result      vertrieb-nord-26  reason base  lang de  tail none
 ```
@@ -377,7 +377,7 @@ personal data. Choose what the ID may show:
   before `Inc` or `GmbH`, a capital word inside an English sentence-case title, your lexicon). In
   German titles, person and city names look like any other noun, so `minimal` keeps them. For every
   name that must never show, in any language, use `denyTokens`:
-  `createSlugger({ denyTokens: ['Maria', 'Lopez'] }).slug(...)` gives `onboar-chct-acme`.
+  `createSlugger({ denyTokens: ['Maria', 'Lopez'] }).slug(...)` gives `onb-acme-checkli`.
 - **`secret`** (16+ chars) keys the tail hash, `titleKey` and hashed stems. It is required for
   `leak: 'opaque'` and `storeStems: 'hashed'`. For multi-tenant use, give each tenant its own secret
   (for example derived from a server key and the tenant id), so tails differ between tenants.

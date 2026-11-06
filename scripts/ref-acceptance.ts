@@ -22,6 +22,8 @@ import {
   CODAS_EN,
   DOCKIND_DE,
   DOCKIND_EN,
+  FILLER_DE,
+  FILLER_EN,
   LEET_FOLD,
   LEXICON_DE,
   LEXICON_EN,
@@ -30,11 +32,14 @@ import {
   MONTHS_EN,
   ONSETS_DE,
   ONSETS_EN,
+  PARTS_DE,
+  PARTS_SHARED,
   QUALIFIERS,
   SINGLE_CONSONANTS,
   TAIL_BLOCK,
   WEAK_DE,
   WEAK_EN,
+  WEAK_NO_SHOW,
   WEAK_SHARED,
   WEEKDAYS_DE,
   WEEKDAYS_EN,
@@ -199,7 +204,7 @@ const CLASS_WEIGHT: Record<string, number> = {
   name: 260,
   acronym: 240,
   place: 200,
-  marker: 180,
+  marker: 200,
   year: 160,
   range: 160,
   direction: 140,
@@ -209,7 +214,7 @@ const CLASS_WEIGHT: Record<string, number> = {
   month: 140,
   week: 140,
   attr: 120,
-  version: 120,
+  version: 160,
   model: 120,
   longnum: 120,
   code: 100,
@@ -231,7 +236,13 @@ const NUMBERS = new Set([
   'quantity',
 ])
 const PRIOR: Record<string, number> = { common: 20, medium: 50, rare: 70, unknown: 40, proper: 80 }
-const POS_BONUS = [60, 30, 15, 8, 4]
+// quality round 1 (docs/DEVIATIONS.md): position bonus, chunk, head, bridge, skeleton, weak pool, fill
+const POS_BONUS = [90, 45, 20, 10, 5]
+const CHUNK = 80
+const HEAD = 80
+const BRIDGE = 70
+const SKELETON = 600
+const WEAK_POOL_SCORE = 50
 const SLOT: Record<string, number> = {
   topic: 0,
   name: 0,
@@ -261,7 +272,9 @@ const rankCmp = (a: RC, b: RC): number => b.score - a.score || a.c.pos - b.c.pos
 
 function refScores(a: Analysis, diff: ReadonlySet<string>): Map<string, number> {
   const t = a.concepts
-    .filter((c) => !c.weak && (c.cls === 'topic' || c.cls === 'name' || c.cls === 'acronym'))
+    .filter(
+      (c) => !c.weak && (c.cls === 'topic' || c.cls === 'name' || c.cls === 'acronym') && (c.lex?.weight ?? 0) >= 0,
+    )
     .sort((x, y) => x.pos - y.pos || lt(x.key, y.key))
   const bonus = new Map(t.map((c, i) => [c.key, POS_BONUS[i] ?? 0]))
   const cancel = a.concepts.filter((c) => c.cls === 'direction').length >= 3
@@ -298,6 +311,7 @@ interface RRung {
   cost: number
   plain: boolean
   verbatim: boolean
+  kind?: 'full' | 'bridge' | 'short'
 }
 
 const fold = (s: string): string => [...s].map((ch) => LEET_FOLD[ch] ?? ch).join('')
@@ -387,7 +401,27 @@ const LEX: LexiconEntry[] = [
   ...WEAK_SHARED,
   ...DOCKIND_DE,
   ...DOCKIND_EN,
+  ...FILLER_DE,
+  ...FILLER_EN,
 ]
+/** Every exact lexicon word, compound parts included (the cut rule for languages without compound data). */
+const ALL_WORDS = new Set<string>([...LEX.flatMap((e) => [e.key, ...(e.forms ?? [])]), ...PARTS_DE, ...PARTS_SHARED])
+
+/** Bridge cuts: prefixes of 8 to 12 chars (at most length - 2) that end on a consonant unit. */
+function refBridges(w: string, firstPart: number): string[] {
+  if (w.length < 10) return []
+  const g = units(w)
+  const out: string[] = []
+  let len = 0
+  for (let i = 0; i < g.length - 1; i++) {
+    const u = g[i] as { t: string; v: boolean }
+    len += u.t.length
+    if (len < 8 || len < firstPart + 2) continue
+    if (len > 12 || len > w.length - 2) break
+    if (!u.v) out.push(w.slice(0, len))
+  }
+  return out
+}
 
 function lexWords(user: readonly LexiconEntry[]): {
   words: Set<string>
@@ -488,8 +522,23 @@ function refLadder(
       })
     if (c.cls === 'name') {
       if (base.length <= 12)
-        drafts.push({ text: base, segs: [base], cost: base.length <= 8 ? 0 : 40, plain: true, verbatim: true })
-    } else drafts.push({ text: base, segs: [base], cost: base.length <= 6 ? 0 : 40, plain: true, verbatim: true })
+        drafts.push({
+          text: base,
+          segs: [base],
+          cost: base.length <= 8 ? 0 : 40,
+          plain: true,
+          verbatim: true,
+          kind: 'full',
+        })
+    } else
+      drafts.push({
+        text: base,
+        segs: [base],
+        cost: base.length <= 6 ? 0 : 40,
+        plain: true,
+        verbatim: true,
+        kind: 'full',
+      })
     const bounds = new Set<number>()
     if (core.length > 1) {
       let acc = ''
@@ -501,7 +550,7 @@ function refLadder(
         }
       })
       const head = (core[core.length - 1] as { text: string }).text
-      drafts.push({ text: head, segs: [head], cost: 60, plain: plainPart(head), verbatim: false })
+      drafts.push({ text: head, segs: [head], cost: HEAD, plain: plainPart(head), verbatim: false })
       if (compound) {
         // joined abbr: one part's abbr with the full form or abbr of the others, 8 chars or less
         const opts = core.map((p) => {
@@ -522,13 +571,23 @@ function refLadder(
         walk(0, '', 0, false, true)
       }
     }
+    const bridgeable = c.cls !== 'name' && base.length >= 10
     for (const cut of refCuts(base, rc.lang, bounds, (p) => lex.words.has(p))) {
       if (c.cls === 'name' && cut.cost === 60) continue
-      drafts.push({ ...cut, plain: cut.cost === 60 && plainPart(cut.text) })
+      const short = bridgeable && cut.cost !== 60 && cut.text.length < 5
+      drafts.push({
+        ...cut,
+        plain: cut.cost === 60 && plainPart(cut.text),
+        ...(short ? { kind: 'short' as const } : {}),
+      })
     }
     if (c.cls !== 'name') {
-      const sk = refSkeleton(base)
-      if (sk !== null) drafts.push({ text: sk, segs: [sk], cost: 200, plain: false, verbatim: false })
+      const firstPart = core.length > 1 ? (core[0] as { text: string }).text.length : 0
+      const bc = refBridges(base, firstPart)
+      for (const b of bc)
+        drafts.push({ text: b, segs: [b], cost: BRIDGE, plain: false, verbatim: false, kind: 'bridge' })
+      const sk = bc.length > 0 ? null : refSkeleton(base)
+      if (sk !== null) drafts.push({ text: sk, segs: [sk], cost: SKELETON, plain: false, verbatim: false })
     }
   }
   const isVerbatim = (t: string) => c.verbatim.includes(t) || parts.includes(t)
@@ -541,13 +600,27 @@ function refLadder(
     if (d.segs.some(i8)) continue
     if (c.cls === 'name' && !own.has(d.text) && (stop.has(d.text) || lex.words.has(d.text) || lex.abbrs.has(d.text)))
       continue
+    // a coda or syllable cut that is another known word (quality round 1)
+    const cut = d.cost === 90 || d.cost === 110
+    if (
+      cut &&
+      !own.has(d.text) &&
+      (stop.has(d.text) || lex.words.has(d.text) || (rc.lang !== 'de' && ALL_WORDS.has(d.text)))
+    )
+      continue
     if (rc.score < 150 && d.cost > 110) continue
     const r = { ...d, verbatim }
     const old = best.get(r.text)
     if (old === undefined || r.cost < old.cost || (r.cost === old.cost && r.plain && !old.plain)) best.set(r.text, r)
   }
-  const out = [...best.values()].sort((x, y) => x.cost - y.cost || x.text.length - y.text.length || lt(x.text, y.text))
-  return out.slice(0, consistent ? 1 : 4)
+  let out = [...best.values()].sort((x, y) => x.cost - y.cost || x.text.length - y.text.length || lt(x.text, y.text))
+  if (out.some((r) => r.kind !== 'short')) out = out.filter((r) => r.kind !== 'short')
+  const br = out.filter((r) => r.kind === 'bridge')
+  const pick = br.length <= 3 ? br : [0, br.length >> 1, br.length - 1].map((i) => br[i] as RRung)
+  out = [...out.filter((r) => r.kind !== 'bridge').slice(0, 4), ...pick].sort(
+    (x, y) => x.cost - y.cost || x.text.length - y.text.length || lt(x.text, y.text),
+  )
+  return out.slice(0, consistent ? 1 : out.length)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -563,12 +636,60 @@ interface RCand {
   rungCosts: number[]
 }
 
+/** The fill segment (quality round 1): the first unused word in rank order, `room` chars long. */
+function refFill(fill: readonly RC[], used: ReadonlySet<string>, room: number): RRung | null {
+  if (room < 2) return null
+  const words = new Set(['topic', 'name', 'acronym', 'attr', 'qualifier', 'place', 'direction', 'region'])
+  for (const u of fill) {
+    if (used.has(u.c.key) || u.c.cls === 'model' || u.ladder.length === 0) continue
+    let r: RRung | null = u.ladder.find((x) => x.segs.length === 1 && x.text.length === room) ?? null
+    if (r === null && words.has(u.c.cls)) {
+      const full = u.ladder.find((x) => x.kind === 'full')?.text ?? u.display
+      if (full.length > room && /^[a-z0-9]+$/.test(full)) {
+        const t = full.slice(0, room)
+        r = { text: t, segs: [t], cost: 0, plain: false, verbatim: false }
+      }
+    }
+    if (r === null || !/[a-z]/.test(r.text) || b1(r.text) || b2(r.text) || hardIn(r.text) || i8(r.text)) continue
+    return r
+  }
+  return null
+}
+
+/** B3: no list word of 4+ chars across the joined body, unless soft and strictly inside a verbatim segment. */
+function unsafe(segs: readonly { t: string; verb: boolean }[]): boolean {
+  const joined = fold(segs.map((x) => x.t).join(''))
+  if (BLOCK_HARD.some((x) => joined.includes(x))) return true
+  let at = 0
+  const bounds = segs.map((x) => {
+    const b = { s: at, e: at + x.t.length, v: x.verb }
+    at += x.t.length
+    return b
+  })
+  for (const x of BLOCK_SOFT) {
+    if (x.length < 4) continue
+    for (let i = joined.indexOf(x); i !== -1; i = joined.indexOf(x, i + 1)) {
+      const seg = bounds.find((b) => i >= b.s && i + x.length <= b.e)
+      if (!(seg?.v === true && x.length < seg.e - seg.s)) return true
+    }
+  }
+  return false
+}
+
 function refFit(
   pool: RC[],
-  cfg: { length: number; mode: 'exact' | 'max'; sep: string; maxSeg: number; reserved: readonly string[] },
+  cfg: {
+    length: number
+    mode: 'exact' | 'max'
+    sep: string
+    maxSeg: number
+    reserved: readonly string[]
+    fill: boolean
+  },
   minTail: number,
   only?: string,
   must?: ReadonlySet<string>,
+  fill: readonly RC[] = [],
 ): RCand[] {
   const tailOpts = (len: number, m: number): number[] => {
     if (cfg.mode === 'exact') {
@@ -645,41 +766,40 @@ function refFit(
       let tails = tailOpts(body.length, minTail)
       if (cfg.mode === 'max' && tails[0] === 0 && cfg.reserved.includes(body))
         tails = tailOpts(body.length, Math.max(2, minTail))
-      // B3: no list word of 4+ chars across the joined body, unless soft and strictly inside a verbatim segment
-      const joined = fold(segs.map((x) => x.t).join(''))
-      if (BLOCK_HARD.some((x) => joined.includes(x))) return
-      let at = 0
-      const bounds = segs.map((x) => {
-        const b = { s: at, e: at + x.t.length, v: x.verb }
-        at += x.t.length
-        return b
-      })
-      for (const x of BLOCK_SOFT) {
-        if (x.length < 4) continue
-        for (let i = joined.indexOf(x); i !== -1; i = joined.indexOf(x, i + 1)) {
-          const seg = bounds.find((b) => i >= b.s && i + x.length <= b.e)
-          if (!(seg?.v === true && x.length < seg.e - seg.s)) return
-        }
-      }
+      if (unsafe(segs)) return
       if (cfg.sep === '' && i8(body)) return
-      for (const t of tails) {
-        if (t === 0 && cfg.reserved.includes(body)) continue
-        const content = [...s].sort(rankCmp)
-        const cost =
-          rs.reduce((x, r) => x + r.cost, 0) +
-          40 * segs.filter((x) => x.cryptic).length +
-          lost +
-          60 * Math.max(0, segs.length - 2) +
-          (t === 0 ? 0 : 250 + 50 * (t - 2))
+      const content = [...s].sort(rankCmp)
+      const base =
+        rs.reduce((x, r) => x + r.cost, 0) +
+        40 * segs.filter((x) => x.cryptic).length +
+        lost +
+        CHUNK * Math.max(0, segs.length - 2)
+      const offer = (b: string, t: number, tailCost: number) => {
         const cand: RCand = {
-          body,
+          body: b,
           tail: t,
-          cost,
-          idLen: body.length + (t === 0 ? 0 : cfg.sep.length + t),
+          cost: base + tailCost,
+          idLen: b.length + (t === 0 ? 0 : cfg.sep.length + t),
           content,
           rungCosts: content.map((c) => (rs[s.indexOf(c)] as RRung).cost),
         }
         if (top === undefined || candCmp(cand, top, pool) < 0) top = cand
+      }
+      for (const t of tails) {
+        if (t === 0 && cfg.reserved.includes(body)) continue
+        // quality round 1: a fill segment from an unused word takes the room of a padding tail
+        if (t > 0 && minTail === 0 && cfg.fill && segs.length < cfg.maxSeg) {
+          const f = refFill(fill, keys, t)
+          if (f !== null) {
+            const all = [...segs, { t: f.text, cryptic: false, verb: f.verbatim }]
+            const fb = `${body}${cfg.sep}${f.text}`
+            if (!unsafe(all) && !(cfg.sep === '' && i8(fb))) {
+              offer(fb, 0, 250 + 50 * (Math.min(t, 3) - 2))
+              continue
+            }
+          }
+        }
+        offer(body, t, t === 0 ? 0 : 250 + 50 * (t - 2))
       }
     }
     pick(0, [])
@@ -717,7 +837,7 @@ function refPool(
   a: Analysis,
   config: SluggerConfig | undefined,
   diff: ReadonlySet<string>,
-): { pool: RC[]; mismatch: string[] } {
+): { pool: RC[]; all: RC[]; mismatch: string[] } {
   const s = createSlugger(config)
   const cfg = s.config
   const scores = refScores(a, diff)
@@ -762,7 +882,19 @@ function refPool(
     .filter((rc) => rc.score >= 100 && (rc.c.cls === 'model' || rc.ladder.length > 0))
     .sort(rankCmp)
     .slice(0, 6)
-  return { pool, mismatch }
+  // quality round 1: with one concept or less, weak words (not filler words) fill the free slots
+  if (cfg.leak === 'normal' && pool.length <= 1) {
+    const weak = rcs
+      .filter((rc) => rc.c.weak && !WEAK_NO_SHOW.has(rc.c.lex?.key ?? '') && rc.ladder.length > 0)
+      .sort(rankCmp)
+    for (const rc of weak) {
+      if (pool.length >= 6) break
+      const low: RC = { ...rc, score: Math.min(rc.score, WEAK_POOL_SCORE), ladder: [] }
+      low.ladder = refLadder(low, a, stop, lex, cfg.consistentRungs)
+      pool.push(low)
+    }
+  }
+  return { pool, all: [...rcs].sort(rankCmp), mismatch }
 }
 
 function refFitCfg(config: SluggerConfig | undefined) {
@@ -773,6 +905,7 @@ function refFitCfg(config: SluggerConfig | undefined) {
     sep: c.separator,
     maxSeg: Math.min(c.maxSegments, c.leak === 'minimal' ? 3 : 5),
     reserved: c.reserved,
+    fill: c.leak === 'normal' && c.lengthMode === 'exact',
   }
 }
 
@@ -787,10 +920,10 @@ function refAlone(title: string, config: SluggerConfig | undefined): RefOut & { 
   const ana = config === undefined ? analyze(title) : createSlugger(config).analyze(title)
   const cfg = createSlugger(config).config
   if (cfg.leak === 'opaque' || ana.empty) return { value: emptyValue(config), scoreMismatch: [], pool: [] }
-  const { pool, mismatch } = refPool(ana, config, new Set())
+  const { pool, all, mismatch } = refPool(ana, config, new Set())
   const fc = refFitCfg(config)
-  let cands = refFit(pool, fc, 0)
-  if (cands.length === 0) cands = refFit(pool, { ...fc, maxSeg: 1 }, 0)
+  let cands = refFit(pool, fc, 0, undefined, undefined, all)
+  if (cands.length === 0) cands = refFit(pool, { ...fc, maxSeg: 1 }, 0, undefined, undefined, all)
   const best = cands[0]
   if (best === undefined) return { value: emptyValue(config), scoreMismatch: mismatch, pool }
   return { value: { body: best.body, tail: best.tail }, scoreMismatch: mismatch, best, pool }
@@ -809,8 +942,8 @@ function refAfter(
   const diff = new Set(alone.pool.filter((rc) => !rc.c.stemKeys.every((s) => prior.stems.has(s))).map((rc) => rc.c.key))
   const fc = refFitCfg(config)
   if (diff.size > 0) {
-    const { pool } = refPool(ana, config, diff)
-    const c2 = refFit(pool, fc, 0, undefined, diff)
+    const { pool, all } = refPool(ana, config, diff)
+    const c2 = refFit(pool, fc, 0, undefined, diff, all)
     const free = c2.find((c) => c.body !== prior.body)
     if (free) return { value: { body: free.body, tail: free.tail }, scoreMismatch: alone.scoreMismatch }
   }

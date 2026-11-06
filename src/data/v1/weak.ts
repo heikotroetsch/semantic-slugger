@@ -83,3 +83,60 @@ export const WEAK_SHARED: readonly LexiconEntry[] = [
   { key: 'status', lang: '*', cls: 'topic', weak: true },
   { key: 'asap', lang: '*', cls: 'topic', weak: true },
 ]
+
+/**
+ * Filler words (docs/DEVIATIONS.md, quality round 1): common verbs and evaluative or time adjectives
+ * that fill title slots but name no topic (`Scientists Spot Rare Owl`, `Bahnstreik legt ... lahm`).
+ * Weak, so they never take the place of a noun; the back-off and the fill segment can still use them.
+ * Only forms that are not also everyday nouns are listed (`fall`, `show`, `launch` and `stop` are not).
+ * One entry per word: the first form is the key, the others are its forms.
+ */
+function fillers(lang: 'de' | 'en', groups: readonly string[]): LexiconEntry[] {
+  return groups.map((g) => {
+    const [key = '', ...forms] = g.split(' ')
+    return forms.length > 0 ? { key, lang, cls: 'topic', forms, weak: true } : { key, lang, cls: 'topic', weak: true }
+  })
+}
+
+// biome-ignore format: word list, one line per group
+export const FILLER_EN: readonly LexiconEntry[] = fillers('en', [
+  // verbs
+  'spot spots spotted', 'rise rises rising', 'starts started', 'returns', 'shows showing', 'tell tells',
+  'using uses used', 'get gets getting', 'make makes making made', 'take takes taking', 'give gives', 'keep keeps',
+  'find finds', 'raises raised', 'win wins', 'approves approved', 'expands expanded', 'leaves',
+  'announces announced', 'learn learned', 'switched', 'need needs', 'want wants', 'become becomes', 'helps',
+  'says said', 'reveals revealed', 'hits', 'falls', 'opens opened', 'explains explained', 'managing',
+  'implement implementing', 'worrying', 'love', 'survive survives', 'goes going', 'comes coming', 'does',
+  // adjectives and adverbs
+  'best', 'top', 'ultimate', 'great', 'rare', 'severe', 'early', 'next', 'latest', 'local', 'quick', 'easy',
+  'simple', 'complete', 'comprehensive', 'essential', 'perfect', 'amazing', 'awesome', 'better', 'good',
+  'beautiful', 'real', 'whole', 'entire', 'several', 'many', 'much', 'few', 'certain', 'empirical', 'always',
+  'really', 'finally', 'ever', 'quiet', 'hidden', 'two', 'three', 'five', 'ten',
+])
+
+// biome-ignore format: word list, one line per group
+export const FILLER_DE: readonly LexiconEntry[] = fillers('de', [
+  // verbs
+  'legt', 'sinkt', 'steigt', 'beschliesst', 'oeffnet', 'begruesst', 'startet', 'bricht', 'braucht', 'flackert', 'funktioniert', 'enthaelt', 'zeigt', 'bringt', 'gibt', 'geht', 'kommt',
+  'machen macht gemacht', 'tun', 'lesen liest', 'erklaert', 'verbessern', 'einfuehren', 'beantragen',
+  'ansetzen', 'reparierst', 'wechseln', 'austauschen', 'schreiben schreibe',
+  // adjectives and adverbs
+  'schnell schnelle schneller schnellen', 'einfach einfache einfacher einfachen', 'beste besten bester bestes',
+  'lecker leckere leckerer leckeren', 'perfekt perfekte', 'ultimativ ultimative', 'schoenste schoensten',
+  'leicht leichte', 'lange', 'langsam', 'selbst', 'rund', 'entlang', 'heute', 'wieder', 'erste ersten erstes',
+  'zwei', 'drei', 'fuenf', 'zehn',
+])
+
+/** Keys of the filler entries: they match exactly only, never by stem (`starts` is no `start`). */
+export const FILLER_KEYS: ReadonlySet<string> = new Set<string>([...FILLER_EN, ...FILLER_DE].map((e) => e.key))
+
+/**
+ * Weak words that never join the pool as content (docs/DEVIATIONS.md, quality round 1): the filler
+ * words and the weak adjectives. Weak nouns (`bericht`, `meeting`, `minutes`) may fill a free slot.
+ */
+export const WEAK_NO_SHOW: ReadonlySet<string> = new Set<string>([
+  ...[...FILLER_EN, ...FILLER_DE].flatMap((e) => [e.key, ...(e.forms ?? [])]),
+  // biome-ignore format: word list
+  ...['neu', 'new', 'aktuell', 'current', 'allgemein', 'general', 'sonstiges', 'sonstige', 'diverses', 'misc',
+    'miscellaneous', 'various', 'wichtig', 'important', 'dringend', 'urgent', 'asap', 'final'],
+])

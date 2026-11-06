@@ -14,8 +14,8 @@ export const DOCKIND_DE: readonly LexiconEntry[] = [
   { key: 'vorlage', lang: 'de', cls: 'topic', forms: ['vorlagen'], weight: -60, pair: 'template' },
   { key: 'formular', lang: 'de', cls: 'topic', forms: ['formulare'], weight: -60, pair: 'form' },
   { key: 'handbuch', lang: 'de', cls: 'topic', forms: ['handbuecher'], weight: -60, pair: 'handbook' },
-  { key: 'beste', lang: 'de', cls: 'topic', forms: ['besten', 'bester', 'bestes'], weight: -60, pair: 'best' },
   { key: 'auswirkung', lang: 'de', cls: 'topic', forms: ['auswirkungen'], weight: -60, pair: 'effect' },
+  { key: 'rezept', lang: 'de', cls: 'topic', forms: ['rezepte'], weight: -60, pair: 'recipe' },
 ]
 
 export const DOCKIND_EN: readonly LexiconEntry[] = [
@@ -28,7 +28,6 @@ export const DOCKIND_EN: readonly LexiconEntry[] = [
   { key: 'manual', lang: 'en', cls: 'topic', forms: ['manuals'], weight: -60, pair: 'handbuch' },
   { key: 'howto', lang: 'en', cls: 'topic', weight: -60, pair: 'anleitung' },
   { key: 'tutorial', lang: 'en', cls: 'topic', forms: ['tutorials'], weight: -60, pair: 'anleitung' },
-  { key: 'best', lang: 'en', cls: 'topic', weight: -60, pair: 'beste' },
-  { key: 'ultimate', lang: 'en', cls: 'topic', weight: -60 },
   { key: 'effect', lang: 'en', cls: 'topic', forms: ['effects'], weight: -60, pair: 'auswirkung' },
+  { key: 'recipe', lang: 'en', cls: 'topic', forms: ['recipes'], weight: -60, pair: 'rezept' },
 ]

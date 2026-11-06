@@ -67,6 +67,7 @@ export const BLOCK_SOFT: readonly string[] = [
   'arsch',
   'ass',
   'boob',
+  'bdsm',
   'butt',
   'cock',
   'crap',

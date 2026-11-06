@@ -91,7 +91,6 @@ describe('acronyms (SPEC 6.6)', () => {
       ['Operational Excellence', 'operational'],
       ['Informal Learning', 'informal'],
       ['Generally Accepted Principles', 'generally'],
-      ['Finally Done', 'finally'],
       ['Product Launch Plan', 'product'],
     ]
     for (const [title, word] of falseFriends) expect(tok(title, word)?.lex, title).toBeUndefined()

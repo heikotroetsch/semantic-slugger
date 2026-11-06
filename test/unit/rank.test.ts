@@ -11,6 +11,7 @@ import {
   rankConcepts,
   rankOrder,
   rarity,
+  WEAK_POOL_SCORE,
 } from '../../src/core/rank.ts'
 import { concept, doc, ranked } from '../helpers/concepts.ts'
 import { cfgOf } from '../helpers/front.ts'
@@ -110,7 +111,7 @@ describe('score (SPEC 10.3)', () => {
   it('matches the explain example of SPEC 16.4', () => {
     const r = ranked('Jahresbericht Vertrieb Nord 2026')
     expect(r.rows.map((x) => [x.key, x.cls, x.base, x.rarity, x.pos, x.tf, x.lex, x.diff, x.score])).toEqual([
-      ['vertrieb', 'topic', 280, 20, 60, 1, 0, 0, 370],
+      ['vertrieb', 'topic', 280, 20, 90, 1, 0, 0, 400],
       ['y2026', 'year', 160, 50, 0, 1, 0, 0, 235],
       ['nord', 'direction', 140, 50, 0, 1, 0, 0, 215],
     ])
@@ -125,7 +126,7 @@ describe('score (SPEC 10.3)', () => {
       name: 260,
       acronym: 240,
       place: 200,
-      marker: 180,
+      marker: 200,
       year: 160,
       range: 160,
       direction: 140,
@@ -135,7 +136,7 @@ describe('score (SPEC 10.3)', () => {
       month: 140,
       week: 140,
       attr: 120,
-      version: 120,
+      version: 160,
       model: 120,
       longnum: 120,
       code: 100,
@@ -153,17 +154,18 @@ describe('score (SPEC 10.3)', () => {
     const lexicon = [{ key: 'vertrieb', lang: 'de' as const, cls: 'topic' as const }]
     expect(row('Vertrieb Planung', 'vertrieb', { lexicon })?.rarity).toBe(50)
     const rare = [{ key: 'vertrieb', lang: 'de' as const, cls: 'topic' as const, prior: 'rare' as const }]
-    expect(row('Vertrieb Planung', 'vertrieb', { lexicon: rare })?.score).toBe(280 + 105 + 60)
+    expect(row('Vertrieb Planung', 'vertrieb', { lexicon: rare })?.score).toBe(280 + 105 + 90)
   })
 
-  it('position bonus 60, 30, 15, 8, 4, then 0 for T concepts only', () => {
+  it('position bonus 90, 45, 20, 10, 5, then 0 for T concepts only (docs/DEVIATIONS.md, quality round 1)', () => {
     const r = ranked('Effects of Sleep on Memory in Adults and Children Today', undefined, {}, 'en')
     const bonus = [...r.rows].sort((a, b) => {
       const ca = r.concepts.find((c) => c.key === a.key) as ConceptX
       const cb = r.concepts.find((c) => c.key === b.key) as ConceptX
       return ca.pos - cb.pos
     })
-    expect(bonus.map((x) => x.pos)).toEqual([60, 30, 15, 8, 4, 0])
+    // the doc-kind word `effects` (weight -60) takes no position bonus
+    expect(bonus.map((x) => x.pos)).toEqual([0, 90, 45, 20, 10, 5])
     // doc-kind weight -60 keeps the content words ahead
     expect(row('Effects of Sleep on Memory in Adults and Children Today', 'effect')?.lex).toBe(-60)
     // attr and number classes get no bonus; the bonus skips them
@@ -171,14 +173,14 @@ describe('score (SPEC 10.3)', () => {
     expect(t.rows.find((x) => x.key === 'rot')?.cls).toBe('attr')
     expect(t.rows.find((x) => x.key === 'rot')?.pos).toBe(0)
     expect(t.rows.find((x) => x.key === 'y2026')?.pos).toBe(0)
-    expect(t.rows.find((x) => x.key === 'bech')?.pos).toBe(30)
+    expect(t.rows.find((x) => x.key === 'bech')?.pos).toBe(45)
   })
 
   it('tf adds 40 per extra occurrence; the lexicon weight adds', () => {
     expect(row('Technik und Technology Trends', 'tech')?.tf).toBe(2)
-    expect(row('Technik und Technology Trends', 'tech')?.score).toBe(280 + 30 + 60 + 40)
+    expect(row('Technik und Technology Trends', 'tech')?.score).toBe(280 + 30 + 90 + 40)
     const lexicon = [{ key: 'vertrieb', lang: 'de' as const, cls: 'topic' as const, weight: 25 }]
-    expect(row('Vertrieb Planung', 'vertrieb', { lexicon })?.score).toBe(280 + 75 + 60 + 25)
+    expect(row('Vertrieb Planung', 'vertrieb', { lexicon })?.score).toBe(280 + 75 + 90 + 25)
   })
 
   it('the re-pick boost adds 300 to the diff concepts', () => {
@@ -191,7 +193,8 @@ describe('score (SPEC 10.3)', () => {
   it('direction cancel: three or more direction concepts score 0, counted by class', () => {
     const r = ranked('Nordost links West Planung', undefined, {}, 'de')
     expect(r.rows.filter((x) => x.cls === 'direction').map((x) => x.score)).toEqual([0, 0, 0])
-    expect(r.pool).toEqual([])
+    // only the weak word is left: it takes a free slot with the low weak score (quality round 1)
+    expect(r.pool.map((c) => [c.key, c.score])).toEqual([['planung', WEAK_POOL_SCORE]])
     expect(ranked('Northeast Southwest North Plan').rows.every((x) => x.score === 0)).toBe(true)
     // two directions stay
     expect(row('Nord Süd Strategie', 'nord')?.score).toBe(215)

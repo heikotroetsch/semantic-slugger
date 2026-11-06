@@ -50,6 +50,11 @@ export function digraphHit(t: Tok, p: LanguagePack, c: Compiled): boolean {
   return false
 }
 
+/** A weekday or month name of the pack (any listed form). */
+function calendarWord(p: LanguagePack, a: string): boolean {
+  return (p.weekdays ?? []).some((r) => r.includes(a)) || (p.months ?? []).some((r) => r.includes(a))
+}
+
 /** Lexicon lookup for detection: step 0, exact, then stem over every enabled language (SPEC 4.4). */
 export function detectLookup(t: Tok, c: Compiled): LexiconEntry | undefined {
   return c.lexicon.lookup(t, undefined, c.cfg.languages)
@@ -86,7 +91,15 @@ export function detectLanguage(toks: readonly Tok[], n: Normalized, c: Compiled,
   const charHit = c.packs.filter((p) => [...(p.hints?.chars ?? '')].some((ch) => n.surface.includes(ch)))
   for (const p of charHit) add(p.code, 2, 'chars')
   for (const t of toks) {
-    if (t.cls !== 'word' || t.translit) continue
+    if (t.translit) continue
+    // weekday and month names of one pack only (docs/DEVIATIONS.md, quality round 1)
+    if (t.cls === 'weekday' || t.cls === 'month') {
+      for (const p of c.packs)
+        if (calendarWord(p, t.ascii) && c.packs.every((o) => o === p || !calendarWord(o, t.ascii)))
+          add(p.code, 1, `date:${t.ascii}`)
+      continue
+    }
+    if (t.cls !== 'word') continue
     const a = t.ascii
     // an upper-case token that is an `upperOnly` lexicon word is no stop word (`IT`, `US`, SPEC 6.3)
     const upperWord = t.case === 'upper' && c.lexicon.exactAll(a).some((e) => e.upperOnly === true)

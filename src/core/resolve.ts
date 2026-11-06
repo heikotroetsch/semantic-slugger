@@ -161,6 +161,7 @@ const RUNG_OF: Readonly<Record<RungKind, NonNullable<Segment['rung']>>> = {
   head: 'morph',
   coda: 'coda',
   syll: 'syll',
+  bridge: 'coda',
   skeleton: 'skeleton',
 }
 
@@ -230,9 +231,9 @@ export function* resolveDoc(
 
   const stats = (yield { op: 'stats', stems: [...doc.storedStems] }) as Stats | null
   const { ranked, ladders, pool } = rankPool(doc, stats, cfg, comp)
-  let cands = fitBody(pool, cfg)
+  let cands = fitBody(pool, cfg, { fill: ladders })
   // fallback chain (SPEC 12): one segment, then the empty path
-  if (cands.length === 0 && cfg.maxSegments > 1) cands = fitBody(pool, cfg, { maxSegments: 1 })
+  if (cands.length === 0 && cfg.maxSegments > 1) cands = fitBody(pool, cfg, { maxSegments: 1, fill: ladders })
   const first = cands[0]
   if (first === undefined) return yield* emptyPath(doc, cfg, exclude, spread)
   const plan = { ranked, ladders, pool, cands }
@@ -253,8 +254,8 @@ export function* resolveDoc(
       const theirs = new Set(others.flatMap((o) => o.stems))
       const diff = new Set(pool.filter((c) => !isIn(c, theirs)).map((c) => c.key))
       if (diff.size > 0) {
-        const boosted = rankPool(doc, stats, cfg, comp, diff).pool
-        const c2 = fitBody(boosted, cfg, { mustInclude: diff })
+        const re = rankPool(doc, stats, cfg, comp, diff)
+        const c2 = fitBody(re.pool, cfg, { mustInclude: diff, fill: re.ladders })
         const bodies = [...new Set(c2.map((c) => c.body))]
         const k2 =
           bodies.length > 0 ? ((yield { op: 'countBodies', bodies }) as ReadonlyMap<string, number> | null) : null

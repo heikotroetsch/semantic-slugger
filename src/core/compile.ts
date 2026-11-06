@@ -9,6 +9,7 @@ import { LEXICON_SHARED } from '../data/v1/lexicon-shared.ts'
 import { MARKERS_SHARED, type MarkerTakes } from '../data/v1/markers.ts'
 import { NOISE_SHARED } from '../data/v1/noise.ts'
 import { PARTS_SHARED } from '../data/v1/parts-de.ts'
+import { SINGLE_CONSONANTS } from '../data/v1/phonology.ts'
 import { QUALIFIERS } from '../data/v1/qualifiers.ts'
 import { PERSON_TITLES_DE } from '../data/v1/stop-de.ts'
 import { PERSON_TITLES_EN } from '../data/v1/stop-en.ts'
@@ -207,6 +208,17 @@ export function compile(cfg: ResolvedConfig): Compiled {
       genericModifiers: new Set(p.compound.genericModifiers ?? []),
       linkSuffixes: p.hints?.suffixes ?? [],
       hasExact: (w) => lexicon.hasExact(w),
+      onsets: new Set([...SINGLE_CONSONANTS, ...(p.phonology?.onsets ?? [])]),
+      mods: new Set(
+        lexicon.entries
+          .filter(
+            (e) =>
+              (e.lang === p.code || e.lang === '*') &&
+              (e.cls === 'direction' || e.cls === 'region' || e.cls === 'qualifier'),
+          )
+          .flatMap((e) => [e.key, ...(e.forms ?? [])])
+          .filter((w) => !w.includes(' ')),
+      ),
     })
   }
 

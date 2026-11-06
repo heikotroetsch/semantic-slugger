@@ -28,6 +28,18 @@ export interface PartIndex {
   readonly linkSuffixes: readonly string[]
   /** True when the whole word is a lexicon key or form (known compounds stay whole). */
   hasExact(w: string): boolean
+  /** Allowed word onsets (single consonants and the pack's clusters), for pass 3. */
+  readonly onsets?: ReadonlySet<string>
+  /** Direction, region and qualifier words of the pack, the modifiers of pass 3. */
+  readonly mods?: ReadonlySet<string>
+}
+
+/** The head starts like a word: a vowel other than `e`, or a consonant run that is an onset. */
+function startsLikeWord(head: string, onsets: ReadonlySet<string> | undefined): boolean {
+  let i = 0
+  while (i < head.length && !'aeiouy'.includes(head[i] as string)) i++
+  if (i === 0) return head[0] !== 'e'
+  return onsets === undefined || onsets.has(head.slice(0, i))
 }
 
 const ENDINGS = ['e', 'n', 'en', 'er', 's', 'es'] as const
@@ -87,7 +99,9 @@ export function splitCompound(word: string, idx: PartIndex): Part[] | null {
   if (all !== null && all.length > 1) return all
   for (let j = 5; j <= w.length - 3; j++) {
     const head = w.slice(j)
-    if (!isHeadPart(idx, head)) continue
+    // the head must be a known part of 4+ chars before any ending (`stand|orte` is no split;
+    // docs/DEVIATIONS.md, quality round 1)
+    if (!isHeadPart(idx, head) || baseOf(idx, head).length < 4) continue
     let pick: { mod: string; l: string } | undefined
     for (const l of idx.linkers) {
       const m = j - l.length
@@ -103,6 +117,25 @@ export function splitCompound(word: string, idx: PartIndex): Part[] | null {
         { text: pick.mod, known: false, linker: '', start: 0 },
         { text: head, known: true, linker: pick.l, start: j },
       ]
+  }
+  // pass 3 (docs/DEVIATIONS.md, quality round 1): one direction, region or qualifier word of 3+
+  // chars, then one unknown head of 4+ chars with a vowel (`nord|deutschland`, `sued|tirol`). No
+  // linker when the head then starts like a word, else the first linker that makes it so. The longest
+  // modifier wins.
+  for (let j = w.length - 4; j >= 3; j--) {
+    const mod = w.slice(0, j)
+    if (idx.mods?.has(mod) !== true) continue
+    const opts = [...idx.linkers].sort((a, b) => (a === '' ? -1 : b === '' ? 1 : b.length - a.length))
+    for (const l of opts) {
+      const h = j + l.length
+      const head = w.slice(h)
+      if (w.slice(j, h) !== l || head.length < (l === '' ? 5 : 4) || !RE_VOWEL.test(head)) continue
+      if (!startsLikeWord(head, idx.onsets)) continue
+      return [
+        { text: mod, known: true, linker: '', start: 0 },
+        { text: head, known: false, linker: l, start: h },
+      ]
+    }
   }
   return null
 }

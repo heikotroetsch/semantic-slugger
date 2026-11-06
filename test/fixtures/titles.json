@@ -2310,7 +2310,7 @@
     "group": "software-hinweise-version",
     "vary": "version",
     "expect": {
-      "body": "versionshinweise",
+      "body": "versionshinw-v51",
       "tail": 0
     }
   },
@@ -2322,8 +2322,8 @@
     "group": "software-hinweise-version",
     "vary": "version",
     "expect": {
-      "body": "hinweise-v52",
-      "tail": 3,
+      "body": "versionshinw-v52",
+      "tail": 0,
       "after": ["t323"]
     }
   },
@@ -3134,8 +3134,8 @@
     "group": "dup-01",
     "vary": "exact",
     "expect": {
-      "body": "lunch-friday",
-      "tail": 3
+      "body": "lunch-friday-tea",
+      "tail": 0
     }
   },
   {
@@ -3506,8 +3506,8 @@
     "kind": "edge",
     "title": "Vertrag_v2_FINAL_final(3).docx",
     "expect": {
-      "body": "vertrag-v2",
-      "tail": 5
+      "body": "vertrag-v2-final",
+      "tail": 0
     }
   },
   {
@@ -4205,7 +4205,7 @@
     "kind": "meeting",
     "title": "Protokoll Teamsitzung 12.03.2026",
     "expect": {
-      "body": "protok-team-2026",
+      "body": "prot-teamsitz-26",
       "tail": 0
     }
   },
@@ -4245,8 +4245,8 @@
     "kind": "travel",
     "title": "Trip report from Lisbon",
     "expect": {
-      "body": "trip-lisbon",
-      "tail": 4
+      "body": "trip-lisbon-repo",
+      "tail": 0
     }
   },
   {
@@ -4268,8 +4268,8 @@
     "kind": "travel",
     "title": "Trip report from Porto",
     "expect": {
-      "body": "trip-porto",
-      "tail": 5,
+      "body": "trip-porto-repor",
+      "tail": 0,
       "after": ["t582"]
     }
   },
@@ -4328,8 +4328,8 @@
     "kind": "software",
     "title": "Release 2.4 Hinweise zur Migration",
     "expect": {
-      "body": "migration-v24",
-      "tail": 2
+      "body": "migration-v24-hi",
+      "tail": 0
     }
   },
   {
@@ -4338,8 +4338,8 @@
     "kind": "meeting",
     "title": "Team Lunch Monday",
     "expect": {
-      "body": "lunch-monday",
-      "tail": 3,
+      "body": "lunch-monday-tea",
+      "tail": 0,
       "after": ["t436"]
     }
   },

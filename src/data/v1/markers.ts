@@ -44,6 +44,7 @@ export const MARKERS_DE: readonly MarkerDef[] = [
   { words: ['modell'], prefix: 'md', takes: 'number-or-letter' },
   { words: ['artikel', 'art'], prefix: 'art', takes: 'number' },
   { words: ['absatz', 'abs'], prefix: 'abs', takes: 'number' },
+  { words: ['los'], prefix: 'los', takes: 'number-or-letter' },
 ]
 
 export const MARKERS_EN: readonly MarkerDef[] = [
@@ -72,6 +73,7 @@ export const MARKERS_EN: readonly MarkerDef[] = [
   { words: ['type'], prefix: 'typ', takes: 'number-or-letter' },
   { words: ['model'], prefix: 'md', takes: 'number-or-letter' },
   { words: ['article'], prefix: 'art', takes: 'number' },
+  { words: ['lot'], prefix: 'lot', takes: 'number-or-letter' },
 ]
 
 /** Same word in German and English. */

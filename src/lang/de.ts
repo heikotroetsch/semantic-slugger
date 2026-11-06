@@ -15,7 +15,7 @@ import { CODAS_DE, ONSETS_DE } from '../data/v1/phonology.ts'
 import { QUALIFIERS } from '../data/v1/qualifiers.ts'
 import { STOP_DE } from '../data/v1/stop-de.ts'
 import { VERSION_WORDS } from '../data/v1/versions.ts'
-import { WEAK_DE } from '../data/v1/weak.ts'
+import { FILLER_DE, WEAK_DE } from '../data/v1/weak.ts'
 import { WEEKDAYS_DE } from '../data/v1/weekdays.ts'
 import { cistem } from '../vendor/cistem.ts'
 import type { LanguagePack } from './pack.ts'
@@ -87,7 +87,7 @@ export function dePack(): LanguagePack {
       stopWords: STOP_DE,
       conflictWords: CONFLICT_DE,
       noiseWords: NOISE_DE,
-      lexicon: [...LEXICON_DE, ...QUALIFIERS.filter((e) => e.lang === 'de'), ...WEAK_DE, ...DOCKIND_DE],
+      lexicon: [...LEXICON_DE, ...QUALIFIERS.filter((e) => e.lang === 'de'), ...WEAK_DE, ...FILLER_DE, ...DOCKIND_DE],
       stem: deStem,
       keyFold: deKeyFold,
       // noun and adjective endings for the stem match (DEVIATIONS), compared after keyFold

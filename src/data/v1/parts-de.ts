@@ -17,7 +17,7 @@ export const PARTS_DE: readonly string[] = [
   'verkehr',
   // food
   'essen', 'speise', 'kuchen', 'brot', 'apfel', 'obst', 'gemuese', 'fleisch', 'fisch', 'milch', 'kaffee', 'tee',
-  'wein', 'bier', 'rezept', 'getraenk', 'lebensmittel', 'mittag', 'abendessen', 'fruehstueck',
+  'wein', 'bier', 'getraenk', 'lebensmittel', 'mittag', 'abendessen', 'fruehstueck',
   // family, school, research
   'kind', 'kinder', 'eltern', 'familie', 'schule', 'schueler', 'lehrer', 'klasse', 'unterricht', 'kurs', 'lern',
   'lehr', 'studium', 'pruefung', 'noten', 'forschung', 'studie', 'labor', 'wissen', 'bildung', 'buch',

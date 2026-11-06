@@ -53,10 +53,11 @@ describe('generate() (SPEC 13.4 drivers)', () => {
 
   it('3 round trips for a padded title without a collision (exact mode): no second countBody', async () => {
     const s = asyncSingles(memoryStore())
-    const r = await generate('Team Lunch Friday', { store: s })
+    // one-word title: no unused word can fill the room, so it keeps a padding tail (quality round 1)
+    const r = await generate('Board', { store: s })
     expect(r.reason).toBe('base')
     expect(r.tail).not.toBe('')
-    const stems = createSlugger().analyze('Team Lunch Friday').storedStems.length
+    const stems = createSlugger().analyze('Board').storedStems.length
     // one exists batch of 8 tail IDs, asked in parallel (no existsMany)
     const exists = Array(8).fill('exists')
     expect(s.calls).toEqual([...Array(stems).fill('countStem'), 'total', 'countBody', ...exists])
@@ -93,7 +94,8 @@ describe('generate() (SPEC 13.4 drivers)', () => {
     const m = memoryStore()
     const bodies = new Set<string>()
     for (let i = 0; i < 200; i++)
-      bodies.add((await s.createUnique('Quarterly Board Meeting Minutes', { store: m })).result.body)
+      // a one-word body with a long tail (weak words fill short bodies since quality round 1)
+      bodies.add((await s.createUnique('Board', { store: m })).result.body)
     expect([...bodies]).toEqual(['board'])
     expect(m.size).toBe(200)
   })

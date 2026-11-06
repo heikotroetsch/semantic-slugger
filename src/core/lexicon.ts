@@ -5,6 +5,7 @@
  */
 
 import type { LexiconEntry } from '../config.ts'
+import { FILLER_KEYS } from '../data/v1/weak.ts'
 import type { LanguagePack } from '../lang/pack.ts'
 import { asciiFold } from './normalize.ts'
 import { RE_NON_ALNUM } from './regexes.ts'
@@ -205,6 +206,8 @@ export function buildLexicon(src: LexiconSource): Lexicon {
         for (const e of entries) {
           if (e.cls === 'marker' || e.cls === 'direction') continue
           if (e.lang !== lang && e.lang !== '*') continue
+          // filler words match exactly only (docs/DEVIATIONS.md, quality round 1)
+          if (e.weak === true && FILLER_KEYS.has(e.key)) continue
           for (const s of words(e).single) {
             const k = st.stem(s)
             const l = m.get(k)

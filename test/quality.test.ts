@@ -7,30 +7,30 @@ import { describe, expect, it } from 'vitest'
 import { buildReport, buildSequential } from '../scripts/lib/corpus.ts'
 
 /**
- * Q4 padding tail rate gates, set at M4 from the measured values rounded up to the next 5% (SPEC 19.6).
- * They may only go down later.
+ * Q4 padding tail rate gates, set at M4 from the measured values rounded up to the next 5% (SPEC 19.6),
+ * lowered in quality round 1 (fill segments, docs/DEVIATIONS.md) the same way. They may only go down later.
  */
-const Q4_GATE_OVERALL = 25
+const Q4_GATE_OVERALL = 10
 const Q4_GATES: Readonly<Record<string, number>> = {
-  blog: 20,
-  education: 20,
-  event: 10,
-  finance: 55,
-  hr: 25,
-  legal: 35,
-  marketing: 25,
-  medical: 30,
-  meeting: 65,
+  blog: 15,
+  education: 5,
+  event: 5,
+  finance: 10,
+  hr: 5,
+  legal: 20,
+  marketing: 5,
+  medical: 20,
+  meeting: 15,
   news: 5,
-  procurement: 25,
+  procurement: 5,
   product: 5,
-  project: 45,
-  realestate: 25,
-  recipe: 20,
+  project: 20,
+  realestate: 15,
+  recipe: 5,
   research: 5,
-  software: 45,
+  software: 5,
   ticket: 10,
-  travel: 25,
+  travel: 5,
 }
 
 const rep = buildReport()

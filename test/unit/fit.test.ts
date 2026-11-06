@@ -52,11 +52,13 @@ describe('tail options and cost (SPEC 12)', () => {
   })
 })
 
+// Costs follow the quality round 1 values (docs/DEVIATIONS.md): chunk 80, head 80, skeleton 600,
+// position bonus 90/45/20/10/5.
 describe('worked cost checks (SPEC 12.2)', () => {
   it('A: Jahresbericht Vertrieb Nord 2026', () => {
     const c = cands('Jahresbericht Vertrieb Nord 2026')
-    expect(c.slice(0, 3).map(row)).toEqual(['vertrieb-nord-26 100', 'vertrieb-nord+t2 525', 'vertrieb-2026+t2 535'])
-    expect(c[0]?.parts).toEqual({ rungs: 40, cryptic: 0, lost: 0, chunks: 60, tail: 0 })
+    expect(c.slice(0, 3).map(row)).toEqual(['vertrieb-nord-26 120', 'vertrieb-nord+t2 525', 'vertrieb-2026+t2 535'])
+    expect(c[0]?.parts).toEqual({ rungs: 40, cryptic: 0, lost: 0, chunks: 80, tail: 0 })
   })
 
   it('B: refit with a tail of 2 keeps the content, rungs shrink', () => {
@@ -64,7 +66,7 @@ describe('worked cost checks (SPEC 12.2)', () => {
     const cfg = cfgOf()
     const best = fitBody(pool, cfg)[0] as Candidate
     const r = refitWithTail(pool, cfg, best, 2) as Candidate
-    expect(row(r)).toBe('ver-nord-2026+t2 490')
+    expect(row(r)).toBe('ver-nord-2026+t2 510')
     const max = cfgOf({ lengthMode: 'max' })
     const m = refitWithTail(
       poolOf('Jahresbericht Vertrieb Nord 2026', { lengthMode: 'max' }),
@@ -72,21 +74,21 @@ describe('worked cost checks (SPEC 12.2)', () => {
       best,
       2,
     ) as Candidate
-    expect(row(m)).toBe('ver-nord-26+t2 460')
+    expect(row(m)).toBe('ver-nord-26+t2 480')
   })
 
   it('C: Q3 2026 Marketing Budget Review', () => {
     expect(cands('Q3 2026 Marketing Budget Review').slice(0, 3).map(row)).toEqual([
-      'mktg-budget-26q3 375',
-      'mktg-review-26q3 400',
-      'mktg-budget-2026 620',
+      'mktg-budget-26q3 400',
+      'mktg-review-26q3 435',
+      'mktg-budget-2026 645',
     ])
   })
 
   it('D: Chocolate Cake Recipe', () => {
     expect(cands('Chocolate Cake Recipe').slice(0, 2).map(row)).toEqual([
-      'choc-cake-recipe 190',
-      'chocolate-recipe 370',
+      'choc-cake-recipe 210',
+      'chocolate-recipe 385',
     ])
   })
 })
@@ -101,7 +103,7 @@ describe('fit rules', () => {
 
   it('tie-break by rung cost in rank order: firefox-rel-v132 beats fir-release-v132', () => {
     const c = cands('Firefox v132 Release Notes')
-    expect(row(c[0] as Candidate)).toBe('firefox-rel-v132 230')
+    expect(row(c[0] as Candidate)).toBe('firefox-rel-v132 250')
   })
 
   it('tie-break by content rank, then body', () => {
@@ -114,7 +116,7 @@ describe('fit rules', () => {
 
   it('max mode prefers the shorter ID on equal cost and needs no tail', () => {
     const c = cands('MRT Knie links', { lengthMode: 'max' })
-    expect(row(c[0] as Candidate)).toBe('mrt-knie-links 60')
+    expect(row(c[0] as Candidate)).toBe('mrt-knie-links 80')
   })
 
   it('a model number only with its word; the bond joins in the word slot', () => {
@@ -122,7 +124,8 @@ describe('fit rules', () => {
       const keys = c.content.map((x) => x.key)
       if (keys.includes('d8')) expect(c.body).toContain('phone8')
     }
-    expect(cands('Tavora Phone 8 128 GB Midnight Blue')[0]?.body).toBe('phone8-mdgt-blue')
+    // the skeleton `mdgt` costs 600 since quality round 1, so the storage size shows instead
+    expect(cands('Tavora Phone 8 128 GB Midnight Blue')[0]?.body).toBe('tav-phone8-128gb')
   })
 
   it('quarter and month bond with the year into one segment', () => {
