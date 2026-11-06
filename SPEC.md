@@ -1376,8 +1376,15 @@ function* resolve(doc: Analysis, cfg: ResolvedConfig, exclude: ReadonlySet<strin
         const boosted = rankPool(doc, stats, cfg, diff)                // +300 for diff concepts
         const c2 = fit(boosted, cfg, { mustInclude: diff })
         const k2 = c2.length ? yield { op: 'countBodies', bodies: uniq(c2.map(c => c.body)) } : null
-        const free = c2.find(c => (k2?.get(c.body) ?? 1) === 0 && !(c.tailLen === 0 && exclude.has(c.body)))
-        if (free) { chosen = free; reason = 'repick'; n = 0 }
+        // M5 fix 2: walk c2 in order; take the first free body (repick), or the first taken body whose
+        // findByBody rows give an empty diff (an identical title re-picked before; shared-body, n = its count).
+        // At most 8 taken bodies are looked up.
+        for (const c of c2) {
+          const cnt = k2?.get(c.body) ?? 1
+          if (cnt === 0) { if (c.tailLen === 0 && exclude.has(c.body)) continue; chosen = c; reason = 'repick'; n = 0; break }
+          const rows = yield { op: 'findByBody', body: c.body, limit: 20 }
+          if (rows?.length && pool.every(p => isIn(p, new Set(rows.flatMap(o => o.stems))))) { chosen = c; n = cnt; break }
+        }
       }
       // diff empty: same stems (identical or near-identical title). Keep the body, the tail tells them apart.
     }
@@ -1427,6 +1434,7 @@ What changed against rev 1, and why:
 - Rev 1 had a different order for exists-only stores (re-pick first). Now every tier keeps the best body and adds a tail; only tier C re-picks, and only with a non-empty diff.
 - `n` (rows sharing the best body) sets the first tail length. The tail length and the start index are then counted again on the **final** body (after `refitWithTail`), minus a body-only row with the same text. So in tier B and C the n-th identical title starts at the first unused index, which is the index the tier A walk also reaches.
 - After a re-pick to a free body, `n = 0`.
+- (M5 fix 2) An empty diff keeps the body also after a re-pick: the re-pick walk takes a taken candidate body when its rows give an empty diff, so the 3rd, 4th, ... copy of a title whose first copy was re-picked lands on the body of that first copy and does not re-pick again (docs/DEVIATIONS.md #118).
 
 Defaults: `maxPlans 16`, `maxAttempts 8` (tiers B, C), `maxScan 64` (tier A). With `safe` tails and the 1/16 load rule, the chance to exhaust in tier B or C is about 2e-10 per call. Tier A exhausts after about 64 rows with the same title and body; the README says to use a counting store for heavy duplicates.
 

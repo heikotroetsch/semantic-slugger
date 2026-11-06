@@ -121,6 +121,8 @@ export type AnyAnswer = ReqAnswer[keyof ReqAnswer]
 
 const BATCH = 8
 const FIND_LIMIT = 20
+/** Taken re-pick bodies that phase 1 looks up with `findByBody` (docs/DEVIATIONS.md #118). */
+const MAX_PROBES = 8
 
 /** Rank the concepts with the store answers, build the ladders and the pool (SPEC 10, 11). */
 export function rankPool(
@@ -257,11 +259,31 @@ export function* resolveDoc(
         const k2 =
           bodies.length > 0 ? ((yield { op: 'countBodies', bodies }) as ReadonlyMap<string, number> | null) : null
         if (k2) for (const [b, v] of k2) counted.set(b, v)
-        const free = c2.find((c) => (k2?.get(c.body) ?? 1) === 0 && !(c.tailLen === 0 && exclude.has(c.body)))
-        if (free) {
-          chosen = free
-          reason = 'repick'
-          n = 0
+        // Walk c2 in order (docs/DEVIATIONS.md #118): take the first free body, or the first taken body
+        // whose rows give an empty diff (an identical title that was re-picked before). The second case
+        // keeps that body as shared-body, so identical titles land on the body the first copy chose.
+        const probed = new Set<string>([chosen.body])
+        for (const c of c2) {
+          const cnt = k2?.get(c.body) ?? 1
+          if (cnt === 0) {
+            if (c.tailLen === 0 && exclude.has(c.body)) continue
+            chosen = c
+            reason = 'repick'
+            n = 0
+            break
+          }
+          if (probed.has(c.body) || probed.size > MAX_PROBES) continue
+          probed.add(c.body)
+          const rows = (yield { op: 'findByBody', body: c.body, limit: FIND_LIMIT }) as
+            | readonly { id: string; stems: readonly string[] }[]
+            | null
+          if (!rows || rows.length === 0) continue
+          const held = new Set(rows.flatMap((o) => o.stems))
+          if (pool.every((p) => isIn(p, held))) {
+            chosen = c
+            n = cnt
+            break
+          }
         }
       }
       // diff empty: same stems (identical or near-identical title). Keep the body; the tail tells them apart.

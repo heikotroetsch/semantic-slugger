@@ -77,6 +77,32 @@ describe('resolve branches (SPEC 13.4)', () => {
     expect(pl.out[1]?.reason).toBe('shared-body')
   })
 
+  it('identical titles after a re-picked sibling share one body (docs/DEVIATIONS.md #118)', async () => {
+    const pairs: [string, string][] = [
+      ['Storm Warning North Coast', 'Storm Warning South Coast'],
+      ['Mathe Klassenarbeit Klasse 7a', 'Mathe Klassenarbeit Klasse 7b'],
+    ]
+    for (const lengthMode of ['exact', 'max'] as const) {
+      for (const [a, b] of pairs) {
+        const { out } = await seq([a, ...Array<string>(5).fill(b)], { lengthMode })
+        const copies = out.slice(1)
+        // the first copy may be body-only; then the later copies refit to one tailed body
+        const later = copies[0]?.tail === '' ? copies.slice(1) : copies
+        expect(new Set(later.map((r) => r.body)).size, `${lengthMode} ${b}`).toBe(1)
+        expect(
+          later.every((r) => r.reason === 'shared-body' || r === copies[0]),
+          `${lengthMode} ${b}`,
+        ).toBe(true)
+        expect(new Set(out.map((r) => r.id)).size).toBe(out.length)
+      }
+    }
+    const many = createSlugger().slugMany([
+      'Storm Warning North Coast',
+      ...Array<string>(4).fill('Storm Warning South Coast'),
+    ])
+    expect(new Set(many.slice(2).map((r) => r.body)).size).toBe(1)
+  })
+
   it('tail-grown: a taken body-only ID refits with a tail (SPEC 12.2 B)', async () => {
     const { out } = await seq(['Chocolate Cake Recipe', 'Chocolate Cake Recipe'])
     expect(out[0]?.id).toBe('choc-cake-recipe')
