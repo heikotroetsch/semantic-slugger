@@ -154,6 +154,9 @@ describe('noise tokens (SPEC 5.2)', () => {
     expect(keys('Open House Saturday 2 PM')).toEqual(['open:topic', 'house:topic', 'wd6:weekday'])
     expect(keys('Meeting 9am')).not.toContain('am:topic')
     expect(keys('1st Place')).toEqual(['place:topic'])
+    expect(keys('1st level support')).toEqual(['support:topic'])
+    expect(keys('2nd Tier Support')).toEqual(['support:topic'])
+    expect(keys('Level 2 Support')).toEqual(['lv2:marker', 'support:topic'])
     expect(keys('Vitamin D')).toEqual(['vitamin:topic'])
     expect(keys('Louis XIV Biografie')).not.toContain('xiv:topic')
     expect(keys('Ludwig II')).toEqual(['ludwig:topic'])
@@ -175,6 +178,18 @@ describe('code runs (SPEC 5.1 step 1b)', () => {
     expect(keys('Ersatzteil SKU A-4471')).toContain('cskua4471:code')
     expect(keys('MP3 Player')).toContain('cmp3:code')
     expect(keys('papier a4 kaufen')).toContain('ca4:code')
+  })
+
+  it('a short all-caps token joins only an unknown word to a real code run, within 8 chars (DEVIATIONS)', () => {
+    expect(keys('SKU A-4471')).toEqual(['cskua4471:code'])
+    expect(keys('COVID-19 FAQ')).toEqual(['ccovid19:code', 'faq:topic'])
+    expect(keys('FAQ COVID-19')).toEqual(['faq:topic', 'ccovid19:code'])
+    expect(keys('PROJ-1234 API Timeout')).toEqual(['cproj1234:code', 'api:topic', 'timeout:topic'])
+    expect(keys('IT PROJ-1234 Migration')).toEqual(['it:topic', 'cproj1234:code', 'migration:topic'])
+    expect(keys('HR ISO 9001 Audit')).toEqual(['hr:topic', 'ciso9001:code', 'audit:topic'])
+    expect(keys('DIN EN ISO 9001 Zertifizierung')).toEqual(['ciso9001:code', 'zertifizierung:topic'])
+    // too long when joined: both tokens stay
+    expect(keys('QRZ PROJ-1234 Ablauf')).toEqual(expect.arrayContaining(['qrz:acronym', 'cproj1234:code']))
   })
 
   it('a run ends before a hyphen word (B2B-Marketing, COVID-19-Impfung)', () => {
@@ -284,5 +299,11 @@ describe('verifier round 1 (M2)', () => {
     expect(keys('August Müller Geburtstag')).toContain('august:topic')
     expect(keys('August 2026 Newsletter')).toContain('m08:month')
     expect(keys('Newsletter März')).toContain('m03:month')
+  })
+
+  it('a title-start month counts when another month or weekday follows within two tokens (5.4)', () => {
+    expect(keys('März bis Mai Planung').filter((k) => k.endsWith(':month'))).toEqual(['m03:month', 'm05:month'])
+    expect(keys('May June Report').filter((k) => k.endsWith(':month'))).toEqual(['m05:month', 'm06:month'])
+    expect(keys('Mai Planung')).toContain('mai:topic')
   })
 })

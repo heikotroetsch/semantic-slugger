@@ -589,6 +589,11 @@ function context(ctx: Ctx, toks: Tok[], c: Compiled): Tok[] {
       out.push({ ...t, cls: 'noise' })
       continue
     }
+    // a marker word without its number right after an ordinal is noise (`1st level support`, 5.3)
+    if (t.cls === 'word' && prev?.cls === 'noise' && RE_ORDINAL.test(prev.ascii) && c.markers.has(t.ascii)) {
+      out.push({ ...t, cls: 'noise' })
+      continue
+    }
     // am/pm directly after a number 1 to 12 (`2 PM`)
     if (t.cls === 'word' && (t.ascii === 'am' || t.ascii === 'pm') && prev?.cls === 'smallnum') {
       const v = prev.value ?? 0
@@ -601,7 +606,15 @@ function context(ctx: Ctx, toks: Tok[], c: Compiled): Tok[] {
     if (t.cls === 'word' && RE_STANDARD_PREFIX.test(t.ascii) && next !== undefined && adjacent(ctx.s, t, next)) {
       const digits = next.cls === 'smallnum' || next.cls === 'longnum' || next.cls === 'year' ? next.ascii : ''
       if (digits !== '' && RE_DIGITS.test(digits)) {
-        const merged = codeTok(make(ctx, t.start, next.end, 'code', t.ascii + digits, { capsRun: t.case === 'upper' }))
+        // no `capsRun`: a standard code is no code run, so it joins no short all-caps token (DEVIATIONS)
+        const merged = codeTok(make(ctx, t.start, next.end, 'code', t.ascii + digits))
+        // standard prefixes right before it are part of the norm name (`DIN EN ISO 9001`): noise
+        for (let k = out.length - 1; k >= 0; k--) {
+          const p = out[k] as Tok
+          const after = k === out.length - 1 ? t : (out[k + 1] as Tok)
+          if (p.cls !== 'word' || !RE_STANDARD_PREFIX.test(p.ascii) || !adjacent(ctx.s, p, after)) break
+          out[k] = { ...p, cls: 'noise' }
+        }
         out.push(merged)
         i++
         continue
@@ -619,7 +632,10 @@ function context(ctx: Ctx, toks: Tok[], c: Compiled): Tok[] {
       const m = c.months.get(t.ascii)
       if (m !== undefined) {
         // capitalization at title start says nothing: `August` the first name stays a word (5.4)
-        const cap = t.cap && prev !== undefined
+        // ... unless another month or weekday follows within two tokens (`März bis Mai Planung`)
+        const timeWord = (x: Tok | undefined) =>
+          x !== undefined && x.cls === 'word' && (c.months.has(x.ascii) || c.weekdays.has(x.ascii))
+        const cap = t.cap && (prev !== undefined || timeWord(next) || timeWord(toks[i + 2]))
         const dayBefore = prev?.cls === 'smallnum' && (prev.value ?? 0) >= 1 && (prev.value ?? 0) <= 31
         const yearNear = prev?.cls === 'year' || next?.cls === 'year'
         if (cap || dayBefore || yearNear) t = { ...t, cls: 'month', key: `m${String(m).padStart(2, '0')}` }
@@ -641,31 +657,32 @@ function context(ctx: Ctx, toks: Tok[], c: Compiled): Tok[] {
     }
     out.push(t)
   }
-  // code runs join an adjacent all-caps token of 1 to 3 letters (`SKU A-4471` -> `skua4471`)
+  // code runs join an adjacent all-caps token of 1 to 3 letters (`SKU A-4471` -> `skua4471`). Not a
+  // lexicon word, known abbreviation or standard prefix (`COVID-19 FAQ`, `IT PROJ-1234`, `EN ISO 9001`),
+  // and only when the joined code stays within the 8-char display limit (DEVIATIONS).
+  const shortCaps = (x: Tok | undefined): x is Tok =>
+    x !== undefined &&
+    x.cls === 'word' &&
+    x.parts === undefined &&
+    x.case === 'upper' &&
+    x.ascii.length <= 3 &&
+    !RE_HAS_DIGIT.test(x.ascii) &&
+    !RE_STANDARD_PREFIX.test(x.ascii) &&
+    !c.lexicon.hasExact(x.ascii) &&
+    c.lexicon.knownAbbr(x.ascii).length === 0
   const joined: Tok[] = []
   for (let i = 0; i < out.length; i++) {
     const t = out[i] as Tok
-    const shortCaps = (x: Tok | undefined) =>
-      x !== undefined &&
-      x.cls === 'word' &&
-      x.parts === undefined &&
-      x.case === 'upper' &&
-      x.ascii.length <= 3 &&
-      !RE_HAS_DIGIT.test(x.ascii)
     if ((t.cls === 'code' || t.cls === 'noise') && t.capsRun !== undefined) {
       const prev = joined[joined.length - 1]
       let cur = t
-      if (shortCaps(prev) && adjacent(ctx.s, prev as Tok, t)) {
+      if (shortCaps(prev) && adjacent(ctx.s, prev, t) && prev.ascii.length + t.ascii.length <= 8) {
         joined.pop()
-        cur = codeTok(
-          make(ctx, (prev as Tok).start, t.end, 'code', (prev as Tok).ascii + t.ascii, { capsRun: t.capsRun }),
-        )
+        cur = codeTok(make(ctx, prev.start, t.end, 'code', prev.ascii + t.ascii, { capsRun: t.capsRun }))
       }
       const next = out[i + 1]
-      if (shortCaps(next) && adjacent(ctx.s, t, next as Tok)) {
-        cur = codeTok(
-          make(ctx, cur.start, (next as Tok).end, 'code', cur.ascii + (next as Tok).ascii, { capsRun: t.capsRun }),
-        )
+      if (shortCaps(next) && adjacent(ctx.s, t, next) && cur.ascii.length + next.ascii.length <= 8) {
+        cur = codeTok(make(ctx, cur.start, next.end, 'code', cur.ascii + next.ascii, { capsRun: t.capsRun }))
         i++
       }
       joined.push(cur)

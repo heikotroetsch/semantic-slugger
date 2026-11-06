@@ -130,18 +130,36 @@ function commonPrefix(a: string, b: string): number {
 }
 
 /**
+ * The two words differ only by inflection endings after their common prefix (SPEC 4.4 step 2, see
+ * DEVIATIONS): `besprechungen`/`besprechung`, `policies`/`policy`; not `market`/`marketing`,
+ * `operational`/`operations`, `finally`/`final`.
+ */
+function inflected(a: string, b: string, endings: ReadonlySet<string>): boolean {
+  const n = commonPrefix(a, b)
+  const ra = a.slice(n)
+  const rb = b.slice(n)
+  return (ra === '' || endings.has(ra)) && (rb === '' || endings.has(rb))
+}
+
+/**
  * Pick the stem match (SPEC 4.4 steps 2 and 3, see DEVIATIONS): a compound part entry (`partOnly`)
  * matches only a token that starts with the part (`haeuser` -> `haus`, but `druck` is no `drucker`).
  * Of the rest, a word that the token starts with wins, then the longest common prefix with the token
  * (`rechnern` -> `rechner`, not `recht`; `daecher` -> `dach`, not `dachregion`), then data order.
  */
-function pickStem(token: string, fold: string, cands: readonly StemWord[]): LexiconEntry | undefined {
+function pickStem(
+  token: string,
+  fold: string,
+  cands: readonly StemWord[],
+  endings: ReadonlySet<string> | undefined,
+): LexiconEntry | undefined {
   let best: StemWord | undefined
   let bestLen = -1
   for (const w of cands) {
     const whole = token.startsWith(w.word)
     const wholeFold = fold.startsWith(w.fold)
     if (w.entry.partOnly === true && !whole && !wholeFold) continue
+    if (endings !== undefined && !inflected(token, w.word, endings) && !inflected(fold, w.fold, endings)) continue
     const n = commonPrefix(token, w.word) + (whole ? 2000 : 0) + (wholeFold ? 1000 : 0)
     if (n > bestLen) {
       best = w
@@ -200,11 +218,13 @@ export function buildLexicon(src: LexiconSource): Lexicon {
     }
     return m
   }
+  const endingsOf = new Map<string, ReadonlySet<string>>()
+  for (const p of src.packs) if (p.inflections !== undefined) endingsOf.set(p.code, new Set(p.inflections))
   const stemHit = (ascii: string, lang: string): LexiconEntry | undefined => {
     const st = src.stemmers.get(lang)
     if (st === undefined) return undefined
     const cands = indexFor(lang).get(st.stem(ascii))
-    return cands === undefined ? undefined : pickStem(ascii, st.keyFold(ascii), cands)
+    return cands === undefined ? undefined : pickStem(ascii, st.keyFold(ascii), cands, endingsOf.get(lang))
   }
   return {
     entries,

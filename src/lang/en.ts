@@ -31,6 +31,8 @@ export function enPack(): LanguagePack {
       noiseWords: NOISE_EN,
       lexicon: [...LEXICON_EN, ...QUALIFIERS.filter((e) => e.lang === 'en'), ...WEAK_EN, ...DOCKIND_EN],
       stem: porter2,
+      // plural endings for the stem match (DEVIATIONS: `Market` is no `marketing`)
+      inflections: ['s', 'es', 'ies', 'y', 'e', 'd', 'ed', 'is', 'ves', 'f', 'fe', 'ren'],
       hints: {
         chars: '',
         suffixes: ['tion', 'ment', 'ing', 'ship', 'ness', 'ity'],

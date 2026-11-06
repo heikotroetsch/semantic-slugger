@@ -33,6 +33,12 @@ export interface LanguagePack {
   stem: (ascii: string) => string
   /** Fold before stemming (SPEC 4.4); default identity. */
   keyFold?: (ascii: string) => string
+  /**
+   * Inflection endings for the lexicon stem match (SPEC 4.4 step 2, see DEVIATIONS). When set, a stem
+   * match also needs the token and the indexed word to differ only by these endings after their common
+   * prefix (`besprechung|en`, `polic|y|ies`), so `marketing` does not take `market`. Omit: any stem match.
+   */
+  inflections?: readonly string[]
   /** Extra single-char table, applied before the built-in ones. */
   translit?: Readonly<Record<string, string>>
   /** Language detection hints (SPEC 6.1). */
@@ -85,6 +91,7 @@ const PACK_KEYS: ReadonlySet<string> = new Set([
   'lexicon',
   'stem',
   'keyFold',
+  'inflections',
   'translit',
   'hints',
   'nounsCapitalized',
@@ -164,6 +171,8 @@ export function validatePack(p: unknown, field: string, builtin: readonly string
   out.stem = fn(`${field}.stem`, own(v, 'stem'), true)
   const keyFold = fn(`${field}.keyFold`, own(v, 'keyFold'), false)
   if (keyFold) out.keyFold = keyFold
+  const infl = list(`${field}.inflections`, own(v, 'inflections'))
+  if (infl) out.inflections = infl
   const tl = own(v, 'translit')
   if (tl !== undefined) {
     const t = obj(`${field}.translit`, tl, Object.keys(isPlainObject(tl) ? tl : {}))

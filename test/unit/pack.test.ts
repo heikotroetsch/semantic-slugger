@@ -27,6 +27,7 @@ describe('language pack validation (SPEC 6.7)', () => {
           noiseWords: ['Fichier'],
           lexicon: [{ key: 'reunion', cls: 'topic', abbr: ['reu'] }],
           keyFold: (s: string) => s,
+          inflections: ['S', 'x'],
           translit: { œ: 'oe' },
           hints: { chars: 'ÉÈ', suffixes: ['tion'], weakSuffixes: ['eux'], digraphs: [] },
           nounsCapitalized: false,
@@ -49,6 +50,7 @@ describe('language pack validation (SPEC 6.7)', () => {
     expect(p?.noiseWords).toEqual(['fichier'])
     expect(p?.lexicon?.[0]).toMatchObject({ key: 'reunion', lang: 'fr' })
     expect(p?.hints?.chars).toBe('éè')
+    expect(p?.inflections).toEqual(['s', 'x'])
     expect(Object.isFrozen(p?.compound)).toBe(true)
   })
 
@@ -57,6 +59,7 @@ describe('language pack validation (SPEC 6.7)', () => {
     expect(reason(cfgWith({ ...base, conflictWords: ['xyz'] }))).toBe('invalid-language-pack')
     expect(reason(cfgWith({ ...base, stopWords: ['two words'] }))).toBe('invalid-language-pack')
     expect(reason(cfgWith({ ...base, keyFold: 'x' }))).toBe('invalid-language-pack')
+    expect(reason(cfgWith({ ...base, inflections: 's' }))).toBe('invalid-language-pack')
     expect(reason(cfgWith({ ...base, months: [['a']] }))).toBe('invalid-language-pack')
     expect(reason(cfgWith({ ...base, weekdays: Array.from({ length: 7 }, () => []) }))).toBe('invalid-language-pack')
     expect(reason(cfgWith({ ...base, weekPrefix: 'wl' }))).toBe('invalid-language-pack')

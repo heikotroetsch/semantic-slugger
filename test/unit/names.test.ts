@@ -78,6 +78,23 @@ describe('acronyms (SPEC 6.6)', () => {
 
   it('stem lookup finds inflected forms of 5+ chars', () => {
     expect(tok('Umzüge Planen für Familien', 'umzuege')?.lex?.key).toBe('umzug')
+  })
+
+  it('the stem match takes inflected forms only, not derived words (4.4 step 2, DEVIATIONS)', () => {
+    expect(tok('Besprechungen Team', 'besprechungen')?.lex?.key).toBe('besprechung')
+    expect(tok('Häuser Verkauf', 'haeuser')?.lex?.key).toBe('haus')
+    expect(tok('Rechnern Update', 'rechnern')?.lex?.key).toBe('rechner')
+    const falseFriends: [string, string][] = [
+      ['Market Analysis', 'market'],
+      ['Applicable Law', 'applicable'],
+      ['Customs Declaration', 'customs'],
+      ['Operational Excellence', 'operational'],
+      ['Informal Learning', 'informal'],
+      ['Generally Accepted Principles', 'generally'],
+      ['Finally Done', 'finally'],
+      ['Product Launch Plan', 'product'],
+    ]
+    for (const [title, word] of falseFriends) expect(tok(title, word)?.lex, title).toBeUndefined()
     expect(tok('Besprechungen der Woche', 'besprechungen')?.lex?.key).toBe('besprechung')
     expect(tok('Häuser in der Stadt', 'haeuser')?.lex?.key).toBe('haus')
   })

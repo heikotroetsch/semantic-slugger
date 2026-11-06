@@ -89,6 +89,8 @@ export function dePack(): LanguagePack {
       lexicon: [...LEXICON_DE, ...QUALIFIERS.filter((e) => e.lang === 'de'), ...WEAK_DE, ...DOCKIND_DE],
       stem: deStem,
       keyFold: deKeyFold,
+      // noun and adjective endings for the stem match (DEVIATIONS), compared after keyFold
+      inflections: ['e', 'n', 'en', 'er', 'ern', 's', 'es', 'ns', 'ens', 'nen', 'em', 'a', 'um', 'us'],
       hints: {
         chars: 'äöüß',
         suffixes: ['ung', 'keit', 'heit', 'schaft', 'lich', 'isch'],
