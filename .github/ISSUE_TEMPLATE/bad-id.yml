@@ -1,0 +1,42 @@
+name: Bad or ugly ID
+description: An ID that is hard to read, misleading or offensive.
+labels: [bad-id]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Use only a synthetic title.** Do not paste real contract titles, supplier names or customer data.
+        This repository is public.
+  - type: input
+    id: title
+    attributes:
+      label: Synthetic title
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Config
+      description: The config you passed to createSlugger (no secrets).
+      render: json
+  - type: input
+    id: id
+    attributes:
+      label: ID you got
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: ID you expected
+  - type: input
+    id: playground
+    attributes:
+      label: Playground link
+  - type: checkboxes
+    id: synthetic
+    attributes:
+      label: Data check
+      options:
+        - label: The title is invented. It contains no customer or real contract data.
+          required: true

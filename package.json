@@ -1,0 +1,110 @@
+{
+  "name": "semantic-slugger",
+  "version": "0.0.0",
+  "description": "Short, readable, unique IDs from titles. German + English. Zero dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heikotroetsch/semantic-slugger.git"
+  },
+  "homepage": "https://heikotroetsch.github.io/semantic-slugger/",
+  "bugs": "https://github.com/heikotroetsch/semantic-slugger/issues",
+  "keywords": [
+    "slug",
+    "id",
+    "short-id",
+    "german",
+    "abbreviation",
+    "procurement",
+    "unique"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22.18",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.8.1",
+      "onFail": "error"
+    }
+  },
+  "packageManager": "pnpm@12.8.1",
+  "files": [
+    "dist",
+    "NOTICE"
+  ],
+  "bin": {
+    "semantic-slugger": "./dist/cli.js"
+  },
+  "scripts": {
+    "clean": "node scripts/clean.ts",
+    "prebuild": "node scripts/clean.ts",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:browser": "vitest run -c vitest.browser.config.ts",
+    "test:watch": "vitest",
+    "test:update": "vitest run -u && node scripts/update-golden.ts",
+    "bench": "vitest bench --run",
+    "size": "size-limit",
+    "smoke": "node scripts/smoke.ts",
+    "corpus:report": "node scripts/corpus-report.ts",
+    "acceptance": "node scripts/ref-acceptance.ts",
+    "digest": "node scripts/update-digest.ts",
+    "playground": "pnpm build && node scripts/serve-playground.ts",
+    "changeset": "changeset",
+    "release": "pnpm build && changeset publish"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@arethetypeswrong/core": "0.18.5",
+    "@biomejs/biome": "2.6.5",
+    "@changesets/cli": "3.0.3",
+    "@size-limit/preset-small-lib": "14.3.0",
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.1.0",
+    "fast-check": "4.10.2",
+    "publint": "0.3.25",
+    "size-limit": "14.3.0",
+    "tsdown": "0.23.7",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./adapters/memory": {
+      "import": "./dist/adapters/memory.js",
+      "require": "./dist/adapters/memory.cjs"
+    },
+    "./adapters/prisma": {
+      "import": "./dist/adapters/prisma.js",
+      "require": "./dist/adapters/prisma.cjs"
+    },
+    "./adapters/sql": {
+      "import": "./dist/adapters/sql.js",
+      "require": "./dist/adapters/sql.cjs"
+    },
+    "./data": {
+      "import": "./dist/data.js",
+      "require": "./dist/data.cjs"
+    },
+    "./package.json": "./package.json"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": ["**", "!**/dist", "!**/coverage", "!**/node_modules", "!SPEC.md", "!test/fixtures/titles.json"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": { "quoteStyle": "single", "semicolons": "asNeeded", "trailingCommas": "all" }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "style": {
+        "noNonNullAssertion": "off",
+        "noParameterAssign": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/**", "!src/cli.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "Date": "Not deterministic (SPEC 14.1).",
+                  "crypto": "Not available in every runtime (SPEC 14.1).",
+                  "Intl": "Engine dependent (SPEC 14.1).",
+                  "BigInt": "Use 32-bit halves (SPEC 13.1).",
+                  "TextEncoder": "Use utf8() from src/hash/encode.ts (SPEC 4.1).",
+                  "process": "Core is browser-safe (SPEC 14.1).",
+                  "Buffer": "Core is browser-safe (SPEC 14.1).",
+                  "require": "ESM only in src (SPEC 14.1)."
+                }
+              }
+            },
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [{ "group": ["node:*"], "message": "No node: imports in core (SPEC 14.1)." }]
+              }
+            }
+          },
+          "nursery": {
+            "noJsRestrictedProperties": {
+              "level": "error",
+              "options": {
+                "entries": [
+                  { "object": "Math", "property": "random", "message": "Not deterministic (SPEC 14.1)." },
+                  { "property": "localeCompare", "message": "Engine dependent; use code-unit compare (SPEC 14.1)." },
+                  { "property": "toLocaleLowerCase", "message": "Engine dependent (SPEC 14.1)." },
+                  { "property": "toLocaleUpperCase", "message": "Engine dependent (SPEC 14.1)." },
+                  { "property": "toUpperCase", "message": "'ß' becomes 'SS' (SPEC 14.1)." }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["test/**", "scripts/**"],
+      "linter": { "rules": { "correctness": { "useImportExtensions": "error" } } }
+    }
+  ]
+}

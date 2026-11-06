@@ -1,0 +1,2543 @@
+[
+  {
+    "id": "t001",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stromlieferung Standorte Nord 2026",
+    "group": "de-strom-standorte"
+  },
+  {
+    "id": "t002",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stromlieferung Standorte Süd 2026",
+    "group": "de-strom-standorte"
+  },
+  {
+    "id": "t003",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stromlieferung Standorte Nord 2027",
+    "group": "de-strom-standorte"
+  },
+  {
+    "id": "t004",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Erdgaslieferung Liegenschaften Kassel 2025",
+    "group": "de-erdgas-kassel"
+  },
+  {
+    "id": "t005",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Erdgaslieferung Liegenschaften Kassel 2026",
+    "group": "de-erdgas-kassel"
+  },
+  {
+    "id": "t006",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Erdgaslieferung Liegenschaften Göttingen 2026",
+    "group": "de-erdgas-kassel"
+  },
+  {
+    "id": "t007",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 1",
+    "group": "de-reinigung-lose"
+  },
+  {
+    "id": "t008",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 2",
+    "group": "de-reinigung-lose"
+  },
+  {
+    "id": "t009",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Unterhaltsreinigung Verwaltungsgebäude München Nord – Los 3",
+    "group": "de-reinigung-lose"
+  },
+  {
+    "id": "t010",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Unterhaltsreinigung Verwaltungsgebäude München Süd – Los 1",
+    "group": "de-reinigung-lose"
+  },
+  {
+    "id": "t011",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Aufzugsanlagen Hauptverwaltung – Isarwerk Elektrotechnik GmbH",
+    "group": "de-aufzug-lieferant"
+  },
+  {
+    "id": "t012",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Aufzugsanlagen Hauptverwaltung – Fichtel Kran & Hebetechnik GmbH",
+    "group": "de-aufzug-lieferant"
+  },
+  {
+    "id": "t013",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Nachtrag 1 zum Rahmenvertrag Betonstahl – Preisgleitklausel",
+    "group": "de-betonstahl-nachtrag"
+  },
+  {
+    "id": "t014",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Nachtrag 2 zum Rahmenvertrag Betonstahl – Preisgleitklausel",
+    "group": "de-betonstahl-nachtrag"
+  },
+  {
+    "id": "t015",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Nachtrag 3 zum Rahmenvertrag Betonstahl – Preisgleitklausel",
+    "group": "de-betonstahl-nachtrag"
+  },
+  {
+    "id": "t016",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Kündigung Wartungsvertrag Brandmeldeanlage Standort Kassel",
+    "group": "de-kuendigung-bma"
+  },
+  {
+    "id": "t017",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Kündigung Wartungsvertrag Brandmeldeanlage Standort Fulda",
+    "group": "de-kuendigung-bma"
+  },
+  {
+    "id": "t018",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Verlängerung Dienstleistungsvertrag Winterdienst 2025/2026",
+    "group": "de-winterdienst"
+  },
+  {
+    "id": "t019",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Verlängerung Dienstleistungsvertrag Winterdienst 2026/2027",
+    "group": "de-winterdienst"
+  },
+  {
+    "id": "t020",
+    "lang": "de",
+    "kind": "project",
+    "title": "Leistungsverzeichnis Elektroinstallation Neubau Halle 4",
+    "group": "de-lv-elektro"
+  },
+  {
+    "id": "t021",
+    "lang": "de",
+    "kind": "project",
+    "title": "Leistungsverzeichnis Elektroinstallation Neubau Halle 5",
+    "group": "de-lv-elektro"
+  },
+  {
+    "id": "t022",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q1 2026",
+    "group": "de-zement-quartal"
+  },
+  {
+    "id": "t023",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q2 2026",
+    "group": "de-zement-quartal"
+  },
+  {
+    "id": "t024",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvereinbarung Zementlieferung Werk Rüdersdorf Q3 2026",
+    "group": "de-zement-quartal"
+  },
+  {
+    "id": "t025",
+    "lang": "de",
+    "kind": "po",
+    "title": "Lieferung Mittelspannungskabel NA2XS(F)2Y Los 1 Netzgebiet Ost",
+    "group": "de-mittelspannungskabel"
+  },
+  {
+    "id": "t026",
+    "lang": "de",
+    "kind": "po",
+    "title": "Lieferung Mittelspannungskabel NA2XS(F)2Y Los 2 Netzgebiet Ost",
+    "group": "de-mittelspannungskabel"
+  },
+  {
+    "id": "t027",
+    "lang": "de",
+    "kind": "po",
+    "title": "Lieferung Mittelspannungskabel NA2XS(F)2Y Los 1 Netzgebiet West",
+    "group": "de-mittelspannungskabel"
+  },
+  {
+    "id": "t028",
+    "lang": "de",
+    "kind": "project",
+    "title": "Beschaffung Notebooks Mitarbeitende Filialen Bayern 2026",
+    "group": "de-notebooks-filialen"
+  },
+  {
+    "id": "t029",
+    "lang": "de",
+    "kind": "project",
+    "title": "Beschaffung Notebooks Mitarbeitende Filialen Hessen 2026",
+    "group": "de-notebooks-filialen"
+  },
+  {
+    "id": "t030",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Nord",
+    "group": "de-bargeld-region"
+  },
+  {
+    "id": "t031",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Süd",
+    "group": "de-bargeld-region"
+  },
+  {
+    "id": "t032",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Bargeldversorgung Geldautomaten Region Mitte",
+    "group": "de-bargeld-region"
+  },
+  {
+    "id": "t033",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Werttransporte Filialnetz – Elbtal Sicherheitsdienst GmbH",
+    "group": "de-werttransport-lieferant"
+  },
+  {
+    "id": "t034",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Werttransporte Filialnetz – Kranich Sicherheitslogistik GmbH",
+    "group": "de-werttransport-lieferant"
+  },
+  {
+    "id": "t035",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Jahresgespräch Müller Stahlbau GmbH 2025",
+    "group": "de-jahresgespraech"
+  },
+  {
+    "id": "t036",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Jahresgespräch Müller Stahlbau GmbH 2026",
+    "group": "de-jahresgespraech"
+  },
+  {
+    "id": "t037",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Jahresgespräch Grauwacke Beton AG 2026",
+    "group": "de-jahresgespraech"
+  },
+  {
+    "id": "t038",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Arbeitsschutzkleidung Lager Hamburg KW 12",
+    "group": "de-psa-kw"
+  },
+  {
+    "id": "t039",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Arbeitsschutzkleidung Lager Hamburg KW 13",
+    "group": "de-psa-kw"
+  },
+  {
+    "id": "t040",
+    "lang": "de",
+    "kind": "project",
+    "title": "Ausschreibung Facility Management Campus Frankfurt 2026",
+    "group": "de-fm-campus"
+  },
+  {
+    "id": "t041",
+    "lang": "de",
+    "kind": "project",
+    "title": "Ausschreibung Facility Management Campus Eschborn 2026",
+    "group": "de-fm-campus"
+  },
+  {
+    "id": "t042",
+    "lang": "de",
+    "kind": "po",
+    "title": "Prüfung Leitern und Tritte nach DIN EN 131 Standort Kassel",
+    "group": "de-leitern-din"
+  },
+  {
+    "id": "t043",
+    "lang": "de",
+    "kind": "po",
+    "title": "Prüfung Leitern und Tritte nach DIN EN 131 Standort Erfurt",
+    "group": "de-leitern-din"
+  },
+  {
+    "id": "t044",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Betreibervertrag Betriebsrestaurant Hauptverwaltung Düsseldorf",
+    "group": "de-kantine-standort"
+  },
+  {
+    "id": "t045",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Betreibervertrag Betriebsrestaurant Werk Duisburg",
+    "group": "de-kantine-standort"
+  },
+  {
+    "id": "t046",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Rheinkiesel Baustoffe GmbH",
+    "group": "de-rheinkiesel-nl"
+  },
+  {
+    "id": "t047",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Rheinkiesel Baustoffe GmbH Niederlassung Köln",
+    "group": "de-rheinkiesel-nl"
+  },
+  {
+    "id": "t048",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Rheinkiesel Baustoffe GmbH Niederlassung Bonn",
+    "group": "de-rheinkiesel-nl"
+  },
+  {
+    "id": "t049",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Leasingvertrag Fuhrpark Servicefahrzeuge 2026 Los A",
+    "group": "de-leasing-los"
+  },
+  {
+    "id": "t050",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Leasingvertrag Fuhrpark Servicefahrzeuge 2026 Los B",
+    "group": "de-leasing-los"
+  },
+  {
+    "id": "t051",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Entsorgung gefährlicher Abfälle Werk Nord",
+    "group": "de-entsorgung-werk"
+  },
+  {
+    "id": "t052",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Entsorgung gefährlicher Abfälle Werk Süd",
+    "group": "de-entsorgung-werk"
+  },
+  {
+    "id": "t053",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartung PV-Anlage Dach Logistikzentrum Bielefeld",
+    "group": "de-pv-wartung"
+  },
+  {
+    "id": "t054",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartung PV-Anlage Dach Logistikzentrum Bremen",
+    "group": "de-pv-wartung"
+  },
+  {
+    "id": "t055",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Preisverhandlung Strombeschaffung Nordlicht Energie AG Lieferjahr 2026",
+    "group": "de-strompreis-verhandlung"
+  },
+  {
+    "id": "t056",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Preisverhandlung Strombeschaffung Ostwind Stadtwerke AG Lieferjahr 2026",
+    "group": "de-strompreis-verhandlung"
+  },
+  {
+    "id": "t057",
+    "lang": "de",
+    "kind": "po",
+    "title": "Abruf Gerüstbau Bauabschnitt 2 Vogt & Söhne Gerüstbau GmbH",
+    "group": "de-gerueste-bauabschnitt"
+  },
+  {
+    "id": "t058",
+    "lang": "de",
+    "kind": "po",
+    "title": "Abruf Gerüstbau Bauabschnitt 3 Vogt & Söhne Gerüstbau GmbH",
+    "group": "de-gerueste-bauabschnitt"
+  },
+  {
+    "id": "t059",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Master Service Agreement – Bluefin Analytics Ltd.",
+    "group": "en-msa-supplier"
+  },
+  {
+    "id": "t060",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Master Service Agreement – Ironbark Software Inc.",
+    "group": "en-msa-supplier"
+  },
+  {
+    "id": "t061",
+    "lang": "en",
+    "kind": "contract",
+    "title": "SOW 3 – Data Platform Migration Phase 1",
+    "group": "en-sow-phase"
+  },
+  {
+    "id": "t062",
+    "lang": "en",
+    "kind": "contract",
+    "title": "SOW 4 – Data Platform Migration Phase 2",
+    "group": "en-sow-phase"
+  },
+  {
+    "id": "t063",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Mutual NDA – Northgate Cloud Services Inc. 2025",
+    "group": "en-nda-year"
+  },
+  {
+    "id": "t064",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Mutual NDA – Northgate Cloud Services Inc. 2026",
+    "group": "en-nda-year"
+  },
+  {
+    "id": "t065",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Framework Agreement Office Supplies EMEA 2026",
+    "group": "en-framework-office"
+  },
+  {
+    "id": "t066",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Framework Agreement Office Supplies APAC 2026",
+    "group": "en-framework-office"
+  },
+  {
+    "id": "t067",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Framework Agreement Office Supplies EMEA 2027",
+    "group": "en-framework-office"
+  },
+  {
+    "id": "t068",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Renewal Software Licenses CAD Suite Q1 2026",
+    "group": "en-cad-renewal"
+  },
+  {
+    "id": "t069",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Renewal Software Licenses CAD Suite Q2 2026",
+    "group": "en-cad-renewal"
+  },
+  {
+    "id": "t070",
+    "lang": "en",
+    "kind": "project",
+    "title": "RFQ Pallet Racking Warehouse Leipzig Lot 1",
+    "group": "en-rfq-racking"
+  },
+  {
+    "id": "t071",
+    "lang": "en",
+    "kind": "project",
+    "title": "RFQ Pallet Racking Warehouse Leipzig Lot 2",
+    "group": "en-rfq-racking"
+  },
+  {
+    "id": "t072",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Freight Forwarding Agreement Air Freight Asia to Europe",
+    "group": "en-freight-mode"
+  },
+  {
+    "id": "t073",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Freight Forwarding Agreement Ocean Freight Asia to Europe",
+    "group": "en-freight-mode"
+  },
+  {
+    "id": "t074",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Security Services Agreement Head Office London",
+    "group": "en-security-site"
+  },
+  {
+    "id": "t075",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Security Services Agreement Head Office Dublin",
+    "group": "en-security-site"
+  },
+  {
+    "id": "t076",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Annual Price Review Harborview Logistics LLC 2025",
+    "group": "en-price-review"
+  },
+  {
+    "id": "t077",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Annual Price Review Harborview Logistics LLC 2026",
+    "group": "en-price-review"
+  },
+  {
+    "id": "t078",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Laptops Engineering Team Batch 1",
+    "group": "en-po-laptops"
+  },
+  {
+    "id": "t079",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Laptops Engineering Team Batch 2",
+    "group": "en-po-laptops"
+  },
+  {
+    "id": "t080",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Laptops Sales Team Batch 1",
+    "group": "en-po-laptops"
+  },
+  {
+    "id": "t081",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Cloud Hosting Agreement Production Environment EU-West",
+    "group": "en-cloud-region"
+  },
+  {
+    "id": "t082",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Cloud Hosting Agreement Production Environment EU-Central",
+    "group": "en-cloud-region"
+  },
+  {
+    "id": "t083",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Termination Notice Telecom Services Silverline Telecom Ltd. Site A",
+    "group": "en-termination-site"
+  },
+  {
+    "id": "t084",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Termination Notice Telecom Services Silverline Telecom Ltd. Site B",
+    "group": "en-termination-site"
+  },
+  {
+    "id": "t085",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag für Stromlieferung der Standorte 2026"
+  },
+  {
+    "id": "t086",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenverträge für Stromlieferung der Standorte 2026"
+  },
+  {
+    "id": "t087",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wärmeliefervertrag Fernwärme Quartier Am Mühlbach"
+  },
+  {
+    "id": "t088",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Contracting-Vertrag Blockheizkraftwerk Klinikum Ost"
+  },
+  {
+    "id": "t089",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Netzersatzanlage Rechenzentrum Frankfurt-Rödelheim"
+  },
+  {
+    "id": "t090",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Instandhaltung Umspannwerk Kassel-Waldau inkl. Schutztechnik"
+  },
+  {
+    "id": "t091",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Zählerablesung Netzgebiet Nordhessen"
+  },
+  {
+    "id": "t092",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Smart-Meter-Gateways Rollout 2026–2028"
+  },
+  {
+    "id": "t093",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Lieferung Transformatoren 630 kVA Ortsnetzstationen"
+  },
+  {
+    "id": "t094",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Tiefbauleistungen Kabelverlegung Los 4"
+  },
+  {
+    "id": "t095",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Netzbau Mittelspannung Ostwind Netzbau GmbH Rahmenvereinbarung"
+  },
+  {
+    "id": "t096",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartung Ladeinfrastruktur E-Mobilität Betriebshöfe"
+  },
+  {
+    "id": "t097",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Stromliefervertrag Ökostrom mit Herkunftsnachweisen 2027"
+  },
+  {
+    "id": "t098",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Direktvermarktungsvertrag Windpark Hohe Rhön"
+  },
+  {
+    "id": "t099",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Pachtvertrag Freiflächen-PV Gemarkung Lindenau"
+  },
+  {
+    "id": "t100",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Preisgleitklausel Erdgas nach THE-Index – Anlage 3"
+  },
+  {
+    "id": "t101",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Anpassung Preisgleitklausel Kupfer an LME-Notierung"
+  },
+  {
+    "id": "t102",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Transportbeton Großbaustelle Hafen City Süd"
+  },
+  {
+    "id": "t103",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Liefervertrag Kalksandstein KS 20-2,0 Bauvorhaben Wohnpark West"
+  },
+  {
+    "id": "t104",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvereinbarung Kies und Sand Körnung 0/32 Werk Nord"
+  },
+  {
+    "id": "t105",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Liefervertrag Gipskartonplatten nach DIN 18180"
+  },
+  {
+    "id": "t106",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Dämmstoffe Mineralwolle WLG 035"
+  },
+  {
+    "id": "t107",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Betonfertigteile Grauwacke Beton AG 2026"
+  },
+  {
+    "id": "t108",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Liefervertrag Bitumenbahnen Dachsanierung Halle 7"
+  },
+  {
+    "id": "t109",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stahlträger HEA/HEB Müller Stahlbau GmbH"
+  },
+  {
+    "id": "t110",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Pflastersteine und Randsteine Los 2"
+  },
+  {
+    "id": "t111",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Liefervertrag Zement CEM II/A-LL 42,5 R Sandhaus Zement GmbH"
+  },
+  {
+    "id": "t112",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Kontoauszugsdruck und Kuvertierung"
+  },
+  {
+    "id": "t113",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Kartenproduktion Girocard und Kreditkarten"
+  },
+  {
+    "id": "t114",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Auslagerungsvertrag Rechenzentrumsbetrieb nach DORA"
+  },
+  {
+    "id": "t115",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Wertpapierabwicklung Depotbank"
+  },
+  {
+    "id": "t116",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Geldautomaten und Kontoauszugsdrucker Filialen"
+  },
+  {
+    "id": "t117",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Vertrag Tresoranlagen Prüfung nach VdS Filiale Marktplatz"
+  },
+  {
+    "id": "t118",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Druckdienstleistungen Kundenkommunikation"
+  },
+  {
+    "id": "t119",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Datenschutzvereinbarung AVV Seeland Datentechnik AG"
+  },
+  {
+    "id": "t120",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Unternehmensberatung Regulatorik MaRisk"
+  },
+  {
+    "id": "t121",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Lizenzvertrag Kernbankensystem Erweiterungsmodul Meldewesen"
+  },
+  {
+    "id": "t122",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Pförtnerdienst Hauptverwaltung"
+  },
+  {
+    "id": "t123",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Heizung Lüftung Klima Bürogebäude Lindenstraße 12"
+  },
+  {
+    "id": "t124",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Kälteanlagen Wendelin Kälte- und Klimatechnik GmbH"
+  },
+  {
+    "id": "t125",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Glasreinigung Fassade Bürotürme Westend jährlich"
+  },
+  {
+    "id": "t126",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Grünflächenpflege Außenanlagen Standort Ingolstadt"
+  },
+  {
+    "id": "t127",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Hausmeisterdienste Wohnanlagen Leipzig-Grünau"
+  },
+  {
+    "id": "t128",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Empfang und Telefonzentrale"
+  },
+  {
+    "id": "t129",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartung Sprinkleranlagen nach VdS CEA 4001"
+  },
+  {
+    "id": "t130",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Prüfung ortsveränderlicher Betriebsmittel DGUV V3 alle Standorte"
+  },
+  {
+    "id": "t131",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Schädlingsbekämpfung Lebensmittellager Kantine Nord"
+  },
+  {
+    "id": "t132",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Postdienste und Kurierfahrten"
+  },
+  {
+    "id": "t133",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Rolltore und Schnelllauftore Logistikhalle"
+  },
+  {
+    "id": "t134",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Büromöbel Lindenhof Objekteinrichtung GmbH"
+  },
+  {
+    "id": "t135",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Büromaterial Mosel Bürobedarf GmbH 2026"
+  },
+  {
+    "id": "t136",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag IT-Hardware Arbeitsplatzausstattung 2026–2029"
+  },
+  {
+    "id": "t137",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Softwarewartungsvertrag ERP-System Modul Materialwirtschaft"
+  },
+  {
+    "id": "t138",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag IT-Service-Desk 1st und 2nd Level"
+  },
+  {
+    "id": "t139",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Mobilfunk Firmenkunden 500 SIM-Karten"
+  },
+  {
+    "id": "t140",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Vertrag Managed Firewall Silberfluss IT-Services GmbH"
+  },
+  {
+    "id": "t141",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Netzwerkkomponenten Standortvernetzung"
+  },
+  {
+    "id": "t142",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Druckerflotte Managed Print Services"
+  },
+  {
+    "id": "t143",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Lizenzvertrag Microsoft-kompatible Bürosoftware Volumenlizenz"
+  },
+  {
+    "id": "t144",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Vertrag Penetrationstest Online-Banking-Portal"
+  },
+  {
+    "id": "t145",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Speditionsleistungen Stückgut Deutschland"
+  },
+  {
+    "id": "t146",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Frachtvertrag Komplettladungen Hansekontor Logistik GmbH"
+  },
+  {
+    "id": "t147",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Lagerlogistikvertrag Kontraktlogistik Standort Hamm"
+  },
+  {
+    "id": "t148",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Kurier- und Expressdienste 2026"
+  },
+  {
+    "id": "t149",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Mietvertrag Wechselbrücken und Auflieger"
+  },
+  {
+    "id": "t150",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Tankkartenvertrag Fuhrpark 120 Fahrzeuge"
+  },
+  {
+    "id": "t151",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Paletten-Tausch Europaletten EPAL"
+  },
+  {
+    "id": "t152",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Dienstleistungsvertrag Zeitarbeit Kranich Personaldienste GmbH"
+  },
+  {
+    "id": "t153",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Reisebüro Geschäftsreisen und Hotelkontingente"
+  },
+  {
+    "id": "t154",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Cateringvertrag Edelweiss Kantinen GmbH Betriebsrestaurant"
+  },
+  {
+    "id": "t155",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Wasserspender und Getränkeservice Bergquell"
+  },
+  {
+    "id": "t156",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Arbeitsschutzkleidung nach EN ISO 20471"
+  },
+  {
+    "id": "t157",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Vertrag Betriebsärztlicher Dienst und Arbeitssicherheit"
+  },
+  {
+    "id": "t158",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Marketingagentur Messeauftritte 2026"
+  },
+  {
+    "id": "t159",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Übersetzungsdienstleistungen Deutsch-Englisch"
+  },
+  {
+    "id": "t160",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Weiterbildung Einkauf und Verhandlungsführung"
+  },
+  {
+    "id": "t161",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Entsorgungsvertrag Altpapier und Aktenvernichtung DIN 66399"
+  },
+  {
+    "id": "t162",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Kündigung Rahmenvertrag Mobilfunk zum 31.12.2026"
+  },
+  {
+    "id": "t163",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Kündigung Mietvertrag Lagerfläche Halle B fristgerecht"
+  },
+  {
+    "id": "t164",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Außerordentliche Kündigung Reinigungsvertrag Standort Bochum"
+  },
+  {
+    "id": "t165",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Verlängerung Wartungsvertrag USV-Anlage um 24 Monate"
+  },
+  {
+    "id": "t166",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Verlängerungsoption Rahmenvertrag Kurierdienste ausüben"
+  },
+  {
+    "id": "t167",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Nachtrag 4 Leistungsänderung Sicherheitsdienst Nachtschicht"
+  },
+  {
+    "id": "t168",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Nachtrag Mengenanpassung Streusalz Saison 2026/27"
+  },
+  {
+    "id": "t169",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Änderungsvereinbarung Skonto 3 % bei Zahlung binnen 10 Tagen"
+  },
+  {
+    "id": "t170",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Zusatzvereinbarung Bonusstaffel Jahresumsatz Baustoffe"
+  },
+  {
+    "id": "t171",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Vertraulichkeitsvereinbarung Ausschreibung Leitstellensoftware"
+  },
+  {
+    "id": "t172",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Werkvertrag Umbau Schalterhalle Filiale Domplatz"
+  },
+  {
+    "id": "t173",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Bauvertrag nach VOB/B Erweiterung Lagerhalle 3"
+  },
+  {
+    "id": "t174",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Ingenieurvertrag Tragwerksplanung Leistungsphasen 1–5 HOAI"
+  },
+  {
+    "id": "t175",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Generalunternehmervertrag Neubau Verwaltungsgebäude Kassel"
+  },
+  {
+    "id": "t176",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Müller Stahlbau GmbH"
+  },
+  {
+    "id": "t177",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Nordlicht Energie AG"
+  },
+  {
+    "id": "t178",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Brenner Haustechnik GmbH & Co. KG"
+  },
+  {
+    "id": "t179",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Alpenblick Facility Services GmbH"
+  },
+  {
+    "id": "t180",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Hansekontor Logistik GmbH"
+  },
+  {
+    "id": "t181",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Isarwerk Elektrotechnik GmbH"
+  },
+  {
+    "id": "t182",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Grauwacke Beton AG"
+  },
+  {
+    "id": "t183",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Silberfluss IT-Services GmbH"
+  },
+  {
+    "id": "t184",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Lindenhof Gebäudereinigung GmbH"
+  },
+  {
+    "id": "t185",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Steinmetz Natursteine KG"
+  },
+  {
+    "id": "t186",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Vogt & Söhne Gerüstbau GmbH"
+  },
+  {
+    "id": "t187",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Elbtal Sicherheitsdienst GmbH"
+  },
+  {
+    "id": "t188",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Taunus Druck & Medien GmbH"
+  },
+  {
+    "id": "t189",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Dreiländer Transport AG"
+  },
+  {
+    "id": "t190",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Falkenstein Consulting GmbH"
+  },
+  {
+    "id": "t191",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Moorbach Entsorgung GmbH & Co. KG"
+  },
+  {
+    "id": "t192",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Seeland Datentechnik AG"
+  },
+  {
+    "id": "t193",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Sandhaus Zement GmbH"
+  },
+  {
+    "id": "t194",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Ostwind Netzbau GmbH"
+  },
+  {
+    "id": "t195",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Wendelin Kälte- und Klimatechnik GmbH"
+  },
+  {
+    "id": "t196",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Weißdorn Gartenbau e.K."
+  },
+  {
+    "id": "t197",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Kranich Personaldienste GmbH"
+  },
+  {
+    "id": "t198",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Ingenieurbüro Hagedorn & Partner mbB"
+  },
+  {
+    "id": "t199",
+    "lang": "de",
+    "kind": "supplier",
+    "title": "Schreinerei Albrecht Möbelbau GmbH"
+  },
+  {
+    "id": "t200",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Nachverhandlung Preise Betonstahl Q3 2026"
+  },
+  {
+    "id": "t201",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Verhandlung Rabattstaffel Büromaterial Mosel Bürobedarf"
+  },
+  {
+    "id": "t202",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Preiserhöhung Nordlicht Energie AG abwehren"
+  },
+  {
+    "id": "t203",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Verhandlungsstrategie Rahmenvertrag Reinigung 2027"
+  },
+  {
+    "id": "t204",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Konditionsgespräch Zahlungsziel 60 Tage Hansekontor Logistik"
+  },
+  {
+    "id": "t205",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Gegenangebot Indexierung Lohnkosten Sicherheitsdienst"
+  },
+  {
+    "id": "t206",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Verhandlung Kündigungsfrist und Laufzeit IT-Service-Desk"
+  },
+  {
+    "id": "t207",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Vorbereitung Lieferantengespräch Sandhaus Zement Mengenbonus"
+  },
+  {
+    "id": "t208",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Eskalation Lieferverzug Transformatoren Isarwerk"
+  },
+  {
+    "id": "t209",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Nachverhandlung Energiepreise nach Preisgleitklausel 2026"
+  },
+  {
+    "id": "t210",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Verhandlungsrunde 2 Kantinenbetreiber Zuschussmodell"
+  },
+  {
+    "id": "t211",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Claim-Management Mehrkosten Bauvorhaben Halle 3"
+  },
+  {
+    "id": "t212",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Value-Recovery Rückforderung Überzahlung Frachtkosten 2025"
+  },
+  {
+    "id": "t213",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Gutschrift Skontoabzug falsch berechnet Grauwacke Beton"
+  },
+  {
+    "id": "t214",
+    "lang": "de",
+    "kind": "negotiation",
+    "title": "Jahresverhandlung Baustoffe Bonus und Skonto 2027"
+  },
+  {
+    "id": "t215",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung 4500012345 Schutzhelme EN 397 rot"
+  },
+  {
+    "id": "t216",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Streusalz 40 t Betriebshof Nord"
+  },
+  {
+    "id": "t217",
+    "lang": "de",
+    "kind": "po",
+    "title": "Abruf aus Rahmenvertrag Kabelschutzrohre DN 110"
+  },
+  {
+    "id": "t218",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Toner und Druckerpatronen Filiale Altstadt"
+  },
+  {
+    "id": "t219",
+    "lang": "de",
+    "kind": "po",
+    "title": "Einzelbestellung Hubarbeitsbühne Miete 3 Wochen"
+  },
+  {
+    "id": "t220",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Ersatzteile Notstromaggregat Standort Fulda"
+  },
+  {
+    "id": "t221",
+    "lang": "de",
+    "kind": "po",
+    "title": "Abruf Transportbeton C30/37 KW 18"
+  },
+  {
+    "id": "t222",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung 25 Monitore 27 Zoll IT-Abteilung"
+  },
+  {
+    "id": "t223",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Erste-Hilfe-Kästen DIN 13157 alle Standorte"
+  },
+  {
+    "id": "t224",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Wartung Gabelstapler Lager Süd"
+  },
+  {
+    "id": "t225",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellanforderung Beratungsleistung Lieferkettengesetz"
+  },
+  {
+    "id": "t226",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Kaffeeautomaten Leasing 5 Geräte"
+  },
+  {
+    "id": "t227",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Absperrgitter und Baustellenbeschilderung"
+  },
+  {
+    "id": "t228",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Visitenkarten und Briefpapier Vorstand"
+  },
+  {
+    "id": "t229",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Arbeitsschuhe S3 Größenmix Werkstatt"
+  },
+  {
+    "id": "t230",
+    "lang": "de",
+    "kind": "project",
+    "title": "Ausschreibung Energielieferung 2027–2029 EU-weit"
+  },
+  {
+    "id": "t231",
+    "lang": "de",
+    "kind": "project",
+    "title": "Ausschreibung Reinigungsleistungen 14 Standorte Los 1 bis 5"
+  },
+  {
+    "id": "t232",
+    "lang": "de",
+    "kind": "project",
+    "title": "Einkaufsprojekt Konsolidierung Lieferanten indirekter Bedarf"
+  },
+  {
+    "id": "t233",
+    "lang": "de",
+    "kind": "project",
+    "title": "Projekt Einführung Katalogbeschaffung Büromaterial"
+  },
+  {
+    "id": "t234",
+    "lang": "de",
+    "kind": "project",
+    "title": "Lieferantenqualifizierung Netzbau Präqualifikation"
+  },
+  {
+    "id": "t235",
+    "lang": "de",
+    "kind": "project",
+    "title": "Vergabeverfahren Sektorenauftraggeber SektVO Zählertechnik"
+  },
+  {
+    "id": "t236",
+    "lang": "de",
+    "kind": "project",
+    "title": "Markterkundung Wasserstoff-Elektrolyseure 5 MW"
+  },
+  {
+    "id": "t237",
+    "lang": "de",
+    "kind": "project",
+    "title": "Projekt Umstellung Fuhrpark auf E-Fahrzeuge Phase 1"
+  },
+  {
+    "id": "t238",
+    "lang": "de",
+    "kind": "project",
+    "title": "Lieferantenbewertung 2026 Baustoffe und Stahl"
+  },
+  {
+    "id": "t239",
+    "lang": "de",
+    "kind": "project",
+    "title": "Make-or-Buy Analyse Gebäudereinigung Eigenpersonal"
+  },
+  {
+    "id": "t240",
+    "lang": "de",
+    "kind": "project",
+    "title": "Ausschreibung Leitstellensoftware Netzführung"
+  },
+  {
+    "id": "t241",
+    "lang": "de",
+    "kind": "project",
+    "title": "Projekt Spend-Analyse Indirekter Einkauf 2025"
+  },
+  {
+    "id": "t242",
+    "lang": "de",
+    "kind": "project",
+    "title": "Risikoanalyse Lieferanten nach LkSG 2026"
+  },
+  {
+    "id": "t243",
+    "lang": "de",
+    "kind": "project",
+    "title": "Sanierung Tiefgarage Hauptverwaltung Bauabschnitt 1"
+  },
+  {
+    "id": "t244",
+    "lang": "de",
+    "kind": "project",
+    "title": "Umzug Rechenzentrum Standort Offenbach nach Frankfurt"
+  },
+  {
+    "id": "t245",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Master Service Agreement for Managed IT Services"
+  },
+  {
+    "id": "t246",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Master Services Agreement Crescent Ridge Consulting Ltd."
+  },
+  {
+    "id": "t247",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Statement of Work 7 – ERP Rollout Wave 2"
+  },
+  {
+    "id": "t248",
+    "lang": "en",
+    "kind": "contract",
+    "title": "SOW 12 Cybersecurity Assessment and Remediation"
+  },
+  {
+    "id": "t249",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Non-Disclosure Agreement Pre-Sales Workshop"
+  },
+  {
+    "id": "t250",
+    "lang": "en",
+    "kind": "contract",
+    "title": "One-way NDA Oakmere Facilities plc"
+  },
+  {
+    "id": "t251",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Framework Agreement Temporary Staffing UK"
+  },
+  {
+    "id": "t252",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Framework Agreement Engineering Services Redwater Engineering BV"
+  },
+  {
+    "id": "t253",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Software License Agreement Analytics Platform Enterprise Tier"
+  },
+  {
+    "id": "t254",
+    "lang": "en",
+    "kind": "contract",
+    "title": "SaaS Subscription Agreement Procurement Analytics 3 Years"
+  },
+  {
+    "id": "t255",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Data Processing Agreement Lumen Grid Solutions Inc."
+  },
+  {
+    "id": "t256",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Service Level Agreement Data Center Colocation"
+  },
+  {
+    "id": "t257",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Maintenance Agreement HVAC Systems Building C"
+  },
+  {
+    "id": "t258",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Supply Agreement Steel Coils Grade S355"
+  },
+  {
+    "id": "t259",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Power Purchase Agreement Solar Farm 50 MW"
+  },
+  {
+    "id": "t260",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Facility Management Agreement Corporate Campus"
+  },
+  {
+    "id": "t261",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Equipment Lease Agreement Forklifts 24 Units"
+  },
+  {
+    "id": "t262",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Consulting Agreement Category Strategy Indirect Spend"
+  },
+  {
+    "id": "t263",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Amendment No. 2 to Supply Agreement Price Adjustment"
+  },
+  {
+    "id": "t264",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Amendment 1 Payment Terms Net 60"
+  },
+  {
+    "id": "t265",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Renewal of Telecom Services Agreement 2027"
+  },
+  {
+    "id": "t266",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Auto-Renewal Notice Cloud Storage Subscription"
+  },
+  {
+    "id": "t267",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Termination for Convenience Marketing Agency Retainer"
+  },
+  {
+    "id": "t268",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Change Order 5 Warehouse Automation Project"
+  },
+  {
+    "id": "t269",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Letter of Intent Logistics Hub Partnership"
+  },
+  {
+    "id": "t270",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Memorandum of Understanding Joint Sourcing Initiative"
+  },
+  {
+    "id": "t271",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Purchase Agreement Laboratory Equipment"
+  },
+  {
+    "id": "t272",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Distribution Agreement Spare Parts EMEA"
+  },
+  {
+    "id": "t273",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Subcontractor Agreement Electrical Works Phase 3"
+  },
+  {
+    "id": "t274",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Escrow Agreement Source Code Core Platform"
+  },
+  {
+    "id": "t275",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Rebate Agreement Volume Tiers Office Supplies"
+  },
+  {
+    "id": "t276",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Price Escalation Clause Diesel Surcharge Schedule"
+  },
+  {
+    "id": "t277",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Indemnity and Liability Cap Addendum"
+  },
+  {
+    "id": "t278",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Travel Management Services Agreement"
+  },
+  {
+    "id": "t279",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Fleet Management Services Agreement 2026"
+  },
+  {
+    "id": "t280",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Bluefin Analytics Ltd."
+  },
+  {
+    "id": "t281",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Northgate Cloud Services Inc."
+  },
+  {
+    "id": "t282",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Harborview Logistics LLC"
+  },
+  {
+    "id": "t283",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Crescent Ridge Consulting Ltd."
+  },
+  {
+    "id": "t284",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Ironbark Software Inc."
+  },
+  {
+    "id": "t285",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Silverline Telecom Ltd."
+  },
+  {
+    "id": "t286",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Oakmere Facilities plc"
+  },
+  {
+    "id": "t287",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Redwater Engineering BV"
+  },
+  {
+    "id": "t288",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Pinecrest Security Ltd."
+  },
+  {
+    "id": "t289",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Lumen Grid Solutions Inc."
+  },
+  {
+    "id": "t290",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Quarry Lane Aggregates Ltd."
+  },
+  {
+    "id": "t291",
+    "lang": "en",
+    "kind": "supplier",
+    "title": "Brightwater Office Supply Co."
+  },
+  {
+    "id": "t292",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Price Negotiation Steel Coils 2026"
+  },
+  {
+    "id": "t293",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Renewal Negotiation Analytics Platform Licenses"
+  },
+  {
+    "id": "t294",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Payment Terms Negotiation Net 30 to Net 60"
+  },
+  {
+    "id": "t295",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Rate Card Review Consulting Services Q4"
+  },
+  {
+    "id": "t296",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Counter Offer Freight Rates Ocean Containers"
+  },
+  {
+    "id": "t297",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Supplier Quarterly Business Review Ironbark Q2 2026"
+  },
+  {
+    "id": "t298",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Claim for Overcharged Fuel Surcharges 2025"
+  },
+  {
+    "id": "t299",
+    "lang": "en",
+    "kind": "negotiation",
+    "title": "Volume Discount Negotiation Laptops Fleet Refresh"
+  },
+  {
+    "id": "t300",
+    "lang": "en",
+    "kind": "po",
+    "title": "PO 4500098765 Safety Gloves Cut Level C"
+  },
+  {
+    "id": "t301",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Office Chairs Ergonomic 40 pcs"
+  },
+  {
+    "id": "t302",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Server Rack Hardware Data Hall 2"
+  },
+  {
+    "id": "t303",
+    "lang": "en",
+    "kind": "po",
+    "title": "Release Order Packaging Material Week 22"
+  },
+  {
+    "id": "t304",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Conference Room AV Equipment"
+  },
+  {
+    "id": "t305",
+    "lang": "en",
+    "kind": "po",
+    "title": "Purchase Order Calibration Services Measuring Devices"
+  },
+  {
+    "id": "t306",
+    "lang": "en",
+    "kind": "project",
+    "title": "RFQ Industrial Cleaning Services Plant 2"
+  },
+  {
+    "id": "t307",
+    "lang": "en",
+    "kind": "project",
+    "title": "RFP Managed Print Services Europe"
+  },
+  {
+    "id": "t308",
+    "lang": "en",
+    "kind": "project",
+    "title": "RFI Battery Storage Systems 10 MWh"
+  },
+  {
+    "id": "t309",
+    "lang": "en",
+    "kind": "project",
+    "title": "Sourcing Event Corporate Travel 2027"
+  },
+  {
+    "id": "t310",
+    "lang": "en",
+    "kind": "project",
+    "title": "Supplier Onboarding Program Tier 2 Suppliers"
+  },
+  {
+    "id": "t311",
+    "lang": "en",
+    "kind": "project",
+    "title": "Category Plan Facility Services 2026"
+  },
+  {
+    "id": "t312",
+    "lang": "en",
+    "kind": "project",
+    "title": "Tender Waste Management Services All Sites"
+  },
+  {
+    "id": "t313",
+    "lang": "en",
+    "kind": "project",
+    "title": "Spend Cube Refresh Indirect Procurement FY2026"
+  },
+  {
+    "id": "t314",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "Rahmenvertrag Cloud Services – SLA Addendum 2026"
+  },
+  {
+    "id": "t315",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "Master Service Agreement mit Nordlicht Energie AG"
+  },
+  {
+    "id": "t316",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "SOW Nr. 7 Implementierung E-Procurement-Suite Guided Buying"
+  },
+  {
+    "id": "t317",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "Change Request 12 zum Wartungsvertrag Rechenzentrum"
+  },
+  {
+    "id": "t318",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "NDA Lieferantenworkshop Q3 2026"
+  },
+  {
+    "id": "t319",
+    "lang": "mixed",
+    "kind": "negotiation",
+    "title": "Kick-off Negotiation Strompreise FY2026"
+  },
+  {
+    "id": "t320",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "Facility Management Agreement Standort München Nord"
+  },
+  {
+    "id": "t321",
+    "lang": "mixed",
+    "kind": "po",
+    "title": "Purchase Order Bürostühle ergonomisch Batch 3"
+  },
+  {
+    "id": "t322",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "Renewal Wartungsvertrag Klimaanlage Server Room"
+  },
+  {
+    "id": "t323",
+    "lang": "mixed",
+    "kind": "project",
+    "title": "RFQ Betonfertigteile Projekt Riverside Offices"
+  },
+  {
+    "id": "t324",
+    "lang": "mixed",
+    "kind": "contract",
+    "title": "Service Level Agreement Hausmeisterdienste Campus Süd"
+  },
+  {
+    "id": "t325",
+    "lang": "mixed",
+    "kind": "negotiation",
+    "title": "QBR Hansekontor Logistik GmbH – Savings Review"
+  },
+  {
+    "id": "t326",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Brandmeldeanlage Hauptverwaltung",
+    "group": "dup-01"
+  },
+  {
+    "id": "t327",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Wartungsvertrag Brandmeldeanlage Hauptverwaltung",
+    "group": "dup-01"
+  },
+  {
+    "id": "t328",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Gebäudereinigung 2026",
+    "group": "dup-02"
+  },
+  {
+    "id": "t329",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Gebäudereinigung 2026",
+    "group": "dup-02"
+  },
+  {
+    "id": "t330",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Master Service Agreement",
+    "group": "dup-03"
+  },
+  {
+    "id": "t331",
+    "lang": "en",
+    "kind": "contract",
+    "title": "Master Service Agreement",
+    "group": "dup-03"
+  },
+  {
+    "id": "t332",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Büromaterial",
+    "group": "dup-04"
+  },
+  {
+    "id": "t333",
+    "lang": "de",
+    "kind": "po",
+    "title": "Bestellung Büromaterial",
+    "group": "dup-04"
+  },
+  {
+    "id": "t334",
+    "lang": "en",
+    "kind": "contract",
+    "title": "NDA Northgate Cloud Services Inc.",
+    "group": "dup-05"
+  },
+  {
+    "id": "t335",
+    "lang": "en",
+    "kind": "contract",
+    "title": "NDA Northgate Cloud Services Inc.",
+    "group": "dup-05"
+  },
+  {
+    "id": "t336",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stromlieferung München 2026",
+    "group": "norm-variants"
+  },
+  {
+    "id": "t337",
+    "lang": "de",
+    "kind": "contract",
+    "title": "RAHMENVERTRAG STROMLIEFERUNG MÜNCHEN 2026",
+    "group": "norm-variants"
+  },
+  {
+    "id": "t338",
+    "lang": "de",
+    "kind": "contract",
+    "title": "  Rahmenvertrag   Stromlieferung  München 2026  ",
+    "group": "norm-variants"
+  },
+  {
+    "id": "t339",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stromlieferung München 2026",
+    "group": "norm-variants"
+  },
+  {
+    "id": "t340",
+    "lang": "de",
+    "kind": "contract",
+    "title": "Rahmenvertrag Stromlieferung Muenchen 2026",
+    "group": "norm-variants"
+  },
+  {
+    "id": "t341",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": ""
+  },
+  {
+    "id": "t342",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "   "
+  },
+  {
+    "id": "t343",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "\t\n  \n"
+  },
+  {
+    "id": "t344",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": " ​ "
+  },
+  {
+    "id": "t345",
+    "lang": "de",
+    "kind": "edge",
+    "title": "der die das"
+  },
+  {
+    "id": "t346",
+    "lang": "de",
+    "kind": "edge",
+    "title": "und oder für mit von der"
+  },
+  {
+    "id": "t347",
+    "lang": "en",
+    "kind": "edge",
+    "title": "the and of"
+  },
+  {
+    "id": "t348",
+    "lang": "en",
+    "kind": "edge",
+    "title": "a an the for with to"
+  },
+  {
+    "id": "t349",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Vertrag GmbH AG"
+  },
+  {
+    "id": "t350",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Vertrag"
+  },
+  {
+    "id": "t351",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "2026"
+  },
+  {
+    "id": "t352",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "12345"
+  },
+  {
+    "id": "t353",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "2025 2026 2027"
+  },
+  {
+    "id": "t354",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "4500012345"
+  },
+  {
+    "id": "t355",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "01.01.2026 – 31.12.2026"
+  },
+  {
+    "id": "t356",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "AB"
+  },
+  {
+    "id": "t357",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "x"
+  },
+  {
+    "id": "t358",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Q1"
+  },
+  {
+    "id": "t359",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Öl"
+  },
+  {
+    "id": "t360",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "⚡️ Strom 2026 🔌"
+  },
+  {
+    "id": "t361",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "🚚📦🚚"
+  },
+  {
+    "id": "t362",
+    "lang": "en",
+    "kind": "edge",
+    "title": "🔥 Hot Deal: Laptops Q4 💻"
+  },
+  {
+    "id": "t363",
+    "lang": "de",
+    "kind": "edge",
+    "title": "RAHMENVERTRAG STAHLBAU NORD LOS 3"
+  },
+  {
+    "id": "t364",
+    "lang": "en",
+    "kind": "edge",
+    "title": "MASTER SERVICE AGREEMENT - URGENT!!!"
+  },
+  {
+    "id": "t365",
+    "lang": "de",
+    "kind": "edge",
+    "title": "!!! Wartung ??? (Halle 3) /// Los #2 ;;; v1.2 ..."
+  },
+  {
+    "id": "t366",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Wartung \"Kältetechnik\" / Halle 3 (Los 2) – Rev. 1.2"
+  },
+  {
+    "id": "t367",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "---___...,,,;;;"
+  },
+  {
+    "id": "t368",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Vertrag_v2_FINAL_final(3).docx"
+  },
+  {
+    "id": "t369",
+    "lang": "de",
+    "kind": "edge",
+    "title": "C++ / C# Schulung & Zertifizierung @ München"
+  },
+  {
+    "id": "t370",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Rahmenvertrag über die Lieferung, Montage, Inbetriebnahme, Wartung und Instandhaltung von Mittelspannungsschaltanlagen, Ortsnetzstationen und Transformatoren einschließlich Ersatzteilversorgung, Notfallbereitschaft rund um die Uhr, Dokumentation nach DIN EN 62271-200 sowie Schulung des Betriebspersonals für die Netzgebiete Nord, Süd, Ost und West mit Preisgleitklausel auf Basis Kupfer- und Lohnindex, Laufzeit 2026 bis 2030, Los 1 bis Los 6"
+  },
+  {
+    "id": "t371",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Master Service Agreement for the provision of end-to-end managed infrastructure services including network operations, end-user support, cloud hosting, backup and disaster recovery, security monitoring, vulnerability management, license management and quarterly service reviews across all European sites, with service credits, price review mechanism and optional extension for two further years"
+  },
+  {
+    "id": "t372",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Договор поставки электроэнергии 2026"
+  },
+  {
+    "id": "t373",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "电力供应框架协议 2026"
+  },
+  {
+    "id": "t374",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "عقد توريد الكهرباء 2026"
+  },
+  {
+    "id": "t375",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Σύμβαση προμήθειας ενέργειας 2026"
+  },
+  {
+    "id": "t376",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "電力供給基本契約 東京 2026"
+  },
+  {
+    "id": "t377",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Rahmenvertrag Москва Логистик 2026"
+  },
+  {
+    "id": "t378",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "new"
+  },
+  {
+    "id": "t379",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "edit"
+  },
+  {
+    "id": "t380",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "admin"
+  },
+  {
+    "id": "t381",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "New"
+  },
+  {
+    "id": "t382",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "api settings"
+  },
+  {
+    "id": "t383",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Admin Portal License Renewal"
+  },
+  {
+    "id": "t384",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Analyseplattform Lieferantenbewertung"
+  },
+  {
+    "id": "t385",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Shiitake Mushroom Supply Canteen"
+  },
+  {
+    "id": "t386",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Assessment Center Procurement Trainees"
+  },
+  {
+    "id": "t387",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Cockpit Reporting Procurement KPIs"
+  },
+  {
+    "id": "t388",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Fickenscher Metallbau GmbH Rahmenvertrag"
+  },
+  {
+    "id": "t389",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Sexton Facility Services Ltd. MSA"
+  },
+  {
+    "id": "t390",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Scunthorpe Warehouse Lease Renewal"
+  },
+  {
+    "id": "t391",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Kotflügel Ersatzteile Fuhrpark"
+  },
+  {
+    "id": "t392",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Scheibenwischer Fuhrpark Nachbestellung"
+  },
+  {
+    "id": "t393",
+    "lang": "en",
+    "kind": "edge",
+    "title": "Titanium Fasteners Supply Agreement"
+  },
+  {
+    "id": "t394",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Hurtig Umzüge Kassel Angebot"
+  },
+  {
+    "id": "t395",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "<script>alert('x')</script> Rahmenvertrag"
+  },
+  {
+    "id": "t396",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Vertrag &amp; Nachtrag &lt;2026&gt;"
+  },
+  {
+    "id": "t397",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Wartung <b>Heizung</b> &nbsp; Standort Nord"
+  },
+  {
+    "id": "t398",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "'; DROP TABLE contracts; --"
+  },
+  {
+    "id": "t399",
+    "lang": "de",
+    "kind": "edge",
+    "title": "ÄÖÜ äöü ß Straße Größe Übergabe"
+  },
+  {
+    "id": "t400",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Größe Prüfung Änderungsvertrag"
+  },
+  {
+    "id": "t401",
+    "lang": "de",
+    "kind": "edge",
+    "title": "STRASSE Strasse Straße STRAẞE"
+  },
+  {
+    "id": "t402",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Café Crème Façade Ångström Łódź Señor"
+  },
+  {
+    "id": "t403",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Rahmenvertrag​Stromlieferung"
+  },
+  {
+    "id": "t404",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Stromlieferungsrahmenvertragsverlängerungsvereinbarung"
+  },
+  {
+    "id": "t405",
+    "lang": "de",
+    "kind": "edge",
+    "title": "Donaudampfschifffahrtsgesellschaftskapitänsmützenbeschaffung"
+  },
+  {
+    "id": "t406",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "0O1lI 0o1li"
+  },
+  {
+    "id": "t407",
+    "lang": "mixed",
+    "kind": "edge",
+    "title": "Los 1 Los 2 Los 3"
+  }
+]

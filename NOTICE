@@ -1,0 +1,26 @@
+semantic-slugger
+Copyright (c) 2026 Heiko Trötsch. Licensed under the MIT License (see LICENSE).
+
+This package contains or is derived from the following third-party material.
+
+Data
+----
+src/data/v1/blocklist.ts
+  Word lists curated from:
+  - List of Dirty, Naughty, Obscene, and Otherwise Bad Words (LDNOOBW), de and en lists.
+    https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words
+    License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  - sqids-blocklist. https://github.com/sqids/sqids-blocklist
+    License: MIT
+
+Algorithms
+----------
+src/hash/siphash.ts
+  SipHash-2-4, by Jean-Philippe Aumasson and Daniel J. Bernstein.
+  Own implementation from the paper "SipHash: a fast short-input PRF" (2012).
+  Test vectors from the reference implementation https://github.com/veorq/SipHash (CC0 / MIT).
+
+Vendored code (from M2)
+-----------------------
+src/vendor/cistem.ts   CISTEM stemmer (Weissweiler and Fraser, 2017). License: MIT.
+src/vendor/porter2.ts  Snowball English (Porter2) stemmer. License: BSD-3-Clause.

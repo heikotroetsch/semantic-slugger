@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+.DS_Store
+.vitest-attachments/
+test/smoke/*/node_modules/
+test/smoke/*/package-lock.json
+.playwright/

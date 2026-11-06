@@ -1,0 +1,34 @@
+name: Bug
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Use only synthetic data.** Do not paste real contract titles, supplier names or customer data.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Code, config and synthetic input.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: semantic-slugger version, runtime and version
+    validations:
+      required: true
+  - type: checkboxes
+    id: synthetic
+    attributes:
+      label: Data check
+      options:
+        - label: All data in this issue is invented.
+          required: true
