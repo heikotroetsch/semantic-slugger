@@ -280,40 +280,54 @@ export function* resolveDoc(
   }
 
   // Phase 3: tail. First fix the final body and its tail length, then the start index.
+  // Tail growth (docs/DEVIATIONS.md #22, M5): in tiers B and C, when all maxAttempts indexes from the
+  // start are taken at tail length t, the tail grows to t + 1 (refitWithTail) and the scan starts again
+  // on the final body of that length. Tier A scans one window at one length.
   const before = chosen
-  let t = Math.max(chosen.tailLen, cfg.tailMin, tailNeed(n, cfg))
-  let m = 0
-  for (let round = 0; round < 4; round++) {
-    if (t !== chosen.tailLen) {
-      const r = refitWithTail(pool, cfg, chosen, t)
-      if (r === null) return yield* emptyPath({ canonical: doc.canonical, empty: false }, cfg, exclude)
-      chosen = r
-    }
-    if (!k0) break // tier A: no counts
-    const kb = (yield { op: 'countBodies', bodies: [chosen.body] }) as ReadonlyMap<string, number> | null
-    m = kb?.get(chosen.body) ?? 0
-    if (tailNeed(m, cfg) <= chosen.tailLen) break
-    t = tailNeed(m, cfg)
-  }
-  let start = 0
-  if (k0) {
-    // in exact mode a tailed body is never a full ID; in max mode a body-only row may hold the body
-    const bodyOnly =
-      cfg.lengthMode === 'max'
-        ? ((yield { op: 'exists', ids: [chosen.body] }) as ReadonlySet<string>).has(chosen.body)
-        : false
-    start = Math.max(0, m - (bodyOnly ? 1 : 0))
-  }
   const span = k0 ? cfg.maxAttempts : cfg.maxScan
-  const grown = chosen.body !== before.body
-  for (let a = 0; a < span; a += BATCH) {
-    const batch = range(start + a, start + Math.min(a + BATCH, span))
-      .map((k) => ({ k, id: renderCandidate(chosen, doc.canonical, k, cfg) }))
-      .filter((x) => x.id !== '' && !exclude.has(x.id))
-    if (batch.length === 0) continue
-    const taken = (yield { op: 'exists', ids: batch.map((x) => x.id) }) as ReadonlySet<string>
-    const free = batch.find((x) => !taken.has(x.id))
-    if (free) return finish(chosen, free.id, reason, free.k, cfg, plan, grown)
+  let t = Math.max(chosen.tailLen, cfg.tailMin, tailNeed(n, cfg))
+  let firstStart = -1
+  let tries = 0
+  for (;;) {
+    let m = 0
+    for (let round = 0; round < 4; round++) {
+      if (t !== chosen.tailLen) {
+        const r = refitWithTail(pool, cfg, chosen, t)
+        if (r === null) {
+          if (firstStart < 0) return yield* emptyPath({ canonical: doc.canonical, empty: false }, cfg, exclude)
+          throw new ExhaustedError({ body: chosen.body, tailIndex: firstStart, tries })
+        }
+        chosen = r
+      }
+      if (!k0) break // tier A: no counts
+      const kb = (yield { op: 'countBodies', bodies: [chosen.body] }) as ReadonlyMap<string, number> | null
+      m = kb?.get(chosen.body) ?? 0
+      if (tailNeed(m, cfg) <= chosen.tailLen) break
+      t = tailNeed(m, cfg)
+    }
+    let start = 0
+    if (k0) {
+      // in exact mode a tailed body is never a full ID; in max mode a body-only row may hold the body
+      const bodyOnly =
+        cfg.lengthMode === 'max'
+          ? ((yield { op: 'exists', ids: [chosen.body] }) as ReadonlySet<string>).has(chosen.body)
+          : false
+      start = Math.max(0, m - (bodyOnly ? 1 : 0))
+    }
+    if (firstStart < 0) firstStart = start
+    for (let a = 0; a < span; a += BATCH) {
+      const batch = range(start + a, start + Math.min(a + BATCH, span))
+        .map((k) => ({ k, id: renderCandidate(chosen, doc.canonical, k, cfg) }))
+        .filter((x) => x.id !== '' && !exclude.has(x.id))
+      tries += Math.min(BATCH, span - a)
+      if (batch.length === 0) continue
+      const taken = (yield { op: 'exists', ids: batch.map((x) => x.id) }) as ReadonlySet<string>
+      const free = batch.find((x) => !taken.has(x.id))
+      if (free) return finish(chosen, free.id, reason, free.k, cfg, plan, chosen.body !== before.body)
+    }
+    // tier A, or no room for a longer tail
+    if (!k0 || chosen.tailLen + 1 > cfg.length - 1 - cfg.separator.length)
+      throw new ExhaustedError({ body: chosen.body, tailIndex: firstStart, tries })
+    t = chosen.tailLen + 1
   }
-  throw new ExhaustedError({ body: chosen.body, tailIndex: start, tries: span })
 }

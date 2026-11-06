@@ -6,6 +6,8 @@
 
 import { readFileSync } from 'node:fs'
 import { compile } from '../../src/core/compile.ts'
+import { syncStoreAnswer } from '../../src/core/drivers.ts'
+import { type MemoryStore, memoryStore } from '../../src/core/memory.ts'
 import { toCanonical } from '../../src/core/normalize.ts'
 import type { AnyAnswer, Req } from '../../src/core/resolve.ts'
 import { fold, hardHitIn } from '../../src/core/safety.ts'
@@ -39,46 +41,18 @@ export function loadFixtures(): Fixture[] {
 // Sync memory store (tier C) for the report and the expect rows
 // ---------------------------------------------------------------------------------------------
 
-interface Row {
-  readonly id: string
-  readonly body: string
-  readonly stems: readonly string[]
-}
-
-/** A tier C store that answers the resolver synchronously (same rules as a memory store, SPEC 13.3). */
+/** The memory adapter (SPEC 17.1) as a sync driver of the resolver (tier C). */
 export class SyncMemoryStore implements SyncDriver {
   readonly tier = 'C' as const
-  private readonly rows: Row[] = []
-  private readonly ids = new Set<string>()
-
-  readonly answer = (req: Req): AnyAnswer => {
-    switch (req.op) {
-      case 'stats': {
-        const df = new Map<string, number>()
-        for (const s of req.stems) df.set(s, this.rows.filter((r) => r.stems.includes(s)).length)
-        return { df, N: this.rows.length }
-      }
-      case 'countBodies':
-        return new Map(req.bodies.map((b) => [b, this.rows.filter((r) => r.body === b).length]))
-      case 'findByBody':
-        return this.rows
-          .filter((r) => r.body === req.body)
-          .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-          .slice(0, req.limit)
-          .map((r) => ({ id: r.id, stems: r.stems }))
-      case 'exists':
-        return new Set(req.ids.filter((id) => this.ids.has(id)))
-    }
-  }
+  readonly mem: MemoryStore = memoryStore()
+  readonly answer: (req: Req) => AnyAnswer = syncStoreAnswer(this.mem, { scope: '' }, { rarity: 'store' }).answer
 
   insert(r: SlugResult): void {
-    if (this.ids.has(r.id)) throw new Error(`duplicate id ${r.id}`)
-    this.ids.add(r.id)
-    this.rows.push({ id: r.id, body: r.body, stems: r.stems })
+    this.mem.add({ id: r.id, body: r.body, stems: r.stems, titleKey: r.titleKey })
   }
 
   get size(): number {
-    return this.rows.length
+    return this.mem.size
   }
 }
 
@@ -404,6 +378,239 @@ export function buildReport(fixtures: readonly Fixture[] = loadFixtures()): Repo
       },
     },
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Sequential run (SPEC 19.2 corpus.sequential.md, 19.6 Q5, Q6, Q9, Q11, Q14)
+// ---------------------------------------------------------------------------------------------
+
+export interface SeqRow {
+  readonly f: Fixture
+  readonly r: SlugResult
+  readonly tr: SuggestTrace
+  readonly canonical: string
+  /** Keys of all concepts of the title (weak ones too). */
+  readonly keys: ReadonlySet<string>
+}
+
+export interface SeqMetrics {
+  readonly n: number
+  readonly contentN: number
+  /** Q5: content collisions that re-pick did not solve. */
+  readonly q5: { readonly hits: readonly string[]; readonly rate: number; readonly collisions: number }
+  /** Q6: sibling pairs (canonical titles differ) told apart by a body segment. */
+  readonly q6: {
+    readonly pairs: number
+    readonly ok: number
+    readonly rate: number
+    readonly failed: readonly string[]
+    readonly skippedPairs: number
+    readonly allPairs: number
+  }
+  /** Q9: IDs that occur more than once. */
+  readonly q9: { readonly dups: readonly string[] }
+  /** Q11 (report): re-picks among collisions. */
+  readonly q11: { readonly repick: number; readonly collisions: number; readonly rate: number }
+  /**
+   * Q14 (gate, docs/DEVIATIONS.md M5): rows with the same canonical title. Later rows keep the first
+   * row's content (a subset when the first row has no tail and refitWithTail had to drop concepts), the
+   * first row's body when it has a tail, and from the second row on one shared body.
+   */
+  readonly q14: { readonly pairs: number; readonly failed: readonly string[] }
+  /** Q14 near pairs (report): real `near` pairs with the same stems, same content key and body. */
+  readonly q14near: { readonly pairs: number; readonly failed: readonly string[] }
+  readonly reasons: Readonly<Record<string, number>>
+}
+
+const stemKey = (r: SlugResult): string => r.stems.join('|')
+const isSameStemGroup = (g: string | undefined): boolean =>
+  g !== undefined && (g.startsWith('dup-') || g.startsWith('norm-'))
+
+/**
+ * A body segment of `a` that `b`'s ID does not have, for a concept of `a` that `b`'s title does not
+ * have (SPEC 19.6 Q6). Concepts compare by key: a marker merge (`Sprint 22`) keeps the stem of its
+ * word in both titles, but the concept `sprint22` is only in one.
+ */
+function distinguishes(a: SeqRow, b: SeqRow): boolean {
+  const bSegs = new Set(b.r.segments.filter((x) => x.kind !== 'tail').map((x) => x.text))
+  for (const seg of a.tr.out.plan?.chosen.segs ?? []) {
+    if (bSegs.has(seg.text)) continue
+    if (seg.concepts.some((c) => !b.keys.has(c.key))) return true
+  }
+  return false
+}
+
+/**
+ * All fixtures in order through `createUnique` with one memory store (tier C). Each title is also run
+ * through the sync driver on the same store state first, for the plan behind the metrics; both must give
+ * the same ID.
+ */
+export async function buildSequential(
+  fixtures: readonly Fixture[] = loadFixtures(),
+  config?: SluggerConfig,
+): Promise<{ rows: SeqRow[]; metrics: SeqMetrics; store: MemoryStore }> {
+  const s = createSlugger(config)
+  const mem = memoryStore()
+  const driver: SyncDriver = { answer: syncStoreAnswer(mem, { scope: '' }, s.config).answer, tier: 'C' }
+  const rows: SeqRow[] = []
+  const onBody = new Map<string, string[]>() // body -> stem keys of the rows on it (before this row)
+  const nearOf = new Set<string>()
+  for (const f of fixtures) if (f.near !== undefined) nearOf.add(f.id).add(f.near)
+  let collisions = 0
+  const q5hits: string[] = []
+  for (const f of fixtures) {
+    const tr = suggestTrace(s.config, s.fingerprint, f.title, {}, driver)
+    const { result: r } = await s.createUnique(f.title, { store: mem })
+    if (r.id !== tr.result.id) throw new Error(`${f.id}: createUnique ${r.id} != sync driver ${tr.result.id}`)
+    const an = s.analyze(f.title)
+    rows.push({ f, r, tr, canonical: an.canonical, keys: new Set(an.concepts.map((c) => c.key)) })
+    const content = f.kind !== 'edge'
+    if (content && (r.reason === 'shared-body' || r.reason === 'repick')) collisions++
+    if (content && r.reason === 'shared-body' && !isSameStemGroup(f.group) && !nearOf.has(f.id)) {
+      const best = tr.out.plan?.cands[0]?.body
+      const earlier = [...(onBody.get(r.body) ?? []), ...(best !== undefined ? (onBody.get(best) ?? []) : [])]
+      if (!earlier.includes(stemKey(r))) q5hits.push(`${f.id}: ${f.title} -> ${r.id}`)
+    }
+    onBody.set(r.body, [...(onBody.get(r.body) ?? []), stemKey(r)])
+  }
+  const contentN = rows.filter((x) => x.f.kind !== 'edge').length
+
+  // Q6
+  const groups = new Map<string, SeqRow[]>()
+  for (const x of rows) {
+    const g = x.f.group
+    if (g === undefined || isSameStemGroup(g)) continue
+    groups.set(g, [...(groups.get(g) ?? []), x])
+  }
+  let pairs = 0
+  let ok = 0
+  let skippedPairs = 0
+  let allPairs = 0
+  const failed: string[] = []
+  for (const [g, list] of groups) {
+    const skip = list.some((x) => x.f.skip?.Q6 !== undefined)
+    for (let i = 0; i < list.length; i++)
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i] as SeqRow
+        const b = list[j] as SeqRow
+        if (a.canonical === b.canonical) continue
+        allPairs++
+        if (skip) {
+          skippedPairs++
+          continue
+        }
+        pairs++
+        if (distinguishes(a, b) || distinguishes(b, a)) ok++
+        else failed.push(`${g}: ${a.f.title} -> ${a.r.id} | ${b.f.title} -> ${b.r.id}`)
+      }
+  }
+
+  // Q9
+  const seen = new Set<string>()
+  const dups: string[] = []
+  for (const x of rows) {
+    if (seen.has(x.r.id)) dups.push(x.r.id)
+    seen.add(x.r.id)
+  }
+
+  // Q14
+  const contentOf = (x: SeqRow): readonly string[] => (x.tr.out.plan?.chosen.content ?? []).map((c) => c.key)
+  const contentKey = (x: SeqRow): string => [...contentOf(x)].sort().join('|')
+  const show = (x: SeqRow): string => `${x.f.title} -> ${x.r.id}`
+  const q14failed: string[] = []
+  let q14pairs = 0
+  const byCanon = new Map<string, SeqRow[]>()
+  for (const x of rows) byCanon.set(x.canonical, [...(byCanon.get(x.canonical) ?? []), x])
+  for (const list of byCanon.values()) {
+    const [first, second] = list
+    if (first === undefined || second === undefined) continue
+    const firstContent = new Set(contentOf(first))
+    for (const x of list.slice(1)) {
+      q14pairs++
+      const sub = contentOf(x).every((k) => firstContent.has(k))
+      const content = contentKey(x) === contentKey(first) || (first.r.tail === '' && sub)
+      const body = first.r.tail === '' ? x.r.body === second.r.body : x.r.body === first.r.body
+      if (!content || !body) q14failed.push(`same title: ${show(first)} | ${show(x)}`)
+    }
+  }
+  const nearFailed: string[] = []
+  let nearPairs = 0
+  const byId = new Map(rows.map((x) => [x.f.id, x]))
+  for (const x of rows) {
+    const other = x.f.near === undefined ? undefined : byId.get(x.f.near)
+    if (other === undefined || stemKey(other.r) !== stemKey(x.r) || other.canonical === x.canonical) continue
+    const [first, later] = rows.indexOf(other) < rows.indexOf(x) ? [other, x] : [x, other]
+    nearPairs++
+    const same = contentKey(first) === contentKey(later) && (first.r.tail === '' || first.r.body === later.r.body)
+    if (!same) nearFailed.push(`near pair: ${show(first)} | ${show(later)}`)
+  }
+
+  const reasons: Record<string, number> = {}
+  for (const x of rows) reasons[x.r.reason] = (reasons[x.r.reason] ?? 0) + 1
+  const repick = rows.filter((x) => x.f.kind !== 'edge' && x.r.reason === 'repick').length
+  return {
+    rows,
+    store: mem,
+    metrics: {
+      n: rows.length,
+      contentN,
+      q5: { hits: q5hits, rate: share(q5hits.length, contentN), collisions },
+      q6: { pairs, ok, rate: share(ok, pairs), failed, skippedPairs, allPairs },
+      q9: { dups },
+      q11: { repick, collisions, rate: share(repick, collisions) },
+      q14: { pairs: q14pairs, failed: q14failed },
+      q14near: { pairs: nearPairs, failed: nearFailed },
+      reasons,
+    },
+  }
+}
+
+/** `corpus.sequential.md` (SPEC 19.2): all fixtures through createUnique with one memory store, in order. */
+export function sequentialSnapshot(rows: readonly SeqRow[]): string {
+  const out: string[] = [
+    '# Corpus, sequential (default config, exact 16, one memory store, fixture order)',
+    '',
+    '| id | kind | title | slug | reason | k |',
+    '|---|---|---|---|---|---|',
+  ]
+  for (const x of rows)
+    out.push(
+      `| ${x.f.id} | ${x.f.kind} | ${cell(JSON.stringify(x.f.title).slice(1, -1))} | \`${x.r.id}\` | ${x.r.reason} | ${x.r.tailIndex} |`,
+    )
+  out.push('')
+  return out.join('\n')
+}
+
+/** The sequential part of the corpus report as Markdown. */
+export function formatSequential(m: SeqMetrics): string {
+  const out: string[] = [
+    '## Sequential run (one memory store, fixture order)',
+    '',
+    '| # | Metric | Value |',
+    '|---|---|---|',
+    `| Q5 | Collision fallback rate | ${pct(m.q5.rate)} (${m.q5.hits.length} of ${m.contentN} content titles; ${m.q5.collisions} collisions) |`,
+    `| Q6 | Sibling distinguishability | ${pct(m.q6.rate)} (${m.q6.ok}/${m.q6.pairs}; skipped pairs ${m.q6.skippedPairs}/${m.q6.allPairs}) |`,
+    `| Q9 | Uniqueness | ${m.q9.dups.length === 0 ? 'all distinct' : `${m.q9.dups.length} duplicates`} |`,
+    `| Q11 | Re-pick share (report) | ${pct(m.q11.rate)} (${m.q11.repick}/${m.q11.collisions}) |`,
+    `| Q14 | Same title, same content | ${m.q14.pairs - m.q14.failed.length}/${m.q14.pairs} |`,
+    `| Q14 | Near pairs, same content and body (report) | ${m.q14near.pairs - m.q14near.failed.length}/${m.q14near.pairs} |`,
+    '',
+    '### IDs per reason (sequential)',
+    '',
+    ...Object.entries(m.reasons).map(([k, v]) => `- ${k}: ${v}`),
+    '',
+  ]
+  const lists: [string, readonly string[]][] = [
+    ['Q5 collisions not solved', m.q5.hits],
+    ['Q6 sibling pairs not told apart', m.q6.failed],
+    ['Q14 failures', m.q14.failed],
+    ['Q14 near pairs that differ (report)', m.q14near.failed],
+  ]
+  for (const [title, list] of lists) {
+    if (list.length === 0) continue
+    out.push(`### ${title}`, '', ...list.map((x) => `- ${cell(x)}`), '')
+  }
+  return out.join('\n')
 }
 
 // ---------------------------------------------------------------------------------------------

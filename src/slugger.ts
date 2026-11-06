@@ -1,14 +1,26 @@
 /**
  * createSlugger and the Slugger instance (SPEC 16.1): config validation, the ID pattern, the config
- * fingerprint, `isValid`, `analyze`, `suggest` and `slug`. The store-backed methods follow in M5.
+ * fingerprint, `isValid`, `analyze`, `suggest`, `slug`, `slugMany`, `generate` and `createUnique`.
  */
 
 import { fingerprint, type Lang, type ResolvedConfig, resolveConfig, type SluggerConfig } from './config.ts'
-import { type Analysis, analyzeDoc, analyzeTitle } from './core/analyze.ts'
+import { type Analysis, analyzeDoc, analyzeTitle, type Doc } from './core/analyze.ts'
 import { compile } from './core/compile.ts'
-import { driveSync, driveWith, type Taken } from './core/drivers.ts'
+import { driveStore, driveSync, driveWith, storeCaps, syncStoreAnswer, type Taken } from './core/drivers.ts'
 import { isValidSlugResolved, patternFor } from './core/invariants.ts'
-import { type AnyAnswer, type Req, type ResolveOut, resolveDoc } from './core/resolve.ts'
+import { memoryStore } from './core/memory.ts'
+import {
+  type AbortSignalLike,
+  type AnyAnswer,
+  type Req,
+  type ResolveOut,
+  resolveDoc,
+  type SlugRecord,
+  type SlugStore,
+  type StoreContext,
+} from './core/resolve.ts'
+import { isUniqueViolation } from './core/unique.ts'
+import { ConfigError, ConflictError, StoreError } from './errors.ts'
 import type { SlugResult, SlugWarning, StoreTier } from './result.ts'
 
 /** Options of `analyze()`. */
@@ -25,6 +37,36 @@ export interface SuggestOptions {
   readonly lang?: Lang
   /** IDs that must not be returned (they are never asked from `taken`). */
   readonly exclude?: Iterable<string>
+}
+
+/** Options of `generate()` (SPEC 16.2). */
+export interface GenerateOptions {
+  /** The store that holds the IDs of this scope. `exists` is required; more methods give tier B or C. */
+  readonly store: SlugStore
+  /** Default `''`. Counts and IDs never cross scopes. */
+  readonly scope?: string
+  /** Per-call language; must be an enabled code. */
+  readonly lang?: Lang
+  /** IDs that must not be returned (they are never asked from the store). */
+  readonly exclude?: Iterable<string>
+  /** Checked before every store request; its reason is rethrown as is. */
+  readonly signal?: AbortSignalLike
+}
+
+/** Options of `createUnique()` (SPEC 16.2, 13.5). */
+export interface CreateUniqueOptions<T> extends GenerateOptions {
+  /** Insert the row yourself; a unique violation (see `isConflict`) makes `createUnique` try again. */
+  readonly insert?: (result: SlugResult) => Promise<T>
+  /** Default: `store.isConflict`, else `isUniqueViolation`. */
+  readonly isConflict?: (error: unknown) => boolean
+  /** Default 5. */
+  readonly maxInsertRetries?: number
+}
+
+/** Result of `createUnique()`: `record` is what `insert` returned (undefined with `store.insert`). */
+export interface CreateUniqueResult<T> {
+  readonly result: SlugResult
+  readonly record: T | undefined
 }
 
 export interface Slugger {
@@ -44,6 +86,15 @@ export interface Slugger {
   suggest(title: string, opts?: SuggestOptions): SlugResult
   /** The ID of `suggest()`. */
   slug(title: string, opts?: SuggestOptions): string
+  /**
+   * Sync batch: every title in order, unique within the batch (an internal memory store, tier C rules)
+   * and against `taken`. Throws InputError, ExhaustedError.
+   */
+  slugMany(titles: Iterable<string>, opts?: SuggestOptions): SlugResult[]
+  /** Store-backed result (SPEC 13.4). Rejects with InputError, ExhaustedError, StoreError, ConfigError. */
+  generate(title: string, opts: GenerateOptions): Promise<SlugResult>
+  /** generate + insert + retry on a lost race (SPEC 13.5). Rejects with ConflictError after the retries. */
+  createUnique<T = undefined>(title: string, opts: CreateUniqueOptions<T>): Promise<CreateUniqueResult<T>>
 }
 
 /** Internal: the resolve output and the result of one sync call (corpus report, explain). */
@@ -76,9 +127,14 @@ export function suggestTrace(
   const gen = resolveDoc(doc, cfg, compile(cfg), exclude)
   const { out, tier } =
     driver === undefined ? driveSync(gen, taken) : { out: driveWith(gen, driver.answer), tier: driver.tier }
+  return { result: buildResult(doc, out, tier, fp), out, tier }
+}
+
+/** The frozen public result (SPEC 16.3). */
+export function buildResult(doc: Doc, out: ResolveOut, tier: StoreTier, fp: string): SlugResult {
   const warnings: SlugWarning[] = [...doc.front.warnings]
   if (out.tailGrown === true) warnings.push('tail-grown')
-  const result: SlugResult = Object.freeze({
+  return Object.freeze({
     id: out.id,
     body: out.body,
     tail: out.tail,
@@ -94,7 +150,145 @@ export function suggestTrace(
     configFingerprint: fp,
     warnings: Object.freeze(warnings),
   })
-  return { result, out, tier }
+}
+
+/** The record `store.insert` gets for a result (SPEC 13.3). */
+export function toRecord(r: SlugResult): SlugRecord {
+  return { id: r.id, body: r.body, stems: r.stems, titleKey: r.titleKey, algorithm: 1 }
+}
+
+function scopeOf(scope: unknown): string {
+  if (scope === undefined) return ''
+  if (typeof scope !== 'string')
+    throw new ConfigError('scope must be a string', { field: 'scope', value: scope, reason: 'not-string' })
+  return scope
+}
+
+function contextOf(o: GenerateOptions): StoreContext {
+  const scope = scopeOf(o.scope)
+  return o.signal === undefined ? { scope } : { scope, signal: o.signal }
+}
+
+/** Store-backed resolve (SPEC 13.4): one title, the async store driver. */
+export async function generateTrace(
+  cfg: ResolvedConfig,
+  fp: string,
+  title: string,
+  o: GenerateOptions,
+): Promise<SuggestTrace> {
+  if (typeof o !== 'object' || o === null)
+    throw new ConfigError('generate options with a store are required', {
+      field: 'store',
+      value: o,
+      reason: 'invalid-store',
+    })
+  storeCaps(o.store)
+  const ctx = contextOf(o)
+  const doc = analyzeDoc(title, cfg, o.lang === undefined ? {} : { lang: o.lang })
+  const gen = resolveDoc(doc, cfg, compile(cfg), new Set<string>(o.exclude ?? []))
+  const { out, tier } = await driveStore(gen, o.store, ctx, cfg)
+  return { result: buildResult(doc, out, tier, fp), out, tier }
+}
+
+function retriesOf(v: unknown): number {
+  if (v === undefined) return 5
+  if (typeof v !== 'number' || !Number.isInteger(v) || v < 1 || v > 100)
+    throw new ConfigError('maxInsertRetries must be an integer from 1 to 100', {
+      field: 'maxInsertRetries',
+      value: v,
+      reason: 'out-of-range',
+    })
+  return v
+}
+
+/** generate + insert + retry (SPEC 13.5). */
+export async function createUniqueWith<T>(
+  cfg: ResolvedConfig,
+  fp: string,
+  title: string,
+  o: CreateUniqueOptions<T>,
+): Promise<CreateUniqueResult<T>> {
+  if (typeof o !== 'object' || o === null)
+    throw new ConfigError('createUnique options with a store are required', {
+      field: 'store',
+      value: o,
+      reason: 'invalid-store',
+    })
+  storeCaps(o.store)
+  const max = retriesOf(o.maxInsertRetries)
+  const insert = o.insert
+  if (insert === undefined && typeof o.store.insert !== 'function')
+    throw new ConfigError('store.insert or insert callback required', {
+      field: 'insert',
+      value: undefined,
+      reason: 'no-insert',
+    })
+  const ctx = contextOf(o)
+  const storeConflict = o.store.isConflict
+  const isConflict =
+    o.isConflict ??
+    (typeof storeConflict === 'function' ? (e: unknown) => storeConflict.call(o.store, e) : isUniqueViolation)
+  const tried = new Set<string>(o.exclude ?? [])
+  for (let r = 0; r < max; r++) {
+    const { result } = await generateTrace(cfg, fp, title, { ...o, exclude: tried })
+    if (insert !== undefined) {
+      try {
+        return { result, record: await insert(result) }
+      } catch (e) {
+        if (!isConflict(e)) throw e
+      }
+    } else {
+      let got: 'inserted' | 'conflict'
+      try {
+        got = await (o.store.insert as NonNullable<SlugStore['insert']>)(toRecord(result), ctx)
+      } catch (e) {
+        if (ctx.signal?.aborted === true) throw ctx.signal.reason ?? e
+        throw new StoreError(e, 'store.insert failed')
+      }
+      if (got === 'inserted') return { result, record: undefined }
+      if (got !== 'conflict') throw new StoreError(got, 'store.insert must return "inserted" or "conflict"')
+    }
+    tried.add(result.id) // stale read or lost race
+  }
+  throw new ConflictError({ tried: [...tried] })
+}
+
+/** Sync batch (SPEC 16.1): unique within the batch through an internal memory store, and against `taken`. */
+export function slugManyWith(
+  cfg: ResolvedConfig,
+  fp: string,
+  titles: Iterable<string>,
+  opts: SuggestOptions = {},
+): SlugResult[] {
+  const mem = memoryStore()
+  const ctx: StoreContext = { scope: '' }
+  const inner = syncStoreAnswer(mem, ctx, cfg)
+  const taken = opts.taken
+  const isTaken: ((id: string) => boolean) | undefined =
+    taken === undefined ? undefined : typeof taken === 'function' ? taken : (id) => taken.has(id)
+  const answer = (req: Req): AnyAnswer => {
+    const a = inner.answer(req)
+    if (req.op !== 'exists' || isTaken === undefined) return a
+    const out = new Set(a as ReadonlySet<string>)
+    for (const id of req.ids) if (isTaken(id)) out.add(id)
+    return out
+  }
+  const exclude = opts.exclude === undefined ? undefined : [...opts.exclude]
+  const out: SlugResult[] = []
+  for (const title of titles) {
+    const tr = suggestTrace(
+      cfg,
+      fp,
+      title,
+      { ...(opts.lang !== undefined ? { lang: opts.lang } : {}), ...(exclude !== undefined ? { exclude } : {}) },
+      { answer, tier: 'C' },
+    )
+    // the internal store only spans the batch: the IDs are checked against the outside only with `taken`
+    const r = Object.freeze({ ...tr.result, checked: taken !== undefined })
+    mem.add({ id: r.id, body: r.body, stems: r.stems, titleKey: r.titleKey })
+    out.push(r)
+  }
+  return out
 }
 
 /** Validate the config, compile it and freeze the result. Throws ConfigError. */
@@ -110,6 +304,10 @@ export function createSlugger(config?: SluggerConfig): Slugger {
       analyzeTitle(title, cfg, opts?.lang === undefined ? {} : { lang: opts.lang }),
     suggest: (title: string, opts?: SuggestOptions) => suggestTrace(cfg, fp, title, opts).result,
     slug: (title: string, opts?: SuggestOptions) => suggestTrace(cfg, fp, title, opts).result.id,
+    slugMany: (titles: Iterable<string>, opts?: SuggestOptions) => slugManyWith(cfg, fp, titles, opts),
+    generate: async (title: string, opts: GenerateOptions) => (await generateTrace(cfg, fp, title, opts)).result,
+    createUnique: <T = undefined>(title: string, opts: CreateUniqueOptions<T>) =>
+      createUniqueWith<T>(cfg, fp, title, opts),
   })
 }
 
@@ -154,4 +352,22 @@ export function suggest(title: string, opts?: SuggestOptions): SlugResult {
 /** The ID of `suggest()` with the default slugger (SPEC 16.1). */
 export function slug(title: string, opts?: SuggestOptions): string {
   return getDefaultSlugger().slug(title, opts)
+}
+
+/** Sync batch with the default slugger (SPEC 16.1). */
+export function slugMany(titles: Iterable<string>, opts?: SuggestOptions): SlugResult[] {
+  return getDefaultSlugger().slugMany(titles, opts)
+}
+
+/** Store-backed result with the default slugger (SPEC 16.1). */
+export function generate(title: string, opts: GenerateOptions): Promise<SlugResult> {
+  return getDefaultSlugger().generate(title, opts)
+}
+
+/** generate + insert + retry with the default slugger (SPEC 13.5). */
+export function createUnique<T = undefined>(
+  title: string,
+  opts: CreateUniqueOptions<T>,
+): Promise<CreateUniqueResult<T>> {
+  return getDefaultSlugger().createUnique(title, opts)
 }

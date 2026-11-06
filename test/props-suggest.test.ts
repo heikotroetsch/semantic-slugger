@@ -5,72 +5,14 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import { BLOCK_HARD, BLOCK_SHORT_DE, TAIL_BLOCK_EXTRA } from '../src/data/v1/blocklist.ts'
-import { LEXICON_DE } from '../src/data/v1/lexicon-de.ts'
-import { LEXICON_EN } from '../src/data/v1/lexicon-en.ts'
-import { LEXICON_SHARED } from '../src/data/v1/lexicon-shared.ts'
-import { PARTS_DE } from '../src/data/v1/parts-de.ts'
-import { STOP_DE } from '../src/data/v1/stop-de.ts'
-import { STOP_EN } from '../src/data/v1/stop-en.ts'
 import { createSlugger, isSluggerError, isValidSlug, type SluggerConfig } from '../src/index.ts'
+import { cfgArb, lexiconWords, title } from './helpers/arb.ts'
 
 const seed = Number(process.env.FC_SEED ?? Date.now() % 2 ** 31)
 const numRuns = Math.max(1, Number(process.env.FC_RUNS ?? 1000))
 console.log(`fast-check seed ${seed} (set FC_SEED to replay), runs ${numRuns}`)
 
 const STRICT_4 = [...BLOCK_SHORT_DE, ...TAIL_BLOCK_EXTRA].filter((w) => w.length >= 4)
-
-const lexiconWords = [...LEXICON_DE, ...LEXICON_EN, ...LEXICON_SHARED].map((e) => e.key)
-const word = fc.constantFrom(
-  ...lexiconWords,
-  ...PARTS_DE.slice(0, 80),
-  ...STOP_DE.slice(0, 20),
-  ...STOP_EN.slice(0, 20),
-  'München',
-  'Süd',
-  '2026',
-  'März',
-  'v2.4',
-  'Teil',
-  '3',
-  'iPhone',
-  'NASA',
-  'GmbH',
-  '🚚',
-  'Москва',
-  'ß',
-  'Analyse',
-  'Fickenscher',
-  'Q3',
-  'KW 12',
-  'Phone',
-  '8',
-  '1950–2020',
-  'PROJ-1234',
-  '14',
-  '88 kg',
-  'Release',
-  'Rains',
-  'Dapper',
-  '1488',
-)
-const title = fc.oneof(
-  fc.string({ unit: 'grapheme', maxLength: 300 }),
-  fc.array(word, { maxLength: 12 }).map((w) => w.join(' ')),
-)
-const cfgArb = fc
-  .record(
-    {
-      length: fc.integer({ min: 8, max: 32 }),
-      lengthMode: fc.constantFrom('exact', 'max'),
-      separator: fc.constantFrom('-', '_', ''),
-      leak: fc.constantFrom('normal', 'minimal', 'opaque'),
-      tailAlphabet: fc.constantFrom('safe', 'strict'),
-      consistentRungs: fc.boolean(),
-      maxSegments: fc.integer({ min: 1, max: 5 }),
-    },
-    { requiredKeys: [] },
-  )
-  .map((c) => (c.leak === 'opaque' ? { ...c, secret: 'prop-test-secret-0123' } : c) as SluggerConfig)
 
 function check(id: string, body: string, tail: string, config: SluggerConfig): void {
   const s = createSlugger(config)

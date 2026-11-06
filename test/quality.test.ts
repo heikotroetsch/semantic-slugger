@@ -1,10 +1,10 @@
 /**
- * Quality gates (SPEC 19.6) that are measurable at M4: Q1, Q3, Q4, Q7, Q8, Q10, Q15, Q18 and Q19.
- * Q2 and Q17 are report only. Q12 (worst-case fit) is gated in `test/unit/fit.test.ts`. The sequential
- * gates (Q5, Q6, Q9, Q14) follow with the store in M5. `pnpm corpus:report` prints every metric.
+ * Quality gates (SPEC 19.6): Q1, Q3, Q4, Q7, Q8, Q10, Q15, Q18 and Q19 (independent run) and, from M5,
+ * Q5, Q6, Q9 and Q14 (sequential run, one memory store). Q2, Q11 and Q17 are report only. Q12
+ * (worst-case fit) is gated in `test/unit/fit.test.ts`. `pnpm corpus:report` prints every metric.
  */
 import { describe, expect, it } from 'vitest'
-import { buildReport } from '../scripts/lib/corpus.ts'
+import { buildReport, buildSequential } from '../scripts/lib/corpus.ts'
 
 /**
  * Q4 padding tail rate gates, set at M4 from the measured values rounded up to the next 5% (SPEC 19.6).
@@ -91,5 +91,36 @@ describe('quality gates (SPEC 19.6)', () => {
   it('Q19 expected word kept >= 85% overall', () => {
     expect(m.keepN).toBeGreaterThanOrEqual(150)
     expect(m.q19).toBeGreaterThanOrEqual(0.85)
+  })
+})
+
+const seq = await buildSequential()
+const q = seq.metrics
+
+describe('sequential quality gates (SPEC 19.6, M5)', () => {
+  it('report values (Q11, Q14 near pairs)', () => {
+    console.log(
+      `Q5 ${pct(q.q5.rate)}% Q6 ${pct(q.q6.rate)}% (${q.q6.ok}/${q.q6.pairs}) Q11 ${pct(q.q11.rate)}% (${q.q11.repick}/${q.q11.collisions}) Q14 ${q.q14.pairs - q.q14.failed.length}/${q.q14.pairs} near ${q.q14near.pairs - q.q14near.failed.length}/${q.q14near.pairs}`,
+    )
+    expect(q.n).toBe(rep.rows.length)
+  })
+
+  it('Q5 collision fallback rate <= 3%', () => {
+    expect(q.q5.rate, q.q5.hits.join('\n')).toBeLessThanOrEqual(0.03)
+  })
+
+  it('Q6 sibling distinguishability >= 90%; skipped pairs at most 3%', () => {
+    expect(q.q6.pairs).toBeGreaterThanOrEqual(50)
+    expect(q.q6.rate, q.q6.failed.join('\n')).toBeGreaterThanOrEqual(0.9)
+    expect(q.q6.skippedPairs / q.q6.allPairs).toBeLessThanOrEqual(0.03)
+  })
+
+  it('Q9 all sequential IDs are distinct', () => {
+    expect(q.q9.dups).toEqual([])
+  })
+
+  it('Q14 same title, same content (identical canonical titles)', () => {
+    expect(q.q14.pairs).toBeGreaterThanOrEqual(20)
+    expect(q.q14.failed).toEqual([])
   })
 })

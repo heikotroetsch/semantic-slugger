@@ -24,6 +24,7 @@ export type {
   SlugStore,
   StoreContext,
 } from './core/resolve.ts'
+export { isUniqueViolation } from './core/unique.ts'
 export { ALGORITHM_VERSION } from './data/v1/constants.ts'
 export type { ConfigErrorDetails, ConflictErrorDetails, ExhaustedErrorDetails, SluggerErrorCode } from './errors.ts'
 export {
@@ -42,10 +43,16 @@ export type { Segment, SlugReason, SlugResult, SlugWarning, StoreTier } from './
 export {
   type AnalyzeOptions,
   analyze,
+  type CreateUniqueOptions,
+  type CreateUniqueResult,
   createSlugger,
+  createUnique,
+  type GenerateOptions,
+  generate,
   isValidSlug,
   type Slugger,
   type SuggestOptions,
   slug,
+  slugMany,
   suggest,
 } from './slugger.ts'

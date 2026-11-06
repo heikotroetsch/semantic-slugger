@@ -2510,14 +2510,14 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 6. `taken` is respected; `slugMany(xs)` gives distinct IDs.
 7. Never throws for string input with a valid config.
 8. Parity, same tier: `suggest(t, { taken })` === `generate(t, { store: existsOnly(memoryStore(taken)) })` (tier A).
-9. Parity across tiers for identical titles: inserting the same title n times (n <= 34, before tiers B and C grow the tail) gives the same ID sequence with the full memory store (C), a store without `findByBody` (B) and a store with only `exists` (A).
+9. Parity across tiers for identical titles: inserting the same title n times (n <= 34, before tiers B and C grow the tail) gives the same ID sequence with the full memory store (C), a store without `findByBody` (B) and a store with only `exists` (A). (M5: tier A needs the same df, or `rarity: 'static'`, docs/DEVIATIONS.md #98.)
 10. Parity across tiers without collisions: for titles whose best body is free, tiers A, B and C give the same ID.
 11. Hashed stems: with `storeStems: 'hashed'` and a secret, the sequential corpus gives the same IDs as with `'plain'` (only the stored stems differ).
 
 ### 19.4 Collision and race tests
 
-- Memory (tier C): insert `Chocolate Cake Recipe` 2,000 times. All IDs unique, at most 3 tail indexes tried per insert, tail grows at n = 35 (t=3) and n = 980 (t=4).
-- Exists-only store (tier A): the same title 64 times works, the 65th throws `ExhaustedError` with a hint to use a counting store.
+- Memory (tier C): insert `Chocolate Cake Recipe` 2,000 times. All IDs unique, at most 3 tail indexes tried per insert, tail grows at n = 35 (t=3) and n = 980 (t=4). (M5: tested as measured, docs/DEVIATIONS.md #97; tail collisions make "at most 3" false.)
+- Exists-only store (tier A): the same title 64 times works, the 65th throws `ExhaustedError` with a hint to use a counting store. (M5: exact only without tail collisions in the 64-index window, docs/DEVIATIONS.md #97.)
 - pglite + SQL adapter: 50 parallel `createUnique` with the same title. All succeed, all unique, <= 5 retries each.
 - pglite + Prisma-shaped delegate (a small fake that implements the delegate on SQL): conflict inside a transaction is retried, no `25P02`. A real `@prisma/client` test runs only in an optional CI job.
 
@@ -2549,7 +2549,7 @@ const cfg = fc.record({ length: fc.integer({ min: 8, max: 32 }), lengthMode: fc.
 | Q11 | Re-pick share | sequential: `reason: 'repick'` / collisions | report |
 | Q12 | Speed | `suggest()` median and p99 on Node 22 | median < 200 µs, p99 < 2 ms (bench, not gating); worst-case fit with pool 6 and `maxSegments` 5 < 10 ms (gate) |
 | Q13 | Human review | for each language of the corpus, a native reader of the title's language (not necessarily an expert of the title's field) rates every ID of the full report: 1 = know it, 2 = can guess, 3 = no idea. Mixed titles are rated by a native reader of the title's detected language | >= 85% rated 1 before 1.0, and >= 75% rated 1 in every domain (manual) |
-| Q14 | Same title, same content | sequential: rows with identical canonical titles, and real `near` pairs (19.7) with the same stems, have the same content key; if the first row's body has a tail, the bodies are equal | 100% (gate) |
+| Q14 | Same title, same content | sequential: rows with identical canonical titles, and real `near` pairs (19.7) with the same stems, have the same content key; if the first row's body has a tail, the bodies are equal | 100% (gate). M5: identical titles gated with the subset rule of docs/DEVIATIONS.md #99; near pairs report only |
 | Q15 | Expected outputs | fixtures with `expect` (19.7) match | 100% (gate) |
 | Q16 | (removed in rev 3) | was "org consistency"; there is no org class | - |
 | Q17 | Spelling consistency | per concept over the corpus: share of IDs that use the concept's most common rung | report (input for Q9 of section 22) |
