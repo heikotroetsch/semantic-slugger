@@ -244,17 +244,40 @@ const POS_BONUS = [90, 45, 20, 10, 5]
 const CHUNK = 80
 const HEAD = 80
 const BRIDGE = 70
-const SKELETON = 600
+// quality round 3: skeleton 800
+const SKELETON = 800
 const WEAK_POOL_SCORE = 50
 // quality round 2 (docs/DEVIATIONS.md): stub cost, head length, lost half for minor topic words,
 // padding letters, decoy cuts, polarity parts
-const STUB = 60
+// quality round 3: stub 80
+const STUB = 80
 const STUB_LEN = 4
 const HEAD_MIN = 6
 const LOST_FULL = 2
 const PAD = 250
 const PAD_STUB = 300
 const FILL_WHOLE = 4
+// quality round 3 (docs/DEVIATIONS.md): fill refund, one-char growth, lost top and sibling shares
+const FILL_SHOWS = 5
+const GROW_ONE = 150
+const LOST_TOP_PCT = 25
+const LOST_SIBLING_PCT = 25
+const SIBLING = new Set([
+  'qualifier',
+  'place',
+  'direction',
+  'region',
+  'code',
+  'year',
+  'quarter',
+  'month',
+  'week',
+  'weekday',
+  'version',
+  'marker',
+  'model',
+  'longnum',
+])
 const DECOY = new Set(DECOYS)
 const NEG = new Set(NEGATION_PARTS)
 const PRIV = new Set(PRIVATIVE_HEADS)
@@ -279,17 +302,23 @@ interface RC {
   readonly tokAscii: string
   /** Same stem in a language (SPEC 4.4 step 2), from the public `analyze()` stored stems. */
   readonly sameStem: (x: string, y: string, langs: readonly string[]) => boolean
+  /** Quality round 3: index of the concept's part in its compound token, 99 when it is not one part. */
+  readonly sub: number
   ladder: RRung[]
 }
 
 const lt = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
 const rankCmp = (a: RC, b: RC): number => b.score - a.score || a.c.pos - b.c.pos || lt(a.c.key, b.c.key)
 
+/** Quality round 3: a compound concept (key of 2+ part stems) does not take a negative head weight. */
+const lexW = (c: AnalysisConcept): number => {
+  const w = c.lex?.weight ?? 0
+  return w < 0 && c.key.includes('+') ? 0 : w
+}
+
 function refScores(a: Analysis, diff: ReadonlySet<string>): Map<string, number> {
   const t = a.concepts
-    .filter(
-      (c) => !c.weak && (c.cls === 'topic' || c.cls === 'name' || c.cls === 'acronym') && (c.lex?.weight ?? 0) >= 0,
-    )
+    .filter((c) => !c.weak && (c.cls === 'topic' || c.cls === 'name' || c.cls === 'acronym') && lexW(c) >= 0)
     .sort((x, y) => x.pos - y.pos || lt(x.key, y.key))
   const bonus = new Map(t.map((c, i) => [c.key, POS_BONUS[i] ?? 0]))
   const cancel = a.concepts.filter((c) => c.cls === 'direction').length >= 3
@@ -308,7 +337,7 @@ function refScores(a: Analysis, diff: ReadonlySet<string>): Map<string, number> 
       Math.floor((rar * 3) / 2) +
       (bonus.get(c.key) ?? 0) +
       40 * (c.tf - 1) +
-      (c.lex?.weight ?? 0) +
+      lexW(c) +
       (diff.has(c.key) ? 300 : 0)
     if (cancel && c.cls === 'direction') s = 0
     out.set(c.key, s)
@@ -502,6 +531,10 @@ function refLadder(
       if (k.length - 1 <= 8) drafts.push(num(k.slice(1)))
     } else if (c.cls === 'quantity') {
       if (!k.includes('.')) drafts.push(num(k.slice(1)))
+    } else if (c.cls === 'marker' && (a.tokens[c.pos]?.text ?? '').startsWith('#') && rc.lang !== 'de') {
+      // quality round 3: `#812` shows `812`, `no812` or `nr812` outside German titles
+      const n = k.slice(2)
+      drafts.push(num(n), num(`no${n}`, 30), num(k, 60))
     } else drafts.push(num(k))
   } else if (c.cls === 'acronym') drafts.push(num(w))
   else {
@@ -558,8 +591,23 @@ function refLadder(
         verbatim: true,
         kind: 'full',
       })
+    // quality round 3: the typed compound when weak parts after the core were dropped
+    if (c.cls !== 'name' && row !== undefined) {
+      const whole = row.parts.map((p, i) => (i === 0 ? '' : (row.linkers[i] ?? '')) + p).join('')
+      if (whole !== base && whole.startsWith(base) && /^[a-z0-9]+$/.test(whole))
+        drafts.push({
+          text: whole,
+          segs: [whole],
+          cost: whole.length <= 6 ? 0 : 40,
+          plain: true,
+          verbatim: true,
+          kind: 'full',
+        })
+    }
+    // quality round 3: a phrase with a short form shows no cuts across its words
+    const skipCuts = (c.lex?.key ?? '').includes(' ') && drafts.some((d) => d.kind === 'lexicon')
     const bounds = new Set<number>()
-    if (core.length > 1) {
+    if (core.length > 1 && !skipCuts) {
       let acc = ''
       core.forEach((p, i) => {
         acc += (i === 0 ? '' : p.linker) + p.text
@@ -569,7 +617,9 @@ function refLadder(
         }
       })
       const head = (core[core.length - 1] as { text: string }).text
-      if (head.length >= HEAD_MIN && !NEG.has((core[0] as { text: string }).text))
+      // quality round 3: no head rung for a generic everyday part
+      const partOnly = (PARTS_DE.includes(head) || PARTS_SHARED.includes(head)) && !lex.words.has(head)
+      if (head.length >= HEAD_MIN && !NEG.has((core[0] as { text: string }).text) && !partOnly)
         drafts.push({ text: head, segs: [head], cost: HEAD, plain: plainPart(head), verbatim: false })
       if (compound) {
         // joined abbr: one part's abbr with the full form or abbr of the others, 8 chars or less
@@ -592,7 +642,7 @@ function refLadder(
       }
     }
     const bridgeable = c.cls !== 'name' && base.length >= 10
-    for (const cut of refCuts(base, rc.lang, bounds, (p) => lex.words.has(p))) {
+    for (const cut of skipCuts ? [] : refCuts(base, rc.lang, bounds, (p) => lex.words.has(p))) {
       if (c.cls === 'name' && cut.cost === 60) continue
       const short = bridgeable && cut.cost !== 60 && cut.text.length < 5
       drafts.push({
@@ -613,7 +663,7 @@ function refLadder(
           drafts.splice(i, 1)
       }
     }
-    if (c.cls !== 'name') {
+    if (c.cls !== 'name' && !skipCuts) {
       const firstPart = core.length > 1 ? (core[0] as { text: string }).text.length : 0
       const bc = refBridges(base, firstPart)
       for (const b of bc)
@@ -688,7 +738,8 @@ function refFill(
       null
     if (r === null && words.has(u.c.cls)) {
       const full = u.ladder.find((x) => x.kind === 'full')?.text ?? u.display
-      if (full.length > room && /^[a-z0-9]+$/.test(full) && !DECOY.has(full.slice(0, room))) {
+      const cut = full.slice(0, room)
+      if (full.length > room && /^[a-z0-9]+$/.test(full) && !DECOY.has(cut)) {
         const t = full.slice(0, room)
         r = { text: t, segs: [t], cost: 0, plain: false, verbatim: false }
       }
@@ -704,6 +755,8 @@ interface RSeg {
   cryptic: boolean
   verb: boolean
   slot?: number
+  /** Title position of the main concept (quality round 3: fill placement). */
+  pos?: number
   rc?: RC
 }
 
@@ -756,12 +809,35 @@ function refWholeFill(fill: readonly RC[], used: ReadonlySet<string>, room: numb
   return null
 }
 
-/** Quality round 2: a word fill goes before the number segments; a short stub stays at the end. */
+/**
+ * Quality round 2: a word fill goes before the number segments; a short stub stays at the end. Round 3:
+ * a fill that shows its word (whole, or 5+ chars, not a filler) takes its title place in its slot.
+ */
 function refWithFill(segs: readonly RSeg[], f: { r: RRung; u: RC }): RSeg[] {
   const fs: RSeg = { t: f.r.text, cryptic: !f.r.plain, verb: f.r.verbatim, slot: SLOT[f.u.c.cls] ?? 2, rc: f.u }
   if (fs.cryptic && fs.t.length < FILL_WHOLE) return [...segs, fs]
-  const at = segs.findIndex((x, i) => i > 0 && x.slot !== undefined && x.slot > (fs.slot as number))
+  const shows = refShows(segs, f) && !WEAK_NO_SHOW.has(f.u.c.lex?.key ?? '')
+  const slot = fs.slot as number
+  const at = segs.findIndex((x, i) => {
+    if (x.slot === undefined || (i === 0 && !shows)) return false
+    return x.slot > slot || (shows && x.slot === slot && (x.pos ?? 0) > f.u.c.pos)
+  })
   return at < 0 ? [...segs, fs] : [...segs.slice(0, at), fs, ...segs.slice(at)]
+}
+
+/** Quality round 3: the fill shows its word (whole or 5+ chars) and the body has no fallback word. */
+function refShows(segs: readonly RSeg[], f: { r: RRung }): boolean {
+  return (f.r.plain || f.r.text.length >= FILL_SHOWS) && segs[0]?.slot !== undefined
+}
+
+/** Quality round 3: the lost score a fill that shows its word gives back, less what a segment pays. */
+function refRefund(segs: readonly RSeg[], f: { r: RRung; u: RC }, lostOf: ReadonlyMap<string, number>): number {
+  if (!refShows(segs, f)) return 0
+  const lost = lostOf.get(f.u.c.key) ?? 0
+  const full = f.u.ladder.find((x) => x.kind === 'full')?.text ?? f.u.display
+  const back = f.r.plain ? lost : Math.floor((lost * Math.min(f.r.text.length, full.length)) / full.length)
+  const pay = (f.r.plain ? 0 : 40) + (segs.length + 1 > 2 ? CHUNK : 0)
+  return Math.max(0, back - pay)
 }
 
 /** B3: no list word of 4+ chars across the joined body, unless soft and strictly inside a verbatim segment. */
@@ -817,11 +893,18 @@ function refFit(
     if (only !== undefined && [...keys].sort().join('|') !== only) continue
     if (must !== undefined && !s.some((c) => must.has(c.c.key))) continue
     if (s.some((c) => c.c.cls === 'model' && !keys.has(c.c.bond?.with ?? ''))) continue
-    // quality round 2: a topic word below the first two concepts counts half
-    const lost = pool.reduce(
-      (x, c, i) => (s.includes(c) ? x : x + (i < LOST_FULL || (SLOT[c.c.cls] ?? 2) !== 0 ? c.score : c.score >> 1)),
-      0,
-    )
+    // quality round 2: a topic word below the first two concepts counts half; round 3: the top concept
+    // and the sibling classes count more (a direction twice the share)
+    const lostOf = new Map<string, number>()
+    pool.forEach((c, i) => {
+      const l = i < LOST_FULL || (SLOT[c.c.cls] ?? 2) !== 0 ? c.score : c.score >> 1
+      const pct =
+        (i === 0 ? LOST_TOP_PCT : 0) +
+        (SIBLING.has(c.c.cls) ? LOST_SIBLING_PCT : 0) +
+        (c.c.cls === 'direction' ? LOST_SIBLING_PCT : 0)
+      lostOf.set(c.c.key, l + Math.floor((l * pct) / 100))
+    })
+    const lost = pool.reduce((x, c) => (s.includes(c) ? x : x + (lostOf.get(c.c.key) as number)), 0)
     let top: RCand | undefined
     const pick = (i: number, rs: RRung[]) => {
       if (i < s.length) {
@@ -832,11 +915,15 @@ function refFit(
       const items: {
         slot: number
         pos: number
+        /** Quality round 3: place of the concept inside its compound token (`nord` before `deutschland`). */
+        sub: number
         key: string
         segs: string[]
         cryptic: boolean
         verb: boolean
         rc?: RC
+        /** Title position of the bond's main concept. */
+        main?: number
       }[] = []
       const kids = new Map<string, RC[]>()
       const child = new Set<string>()
@@ -855,6 +942,7 @@ function refFit(
           items.push({
             slot: SLOT[c.c.cls] ?? 2,
             pos: c.c.pos,
+            sub: subOf(c),
             key: c.c.key,
             segs: r.segs,
             cryptic: !r.plain,
@@ -877,15 +965,25 @@ function refFit(
         if (c.c.cls === 'year' && r.text.length === 4 && c.ladder.some((x) => x.text.length === 2)) return
         // quality round 2: a bond shows the short month
         if (ks.some((k) => k.c.cls === 'month' && (rs[s.indexOf(k)] as RRung).text.length > 3)) return
-        items.push({ slot: SLOT[c.c.cls] ?? 2, pos, key: c.c.key, segs: [text], cryptic, verb: false })
+        items.push({
+          slot: SLOT[c.c.cls] ?? 2,
+          pos,
+          sub: subOf(c),
+          key: c.c.key,
+          segs: [text],
+          cryptic,
+          verb: false,
+          main: c.c.pos,
+        })
       }
-      items.sort((x, y) => x.slot - y.slot || x.pos - y.pos || lt(x.key, y.key))
+      items.sort((x, y) => x.slot - y.slot || x.pos - y.pos || x.sub - y.sub || lt(x.key, y.key))
       const segs: RSeg[] = items.flatMap((it) =>
         it.segs.map((t) => ({
           t,
           cryptic: it.cryptic && it.segs.length === 1,
           verb: it.verb,
           slot: it.slot,
+          pos: it.main ?? it.pos,
           ...(it.rc !== undefined ? { rc: it.rc } : {}),
         })),
       )
@@ -923,12 +1021,13 @@ function refFit(
         if (minTail !== 0 || !cfg.fill) return false
         const f = t > 0 && segs.length < cfg.maxSeg ? refFill(fill, keys, t) : null
         if (f !== null && (f.r.plain || f.r.text.length >= FILL_WHOLE)) {
-          offerSegs(refWithFill(segs, f), PAD)
+          offerSegs(refWithFill(segs, f), PAD - refRefund(segs, f, lostOf))
           return true
         }
         const g = refGrow(segs, cfg.length - body.length)
         if (g !== null) {
-          offerSegs(g, PAD)
+          // quality round 3: one more letter of a shown word costs less than a padding tail
+          offerSegs(g, cfg.length - body.length === 1 ? GROW_ONE : PAD)
           return true
         }
         const w = t > 0 && segs.length < cfg.maxSeg ? refWholeFill(fill, keys, t) : null
@@ -936,7 +1035,7 @@ function refFit(
           const all = refWithFill(segs, w)
           const g2 = refGrow(all, cfg.length - all.map((x) => x.t).join(cfg.sep).length)
           if (g2 !== null) {
-            offerSegs(g2, PAD)
+            offerSegs(g2, PAD - refRefund(segs, w, lostOf))
             return true
           }
         }
@@ -957,7 +1056,21 @@ function refFit(
     pick(0, [])
     if (top !== undefined) all.push(top)
   }
-  return all.sort((x, y) => candCmp(x, y, pool))
+  // quality round 3: one candidate per body and tail (a fill can spell the body of another subset)
+  const seen = new Set<string>()
+  return all
+    .sort((x, y) => candCmp(x, y, pool))
+    .filter((x) => {
+      const k = `${x.body}|${x.tail}`
+      if (seen.has(k)) return false
+      seen.add(k)
+      return true
+    })
+}
+
+/** Quality round 3: place of a concept inside its compound token, by its part (99: not a single part). */
+function subOf(c: RC): number {
+  return c.sub
 }
 
 function candCmp(a: RCand, b: RCand, pool: RC[]): number {
@@ -1017,6 +1130,8 @@ function refPool(
   const rcs: RC[] = a.concepts.map((c) => {
     const tok = a.tokens[c.pos]
     const display = c.cls === 'month' || c.cls === 'weekday' ? (tok?.ascii ?? c.key) : (c.verbatim[0] ?? c.key)
+    const row = a.compounds.find((r) => r.word === (tok?.ascii ?? display))
+    const at = row?.parts.indexOf(display) ?? -1
     return {
       c,
       score: scores.get(c.key) ?? 0,
@@ -1024,6 +1139,7 @@ function refPool(
       lang: tok?.lang ?? a.lang,
       tokAscii: tok?.ascii ?? display,
       sameStem,
+      sub: at < 0 ? 99 : at,
       ladder: [],
     }
   })

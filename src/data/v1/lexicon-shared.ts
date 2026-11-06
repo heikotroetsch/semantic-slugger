@@ -35,7 +35,7 @@ export const LEXICON_SHARED: readonly LexiconEntry[] = [
   { key: 'kickoff', lang: '*', cls: 'topic', phrase: ['kick off'], abbr: ['kickoff'], known: ['kickoff'], weight: -60 },
   { key: 'workshop', lang: '*', cls: 'topic', forms: ['workshops'] },
   { key: 'webinar', lang: '*', cls: 'topic' },
-  { key: 'newsletter', lang: '*', cls: 'topic' },
+  { key: 'newsletter', lang: '*', cls: 'topic', weight: -60 },
   { key: 'podcast', lang: '*', cls: 'topic' },
   { key: 'west', lang: '*', cls: 'direction', prior: 'medium' },
   { key: 'emea', lang: '*', cls: 'region', abbr: ['emea'], known: ['emea'], prior: 'medium' },

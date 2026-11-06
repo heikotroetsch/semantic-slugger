@@ -6,6 +6,7 @@
 
 import type { ConceptClass, ResolvedConfig } from '../config.ts'
 import { DECOYS } from '../data/v1/decoys.ts'
+import { WEAK_NO_SHOW } from '../data/v1/weak.ts'
 import type { Laddered, Rung } from './ladder.ts'
 import { rankOrder } from './rank.ts'
 import { bodyBlocked, fold, hardHitIn, hasLookalikePair, rungBlocked, segmentBlocked } from './safety.ts'
@@ -20,12 +21,19 @@ export const FIT_COST: Readonly<{
   tailStep: number
 }> = Object.freeze({
   cryptic: 40,
-  stub: 60,
+  stub: 80,
   pad: 250,
   chunk: 80,
   tailBase: 250,
   tailStep: 50,
 })
+
+/**
+ * A segment that grows by one char into its own word pays this, not `FIT_COST.pad` (docs/DEVIATIONS.md,
+ * quality round 3): a body one char short can take no tail, and one more letter of a word the body
+ * already shows adds no noise.
+ */
+export const GROW_ONE = 150
 
 /** A cryptic segment of this length or less is a stub and pays `FIT_COST.stub` on top. */
 export const STUB_LEN = 4
@@ -37,6 +45,37 @@ export const STUB_LEN = 4
  * cut stubs, so a long title should not force its minor words into the body.
  */
 export const LOST_FULL = 2
+
+/**
+ * The top concept in rank order costs this share more when the body drops it (docs/DEVIATIONS.md,
+ * quality round 3), in percent: the main topic should not give way to a cheaper spelling of minor words.
+ */
+export const LOST_TOP_PCT = 25
+
+/**
+ * Qualifiers, places, numbers and markers (slots Q and N) cost this share more when the body drops
+ * them (docs/DEVIATIONS.md, quality round 3), in percent: they tell sibling titles apart (`links`,
+ * `2023`, `Los 2`, `Phase 1`).
+ */
+export const LOST_SIBLING_PCT = 25
+
+/** Classes of slots Q and N that get `LOST_SIBLING_PCT`: not quantities and ranges (sizes and spans). */
+const SIBLING: ReadonlySet<ConceptClass> = new Set<ConceptClass>([
+  'qualifier',
+  'place',
+  'direction',
+  'region',
+  'code',
+  'year',
+  'quarter',
+  'month',
+  'week',
+  'weekday',
+  'version',
+  'marker',
+  'model',
+  'longnum',
+])
 
 const DECOY_SET: ReadonlySet<string> = new Set(DECOYS)
 
@@ -157,8 +196,9 @@ function fillSegment(
     let rung: Rung | undefined = exact
     if (text === undefined && FILL_WORD.has(u.cls)) {
       const full = u.ladder.find((r) => r.kind === 'full')?.text ?? u.display
-      if (full.length > room && /^[a-z0-9]+$/.test(full) && !DECOY_SET.has(full.slice(0, room))) {
-        text = full.slice(0, room)
+      const cut = full.slice(0, room)
+      if (full.length > room && /^[a-z0-9]+$/.test(full) && !DECOY_SET.has(cut)) {
+        text = cut
         rung = { text, segs: [text], kind: 'coda', cost: 0, plain: false, verbatim: false }
       }
     }
@@ -177,6 +217,25 @@ function fillSegment(
 
 /** A fill is "whole" when it shows a plain rung (a full word, a number) or at least this many chars. */
 export const FILL_WHOLE = 4
+
+/** A fill of at least this many chars shows its word (docs/DEVIATIONS.md, quality round 3). */
+export const FILL_SHOWS = 5
+
+/**
+ * The part of a concept's lost score that a fill segment gives back (docs/DEVIATIONS.md, quality round
+ * 3): a fill that shows the whole word, or 5+ of its chars, keeps the word in the ID, so the word is
+ * not lost in full. The share is the shown part of the full word. A stub gives nothing back.
+ */
+function fillRefund(segs: readonly FitSeg[], f: FitSeg, lostOf: ReadonlyMap<string, number>, bodySegs: number): number {
+  const u = f.concepts[0]
+  if (u === undefined || !showsWord(f) || segs[0]?.kind === 'fallback') return 0
+  const lost = lostOf.get(u.key) ?? 0
+  const full = u.ladder.find((r) => r.kind === 'full')?.text ?? u.display
+  const back = f.cryptic ? Math.floor((lost * Math.min(f.text.length, full.length)) / Math.max(full.length, 1)) : lost
+  // the shown word pays what a body segment pays: the cryptic cost and one more chunk
+  const pay = (f.cryptic ? FIT_COST.cryptic : 0) + (bodySegs + 1 > 2 ? FIT_COST.chunk : 0)
+  return Math.max(0, back - pay)
+}
 
 /**
  * A whole unused title word shorter than the room (docs/DEVIATIONS.md, quality round 2): the first
@@ -258,8 +317,19 @@ function extendSegments(
 function withFill(segs: readonly FitSeg[], f: FitSeg): FitSeg[] {
   const u = f.concepts[0]
   if (u === undefined || (f.cryptic && f.text.length < FILL_WHOLE)) return [...segs, f]
-  const at = segs.findIndex((x, i) => i > 0 && x.concepts[0] !== undefined && SLOT[x.concepts[0].cls] > SLOT[u.cls])
+  // a fill that shows its word takes its title place in its slot (docs/DEVIATIONS.md, quality round 3)
+  const shows = showsWord(f) && segs[0]?.kind !== 'fallback' && !WEAK_NO_SHOW.has(u.lex?.key ?? '')
+  const at = segs.findIndex((x, i) => {
+    const c = x.concepts[0]
+    if (c === undefined || (i === 0 && !shows)) return false
+    return SLOT[c.cls] > SLOT[u.cls] || (shows && SLOT[c.cls] === SLOT[u.cls] && c.pos > u.pos)
+  })
   return at < 0 ? [...segs, f] : [...segs.slice(0, at), f, ...segs.slice(at)]
+}
+
+/** A fill that shows the whole word or 5+ of its chars (docs/DEVIATIONS.md, quality round 3). */
+function showsWord(f: FitSeg): boolean {
+  return !f.cryptic || f.text.length >= FILL_SHOWS
 }
 
 function cmpStr(a: string, b: string): number {
@@ -306,8 +376,15 @@ function joinedOk(text: string, cfg: ResolvedConfig, cache: Map<string, boolean>
 interface Item {
   slot: number
   pos: number
+  /** 0 for a modifier split off a compound, 1 else: `nord` before `deutschland` (quality round 3). */
+  sub: number
   key: string
   segs: FitSeg[]
+}
+
+/** 0 when the concept is a leading modifier of its compound token (`Nord|deutschland`), else 1. */
+function subOf(c: Laddered): number {
+  return c.tok.split?.mods.some((m) => m.text === c.display) === true ? 0 : 1
 }
 
 function segKind(cls: ConceptClass): SegKind {
@@ -367,7 +444,7 @@ function slotOrder(
         concepts: [c],
         rungs: [r],
       }))
-      items.push({ slot: SLOT[c.cls], pos: c.pos, key: c.key, segs })
+      items.push({ slot: SLOT[c.cls], pos: c.pos, sub: subOf(c), key: c.key, segs })
       continue
     }
     let text = r.text
@@ -393,11 +470,12 @@ function slotOrder(
     items.push({
       slot: SLOT[c.cls],
       pos,
+      sub: subOf(c),
       key: c.key,
       segs: [{ text, kind: segKind(main.cls), cryptic, verbatim: false, concepts, rungs: rs }],
     })
   }
-  items.sort((a, b) => a.slot - b.slot || a.pos - b.pos || cmpStr(a.key, b.key))
+  items.sort((a, b) => a.slot - b.slot || a.pos - b.pos || a.sub - b.sub || cmpStr(a.key, b.key))
   const segs = items.flatMap((it) => it.segs)
   const first = segs[0]
   if (first !== undefined && first.text.charCodeAt(0) >= 48 && first.text.charCodeAt(0) <= 57)
@@ -480,6 +558,13 @@ function rungCosts(c: Candidate): number[] {
 }
 
 function insertSorted(best: Candidate[], c: Candidate, rank: ReadonlyMap<string, number>, max: number): void {
+  // one candidate per ID shape: a fill that shows a word can spell the body of another subset
+  // (docs/DEVIATIONS.md, quality round 3); the better one stays
+  const same = best.findIndex((b) => b.body === c.body && b.tailLen === c.tailLen)
+  if (same >= 0) {
+    if (compareCandidates(best[same] as Candidate, c, rank) <= 0) return
+    best.splice(same, 1)
+  }
   let i = best.length
   while (i > 0 && compareCandidates(c, best[i - 1] as Candidate, rank) < 0) i--
   best.splice(i, 0, c)
@@ -507,13 +592,29 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
   const n = pool.length
   const keyOf = (c: Laddered) => c.key
   const subsets: { s: Laddered[]; mask: number; lost: number; fixed: number; lb: number }[] = []
+  // lost score of each pool concept: a topic word below the first two concepts counts half
+  // (docs/DEVIATIONS.md, quality round 2)
+  const lostOf = new Map<string, number>()
+  pool.forEach((c, i) => {
+    const l = i < LOST_FULL || SLOT[c.cls] !== 0 ? c.score : c.score >> 1
+    const pct =
+      (i === 0 ? LOST_TOP_PCT : 0) +
+      (SIBLING.has(c.cls) ? LOST_SIBLING_PCT : 0) +
+      (c.cls === 'direction' ? LOST_SIBLING_PCT : 0)
+    lostOf.set(c.key, l + Math.floor((l * pct) / 100))
+  })
   for (let mask = 1; mask < 1 << n; mask++) {
     const s: Laddered[] = []
     let lost = 0
+    // the most a fill segment can give back, above the pad cost it pays (for the lower bound)
+    let back = 0
     pool.forEach((c, i) => {
       if (mask & (1 << i)) s.push(c)
-      // a topic word below the first two concepts counts half (docs/DEVIATIONS.md, quality round 2)
-      else lost += i < LOST_FULL || SLOT[c.cls] !== 0 ? c.score : c.score >> 1
+      else {
+        const l = lostOf.get(c.key) as number
+        lost += l
+        if (fill.length > 0 && c.cls !== 'model') back = Math.max(back, l - FIT_COST.pad)
+      }
     })
     if (s.some((c) => c.ladder.length === 0)) continue
     if (constraint.mustInclude !== undefined && !s.some((c) => constraint.mustInclude?.has(keyOf(c)))) continue
@@ -522,8 +623,9 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
     if (!s.every((c) => c.cls !== 'model' || (c.bond !== undefined && s.some((w) => w.key === c.bond?.with)))) continue
     const ms = minSegs(s)
     if (ms > maxSeg) continue
-    // lower bound of every candidate of this subset: lost score, the fewest chunks and the cheapest rungs
-    const fixed = lost + FIT_COST.chunk * Math.max(0, ms - 2)
+    // lower bound of every candidate of this subset: lost score (less what a fill can give back), the
+    // fewest chunks and the cheapest rungs
+    const fixed = lost - back + FIT_COST.chunk * Math.max(0, ms - 2)
     subsets.push({ s, mask, lost, fixed, lb: fixed + s.reduce((acc, c) => acc + minCost(c), 0) })
   }
   subsets.sort((a, b) => a.lb - b.lb || a.mask - b.mask)
@@ -562,8 +664,8 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
         0,
       )
       const chunks = FIT_COST.chunk * Math.max(0, segs.length - 2)
-      const offer = (all: readonly FitSeg[], text: string, t: number, tail: number): void => {
-        const cost = rungCost + cryptic + lost + chunks + tail
+      const offer = (all: readonly FitSeg[], text: string, t: number, tail: number, refund = 0): void => {
+        const cost = rungCost + cryptic + lost - refund + chunks + tail
         if (cost > limit()) return
         const sk = `${t === 0 ? 0 : 1}|${all.map((x) => (x.verbatim ? '1' : '0')).join('')}|${text}`
         let ok = safeCache.get(sk)
@@ -579,7 +681,7 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
           content,
           contentKey,
           cost,
-          parts: { rungs: rungCost, cryptic, lost, chunks, tail },
+          parts: { rungs: rungCost, cryptic, lost: lost - refund, chunks, tail },
           idLength: text.length + (t === 0 ? 0 : cfg.separator.length + t),
         }
         if (top === undefined || compareCandidates(c, top, rank) < 0) top = c
@@ -595,12 +697,12 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
         const f = t > 0 && segs.length < maxSeg ? fillSegment(fill, used, t, cfg, bondCache) : null
         if (f !== null && (!f.cryptic || f.text.length >= FILL_WHOLE)) {
           const all = withFill(segs, f)
-          offer(all, all.map((x) => x.text).join(cfg.separator), 0, cost)
+          offer(all, all.map((x) => x.text).join(cfg.separator), 0, cost, fillRefund(segs, f, lostOf, segs.length))
           return true
         }
         const ext = extendSegments(segs, cfg.length - body.length, cfg, bondCache)
         if (ext !== null) {
-          offer(ext, ext.map((x) => x.text).join(cfg.separator), 0, cost)
+          offer(ext, ext.map((x) => x.text).join(cfg.separator), 0, cfg.length - body.length === 1 ? GROW_ONE : cost)
           return true
         }
         // a shorter whole word, then a grown segment
@@ -614,7 +716,13 @@ export function fitBody(pool: readonly Laddered[], cfg: ResolvedConfig, constrai
             bondCache,
           )
           if (grown !== null) {
-            offer(grown, grown.map((x) => x.text).join(cfg.separator), 0, cost)
+            offer(
+              grown,
+              grown.map((x) => x.text).join(cfg.separator),
+              0,
+              cost,
+              fillRefund(segs, w, lostOf, segs.length),
+            )
             return true
           }
         }

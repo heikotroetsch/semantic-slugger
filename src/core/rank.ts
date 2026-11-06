@@ -75,6 +75,16 @@ export const WEAK_POOL_SCORE = 50
 /** Weak concepts join the pool only when it holds at most this many other concepts. */
 export const WEAK_POOL_MAX = 1
 
+/**
+ * Lexicon weight of a concept (SPEC 10.3). A compound concept takes the entry of its head, but a
+ * negative weight (a doc-kind head: `Onboarding-Checkliste`) does not count: the modifier names the
+ * topic (docs/DEVIATIONS.md, quality round 3).
+ */
+export function lexWeight(c: Pick<ConceptX, 'lex' | 'parts'>): number {
+  const w = c.lex?.weight ?? 0
+  return w < 0 && c.parts !== undefined && c.parts.length > 1 ? 0 : w
+}
+
 /** Classes of slot T that get the position bonus (not attr). */
 const T_BONUS: ReadonlySet<ConceptClass> = new Set<ConceptClass>(['topic', 'name', 'acronym'])
 
@@ -194,7 +204,7 @@ export function rankConcepts(concepts: readonly ConceptX[], cfg: ResolvedConfig,
   const bonus = new Map<ConceptX, number>()
   // doc-kind words (negative lexicon weight) take no position bonus (docs/DEVIATIONS.md, quality round 1)
   concepts
-    .filter((c) => !c.weak && T_BONUS.has(c.cls) && (c.lex?.weight ?? 0) >= 0)
+    .filter((c) => !c.weak && T_BONUS.has(c.cls) && lexWeight(c) >= 0)
     .sort((a, b) => a.pos - b.pos || cmpStr(a.key, b.key))
     .forEach((c, i) => {
       bonus.set(c, POSITION_BONUS[i] ?? 0)
@@ -206,7 +216,7 @@ export function rankConcepts(concepts: readonly ConceptX[], cfg: ResolvedConfig,
     const base = classWeight(c)
     const r = rarity(c, stats === undefined ? undefined : conceptDf(c, stats.df), n, cfg)
     const pos = bonus.get(c) ?? 0
-    const lex = c.lex?.weight ?? 0
+    const lex = lexWeight(c)
     const diff = opts.diff?.has(c.key) === true ? DIFF_BOOST : 0
     let score = base + Math.floor((r * 3) / 2) + pos + TF_BONUS * (c.tf - 1) + lex + diff
     if (cancel && c.cls === 'direction') score = 0

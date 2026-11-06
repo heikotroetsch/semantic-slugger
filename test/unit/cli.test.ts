@@ -96,7 +96,7 @@ describe('cli', () => {
 
   it('--lexicon and --deny read files', async () => {
     const lexicon = JSON.stringify([{ key: 'kubernetes', cls: 'name', abbr: ['k8s'], known: ['k8s'] }])
-    const t = 'Kubernetes Cluster Upgrade Weber'
+    const t = 'Kubernetes Node Upgrade Weber'
     const r = await run(['--lexicon', 'lex.json', '--deny', 'deny.txt', t], {
       files: { 'lex.json': lexicon, 'deny.txt': '# names\nWeber\n' },
     })

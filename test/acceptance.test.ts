@@ -22,7 +22,8 @@ describe('acceptance examples (SPEC 20)', () => {
     const changed = results.filter((r) => r.row.status === 'ref' && r.changed).map((r) => r.row.n)
     // 12 to 14, 19, 20, 27 to 29 and 35 changed in quality round 1 (bridge cuts, fill segments); round 2:
     // 11, 24, 26, 28, 29 and 35 changed (class weights, stub cost, fill before numbers, no `tea` decoy
-    // fill: a whole word and a grown weekday instead)
-    expect(changed).toEqual(['11', '12', '13', '14', '19', '20', '24', '26', '27', '28', '29', '35'])
+    // fill: a whole word and a grown weekday instead); round 3: 6 (a side word counts more when lost),
+    // 20, 28 and 29 again (a fill that shows its word takes its title place)
+    expect(changed).toEqual(['6', '11', '12', '13', '14', '19', '20', '24', '26', '27', '28', '29', '35'])
   })
 })

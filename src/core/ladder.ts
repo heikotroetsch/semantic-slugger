@@ -6,6 +6,7 @@
 
 import type { ConceptClass, ResolvedConfig } from '../config.ts'
 import { DECOYS } from '../data/v1/decoys.ts'
+import { MARKER_HASH_PREFIX } from '../data/v1/markers.ts'
 import { MONTHS_EN } from '../data/v1/months.ts'
 import { CODAS_EN, ONSETS_EN, SINGLE_CONSONANTS } from '../data/v1/phonology.ts'
 import { NEGATION_PARTS, PRIVATIVE_HEADS } from '../data/v1/polarity.ts'
@@ -70,7 +71,7 @@ export const RUNG_COST: Readonly<
   coda: 90,
   syll: 110,
   bridge: 70,
-  skeleton: 600,
+  skeleton: 800,
 })
 
 /** Bridge cuts (docs/DEVIATIONS.md, quality round 1): words of this length or more. */
@@ -387,6 +388,11 @@ function numberDrafts(c: ConceptX, comp: Compiled): Draft[] {
       return [num(`v${major}${minor ?? ''}`)]
     }
     case 'marker':
+      // `#812` shows `nr812` in German only; else `812` or `no812` (docs/DEVIATIONS.md, quality round 3)
+      if (c.tok.markerWord === '#' && c.lang !== 'de' && key.startsWith(MARKER_HASH_PREFIX)) {
+        const n = key.slice(MARKER_HASH_PREFIX.length)
+        return [num(n), num(`no${n}`, RUNG_COST.numberLong), num(key, 2 * RUNG_COST.numberLong)]
+      }
       return [num(key)]
     case 'model':
       return [num(key.slice(1))]
@@ -490,6 +496,17 @@ function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
     if (word.length <= 12)
       out.push({ text: word, segs: [word], kind: 'full', cost: word.length <= 8 ? 0 : RUNG_COST.fullLong, plain: true })
   } else out.push({ text: word, segs: [word], kind: 'full', cost: fullCost(word), plain: true })
+  // the typed compound when weak parts after the core were dropped (`impfplan` for `impf`,
+  // `sprintplanung` for `sprint`): a whole word of the title (docs/DEVIATIONS.md, quality round 3)
+  const sp = c.tok.split
+  if (!isName && sp !== undefined && !sp.weak && sp.mods.length === 0 && c.tok.words === undefined) {
+    const whole = joinParts(sp.parts)
+    if (whole !== word && whole.startsWith(word) && RE_ONE_WORD.test(whole))
+      out.push({ text: whole, segs: [whole], kind: 'full', cost: fullCost(whole), plain: true })
+  }
+  // a phrase with a short form shows that or the whole phrase, never a cut across its words
+  // (`codeofco`; docs/DEVIATIONS.md, quality round 3)
+  if (c.tok.words !== undefined && out.some((d) => d.kind === 'lexicon')) return out
 
   const boundaries = new Set<number>()
   if (parts !== undefined && parts.length > 1) {
@@ -501,8 +518,10 @@ function wordDrafts(c: ConceptX, comp: Compiled): Draft[] {
     }
     // a short head alone reads as another, generic word (`zeit`, `fest`, `brief`); a head after a
     // negation says the opposite (docs/DEVIATIONS.md, quality round 2)
-    const head = (parts[parts.length - 1] as PartInfo).text
-    if (head.length >= HEAD_MIN && !NEGATIONS.has((parts[0] as PartInfo).text))
+    // a generic everyday head alone (`vertrag`, `reinigung`, `verein`) names no topic (quality round 3)
+    const headPart = parts[parts.length - 1] as PartInfo
+    const head = headPart.text
+    if (head.length >= HEAD_MIN && !NEGATIONS.has((parts[0] as PartInfo).text) && headPart.lex?.partOnly !== true)
       out.push({ text: head, segs: [head], kind: 'head', cost: RUNG_COST.head, plain: plainPart(head) })
     // joined abbr rungs: one part's abbr joined with the full form or abbr of the others, 8 chars or less
     if (c.parts !== undefined) out.push(...joinedAbbrs(c.parts))

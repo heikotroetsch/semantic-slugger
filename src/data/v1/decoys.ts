@@ -9,10 +9,10 @@
 // biome-ignore format: word list, one line per group
 export const DECOYS: readonly string[] = [
   // en
-  'art', 'arm', 'back', 'ban', 'bar', 'bus', 'cap', 'car', 'cat', 'con', 'dog', 'edit', 'end', 'hot', 'ice',
-  'inter', 'insta', 'kick', 'leg', 'less', 'man', 'mat', 'mid', 'organ', 'pack', 'pass', 'pat', 'pen', 'pin',
-  'port', 'pro', 'proper', 'sat', 'son', 'stand', 'star', 'stock', 'sun', 'tea', 'tim', 'top', 'train', 'trans',
-  'war', 'week', 'wild',
+  'art', 'arm', 'back', 'ban', 'bar', 'bus', 'cap', 'car', 'cat', 'check', 'chic', 'chick', 'con', 'cos', 'custom', 'dog',
+  'earl', 'edit', 'end', 'hall', 'hot', 'ice', 'inter', 'insta', 'kick', 'leg', 'less', 'liver', 'man', 'mat',
+  'mid', 'mig', 'organ', 'pack', 'par', 'pass', 'pat', 'pen', 'pin', 'port', 'pro', 'proper', 'rem', 'sat', 'son',
+  'stand', 'star', 'stock', 'sun', 'tea', 'temp', 'tim', 'top', 'train', 'trans', 'uml', 'veg', 'war', 'week', 'wild',
   // de
   'bad', 'hand', 'kind', 'kur', 'lang', 'mal', 'ost', 'rad', 'rat', 'reis', 'schul', 'studie', 'tor',
 ]

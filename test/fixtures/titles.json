@@ -3134,7 +3134,7 @@
     "group": "dup-01",
     "vary": "exact",
     "expect": {
-      "body": "lunch-team-frida",
+      "body": "team-lunch-frida",
       "tail": 0
     }
   },
@@ -4124,8 +4124,8 @@
     "kind": "medical",
     "title": "MRT Knie links",
     "expect": {
-      "body": "mrt-knie",
-      "tail": 7
+      "body": "mrt-links",
+      "tail": 6
     }
   },
   {
@@ -4268,7 +4268,7 @@
     "kind": "travel",
     "title": "Trip report from Porto",
     "expect": {
-      "body": "trip-porto-repor",
+      "body": "trip-repor-porto",
       "tail": 0,
       "after": ["t582"]
     }
@@ -4338,7 +4338,7 @@
     "kind": "meeting",
     "title": "Team Lunch Monday",
     "expect": {
-      "body": "lunch-team-monda",
+      "body": "team-lunch-monda",
       "tail": 0,
       "after": ["t436"]
     }

@@ -39,7 +39,7 @@
     "id": "t027",
     "kind": "news",
     "title": "Bahnstreik legt Fernverkehr am Montag lahm",
-    "slug": "fernverke-montag"
+    "slug": "bahnstrei-montag"
   },
   {
     "id": "t028",
@@ -57,7 +57,7 @@
     "id": "t049",
     "kind": "product",
     "title": "Edelstahl-Wasserkocher 1,7 Liter, mattschwarz",
-    "slug": "edelsta-mattschw"
+    "slug": "edels-mattschwar"
   },
   {
     "id": "t050",
@@ -129,7 +129,7 @@
     "id": "t144",
     "kind": "research",
     "title": "Einfluss von Lichtverschmutzung auf nachtaktive Insekten in Mitteleuropa",
-    "slug": "lichtve-mitteleu"
+    "slug": "lichtver-mittele"
   },
   {
     "id": "t145",
@@ -141,7 +141,7 @@
     "id": "t146",
     "kind": "research",
     "title": "Messung der Bodenfeuchte mit kostengünstigen Sensoren",
-    "slug": "messung-sensoren"
+    "slug": "bodenfeuchte-sen"
   },
   {
     "id": "t166",
@@ -207,7 +207,7 @@
     "id": "t235",
     "kind": "medical",
     "title": "Impfplan für Kinder bis 6 Jahre",
-    "slug": "impf-kinder-g23w"
+    "slug": "impfplan-kin-6yr"
   },
   {
     "id": "t236",
@@ -327,7 +327,7 @@
     "id": "t393",
     "kind": "procurement",
     "title": "Rahmenvertrag Büromaterial",
-    "slug": "vertrag-bueromat"
+    "slug": "rahmenver-buerom"
   },
   {
     "id": "t394",
@@ -591,13 +591,13 @@
     "id": "t489",
     "kind": "edge",
     "title": "Abschlussbericht zum dreijährigen Forschungs- und Entwicklungsprojekt über die Verbesserung der Wasserqualität in kleinen Seen und Teichen durch naturnahe Uferbepflanzung, regelmäßige Messungen von Sauerstoff, Nitrat und Phosphat, die Einbindung von Schulklassen und Bürgerinitiativen sowie Empfehlungen für Gemeinden, Landwirte und Naturschutzverbände in Bayern, Baden-Württemberg und Thüringen, Teil 1 bis Teil 4",
-    "slug": "entwickl-pt1-pt4"
+    "slug": "abschlus-pt1-pt4"
   },
   {
     "id": "t490",
     "kind": "edge",
     "title": "A comprehensive step-by-step guide to planning, building and maintaining a small vegetable garden on a city balcony, including soil selection, container sizes, watering schedules, companion planting, pest control without chemicals, seasonal planting calendars for spring, summer and autumn, and tips from experienced urban gardeners in London, Berlin and Toronto, updated for the 2026 season",
-    "slug": "step-london-berl"
+    "slug": "stepbyste-london"
   },
   {
     "id": "t491",
@@ -621,7 +621,7 @@
     "id": "t494",
     "kind": "edge",
     "title": "Ετήσια έκθεση πωλήσεων 2026",
-    "slug": "ekthesi-polis-26"
+    "slug": "etisia-ekthes-26"
   },
   {
     "id": "t495",
@@ -717,13 +717,13 @@
     "id": "t510",
     "kind": "edge",
     "title": "Scunthorpe Town Walking Tour",
-    "slug": "town-tour-walkin"
+    "slug": "town-walkin-tour"
   },
   {
     "id": "t511",
     "kind": "edge",
     "title": "Penistone Hill Walking Route",
-    "slug": "hill-route-walki"
+    "slug": "penistone-walkin"
   },
   {
     "id": "t512",
@@ -795,13 +795,13 @@
     "id": "t523",
     "kind": "edge",
     "title": "ÄÖÜ äöü ß Straße Größe Übergabe",
-    "slug": "aeoeue-uebergabe"
+    "slug": "aeoeue-ueb-gross"
   },
   {
     "id": "t524",
     "kind": "edge",
     "title": "Übergabe Größe Prüfung",
-    "slug": "ueberga-pruefung"
+    "slug": "uebe-pruef-gross"
   },
   {
     "id": "t525",
@@ -909,7 +909,7 @@
     "id": "t575",
     "kind": "edge",
     "title": "MRT Knie links",
-    "slug": "mrt-knie-shk3wg5"
+    "slug": "mrt-links-r8hqj6"
   },
   {
     "id": "t583",

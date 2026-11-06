@@ -176,6 +176,13 @@ describe('score (SPEC 10.3)', () => {
     expect(t.rows.find((x) => x.key === 'bech')?.pos).toBe(45)
   })
 
+  it('a compound with a doc-kind head takes no negative weight (docs/DEVIATIONS.md, quality round 3)', () => {
+    const r = row('Onboarding-Checkliste Vertrieb', 'onboarding+checkli', undefined, {}, 'de')
+    expect(r?.lex).toBe(0)
+    expect(r?.pos).toBe(90)
+    expect(row('Checkliste Vertrieb', 'checkliste', undefined, {}, 'de')?.lex).toBe(-60)
+  })
+
   it('tf adds 40 per extra occurrence; the lexicon weight adds', () => {
     expect(row('Technik und Technology Trends', 'tech')?.tf).toBe(2)
     expect(row('Technik und Technology Trends', 'tech')?.score).toBe(280 + 30 + 90 + 40)

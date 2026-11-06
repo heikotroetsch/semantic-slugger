@@ -21,6 +21,10 @@ export const DOCKIND_DE: readonly LexiconEntry[] = [
   { key: 'verzeichnis', lang: 'de', cls: 'topic', forms: ['verzeichnisse'], weight: -60, pair: 'directory' },
   { key: 'einfuehrung', lang: 'de', cls: 'topic', forms: ['einfuehrungen'], weight: -60, pair: 'introduction' },
   { key: 'einsteiger', lang: 'de', cls: 'topic', forms: ['einsteigerin'], weight: -60, pair: 'beginner' },
+  { key: 'einladung', lang: 'de', cls: 'topic', forms: ['einladungen'], weight: -60, pair: 'invitation' },
+  { key: 'messung', lang: 'de', cls: 'topic', forms: ['messungen'], weight: -60, pair: 'measurement' },
+  { key: 'lektion', lang: 'de', cls: 'topic', forms: ['lektionen'], weight: -60, pair: 'lesson' },
+  { key: 'steckbrief', lang: 'de', cls: 'topic', forms: ['steckbriefe'], weight: -60, pair: 'factsheet' },
 ]
 
 export const DOCKIND_EN: readonly LexiconEntry[] = [
@@ -39,4 +43,8 @@ export const DOCKIND_EN: readonly LexiconEntry[] = [
   { key: 'impact', lang: 'en', cls: 'topic', forms: ['impacts'], weight: -60, pair: 'einfluss' },
   { key: 'directory', lang: 'en', cls: 'topic', forms: ['directories'], weight: -60, pair: 'verzeichnis' },
   { key: 'beginner', lang: 'en', cls: 'topic', forms: ['beginners'], weight: -60, pair: 'einsteiger' },
+  { key: 'invitation', lang: 'en', cls: 'topic', forms: ['invitations'], weight: -60, pair: 'einladung' },
+  { key: 'measurement', lang: 'en', cls: 'topic', forms: ['measurements'], weight: -60, pair: 'messung' },
+  { key: 'lesson', lang: 'en', cls: 'topic', forms: ['lessons'], weight: -60, pair: 'lektion' },
+  { key: 'factsheet', lang: 'en', cls: 'topic', forms: ['factsheets'], weight: -60, pair: 'steckbrief' },
 ]

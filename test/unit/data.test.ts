@@ -101,7 +101,7 @@ describe('v1 lexicon data (SPEC 15)', () => {
 
   it('the known abbreviation list equals the known fields (15.2)', () => {
     const list =
-      'admin agm ai allhands api apac app arch at auth ch config crm dach db de dept dev docs doku emea eng env erp eu faq fin gov hr hw infra info intl intro it kickoff ki kita kpi lab latam mail mgmt ml mktg mtg oss ops org perf poc pr prod qa retro roi sec seo spec stats sw tech ui uk uni us ux wip'.split(
+      'admin agm ai allhands api apac app arch at auth castiron ch coc config crm dach db de dept dev docs doku emea eng env erp eu faq fin gov gtm hr hw infra info intl intro it kickoff ki kita kpi lab latam loi mail mgmt ml mktg mtg oom oss ops org perf poc pr prod qa ratelimit retro rfp rfq roi sec seo sow spec stats sw tech ui uk uni us ux wip'.split(
         ' ',
       )
     const fields = new Set(ENTRIES.flatMap((e) => e.known ?? []))

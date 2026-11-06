@@ -90,7 +90,7 @@ describe('skeleton (SPEC 11.4)', () => {
 describe('ladders (SPEC 11.1, 12.2)', () => {
   it('Jahresbericht Vertrieb Nord 2026', () => {
     const t = 'Jahresbericht Vertrieb Nord 2026'
-    expect(show(ladderOf(t, 'vertrieb'))).toEqual(['vertrieb(40)', 'ver(110*)', 'vert(110*)', 'vtb(600*)'])
+    expect(show(ladderOf(t, 'vertrieb'))).toEqual(['vertrieb(40)', 'ver(110*)', 'vert(110*)', 'vtb(800*)'])
     expect(show(ladderOf(t, 'nord'))).toEqual(['nord(0)'])
     expect(show(ladderOf(t, 'y2026'))).toEqual(['26(0)', '2026(30)'])
   })
@@ -105,7 +105,7 @@ describe('ladders (SPEC 11.1, 12.2)', () => {
 
   it('Chocolate Cake Recipe', () => {
     const t = 'Chocolate Cake Recipe'
-    expect(show(ladderOf(t, 'chocolate'))).toEqual(['chocolate(40)', 'choc(90*)', 'chocol(90*)', 'chct(600*)'])
+    expect(show(ladderOf(t, 'chocolate'))).toEqual(['chocolate(40)', 'choc(90*)', 'chocol(90*)', 'chct(800*)'])
     expect(show(ladderOf(t, 'cake'))).toEqual(['cake(0)'])
   })
 
@@ -119,12 +119,28 @@ describe('ladders (SPEC 11.1, 12.2)', () => {
   it('compounds: morph and head rungs are cryptic; joined known abbr is plain', () => {
     const c = ladderOf('Sommerfest 2026', 'sommerfest')
     // a head of less than 6 chars gives no head rung (docs/DEVIATIONS.md, quality round 2)
-    expect(show(c)).toEqual(['sommerfest(40)', 'sommer(60*)', 'sommerf(90*)', 'smft(600*)'])
+    expect(show(c)).toEqual(['sommerfest(40)', 'sommer(60*)', 'sommerf(90*)', 'smft(800*)'])
     // the head rung costs more than the morph rung (docs/DEVIATIONS.md, quality round 1)
     const w = ladderOf('Edelstahl-Wasserkocher', ladders('Edelstahl-Wasserkocher')[0]?.key ?? '')
     expect(w.ladder.find((r) => r.kind === 'head')).toMatchObject({ text: 'wasserkocher', cost: 80, plain: false })
     const k = ladderOf('Kindertagesstättenfest 2026', ladders('Kindertagesstättenfest 2026')[0]?.key ?? '')
     expect(k.ladder[0]).toMatchObject({ text: 'kitafest', kind: 'joined', cost: 0, plain: true })
+  })
+
+  it('quality round 3: typed compound, generic head, phrase short form, `#` outside German', () => {
+    // a dropped weak head keeps the typed word as a rung
+    expect(texts(ladders('Impfplan für Kinder')[0] as Laddered)).toContain('impfplan')
+    // a generic everyday head (`vertrag`) gives no head rung; a specific one does
+    const av = ladders('Rahmenvertrag Büromaterial').find((c) => c.key.includes('vertrag')) as Laddered
+    expect(av.ladder.some((r) => r.kind === 'head')).toBe(false)
+    // a phrase with a short form: no cuts across its words
+    const coc = ladders('Code of Conduct English Edition').find((c) => c.key === 'code of conduct') as Laddered
+    expect(texts(coc)).toEqual(['coc', 'codeofconduct'])
+    // `#812`: `812` or `no812` in an English title, `nr` only as the last resort
+    const pr = ladders('PR #812: Fix pagination bug').find((c) => c.cls === 'marker') as Laddered
+    expect(texts(pr)).toEqual(['812', 'no812', 'nr812'])
+    const de = ladders('Ticket #812 Drucker defekt').find((c) => c.cls === 'marker') as Laddered
+    expect(texts(de)).toEqual(['nr812'])
   })
 
   it('polarity parts: a negation is kept, no rung stops before a privative head (quality round 2)', () => {

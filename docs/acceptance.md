@@ -14,12 +14,12 @@ with an "example recipe" config uses words the user adds through `lexicon` (READ
 | 3 | finance | Jahresbericht Vertrieb Nord 2026 | after 1 | `ver-nord-2026-[t2]` | ref | `ver-nord-2026-[t2]` | same (spec ref) |
 | 4 | recipe | Rezept Apfelkuchen mit Zimt | - | `apfelkuchen-zimt` | ref | `apfelkuchen-zimt` | same (spec ref) |
 | 5 | event | Sommerfest 2026 | - | `sommerfest-26-[t2]` | ref | `sommerfest-26-[t2]` | same (spec ref) |
-| 6 | medical | MRT Knie links | - | `mrt-knie-[t7]` | ref | `mrt-knie-[t7]` | same (spec ref) |
+| 6 | medical | MRT Knie links | - | `mrt-links-[t6]` | ref | `mrt-knie-[t7]` | changed (spec ref) |
 | 6m | medical | MRT Knie links | max | `mrt-knie-links` | ref | `mrt-knie-links` | same (spec ref) |
 | 7 | procurement | Rahmenvertrag Stromlieferung Standorte Nord 2026 | example recipe (README 15.8, user config) | `rv-strom-nord-26` | ref | `rv-strom-nord-26` | same (spec ref) |
 | 8 | procurement | Rahmenvertrag Stromlieferung Standorte Nord 2026 | - | `rahmen-nord-2026` | ref | `vertrag-strom-26` | changed (spec unv) |
 | 9 | hr | Mitarbeitergespräch Anna Weber 2026 | denyTokens anna weber | `mitarbeiter-2026` | ref | `mitarb-2026-[t4]` | changed (spec unv) |
-| 10 | education | Elternabend Klasse 4b Grundschule Nord | - | `grund-nord-kla4b` | ref | `elternabend-nord` | changed (spec unv) |
+| 10 | education | Elternabend Klasse 4b Grundschule Nord | - | `elter-nord-kla4b` | ref | `elternabend-nord` | changed (spec unv) |
 | 11 | legal | Mietvertrag Wohnung Kassel 2026 | - | `mietvert-wohn-26` | ref | `miet-kassel-2026` | changed (spec ref) |
 | 12 | meeting | Protokoll Teamsitzung 12.03.2026 | - | `prot-teamsitz-26` | ref | `protok-team-2026` | changed (spec ref) |
 | 13 | software | Versionshinweise 5.1 | - | `versionshinw-v51` | ref | `versionshinweise` | changed (spec ref) |
@@ -30,17 +30,17 @@ with an "example recipe" config uses words the user adds through `lexicon` (READ
 | 18 | software | Firefox v132 Release Notes | - | `firefox-rel-v132` | ref | `firefox-rel-v132` | same (spec ref) |
 | 19 | travel | Trip report from Lisbon | - | `trip-lisbon-repo` | ref | `trip-lisbon-[t4]` | changed (spec ref) |
 | 19m | travel | Trip report from Lisbon | max | `trip-lisbon` | ref | `trip-lisbon` | same (spec ref) |
-| 20 | travel | Trip report from Porto | after 19 | `trip-porto-repor` | ref | `trip-porto-[t5]` | changed (spec ref) |
+| 20 | travel | Trip report from Porto | after 19 | `trip-repor-porto` | ref | `trip-porto-[t5]` | changed (spec ref) |
 | 21 | hr | Onboarding checklist for Acme Corp | max | `onboarding-acme` | ref | `onb-check-acme` | changed (spec unv) |
-| 21e | hr | Onboarding checklist for Acme Corp | - | `onb-acme-checkli` | ref | `onboar-chct-acme` | changed (spec unv) |
-| 22 | ticket | PROJ-1234 Checkout fails in Safari | - | `check-safari-fai` | ref | `check-safari-[t3]` | changed (spec unv) |
+| 21e | hr | Onboarding checklist for Acme Corp | - | `onb-checkli-acme` | ref | `onboar-chct-acme` | changed (spec unv) |
+| 22 | ticket | PROJ-1234 Checkout fails in Safari | - | `checko-fails-saf` | ref | `check-safari-[t3]` | changed (spec unv) |
 | 23 | research | Effects of Sleep on Memory in Older Adults | - | `sleep-memory-old` | ref | `eff-sleep-memory` | changed (spec unv) |
 | 24 | news | Storm warning for the north coast | - | `storm-warn-north` | ref | `storm-warn-coast` | changed (spec ref) |
 | 25 | software | Kubernetes Upgrade Plan Q3 2026 | software recipe | `k8s-upgrade-26q3` | ref | `k8s-upgrade-26q3` | same (spec ref) |
 | 26 | mixed | Kick-off Meeting KI Strategie Q1 2026 | - | `ki-strategi-26q1` | ref | `kickoff-ki-strat` | changed (spec ref) |
 | 27 | mixed | Release 2.4 Hinweise zur Migration | - | `migration-v24-hi` | ref | `migration-v24-[t2]` | changed (spec ref) |
-| 28 | event | Team Lunch Friday | - | `lunch-team-frida` | ref | `lunch-friday-[t3]` | changed (spec ref) |
-| 29 | event | Team Lunch Monday | after 28 | `lunch-team-monda` | ref | `lunch-monday-[t3]` | changed (spec ref) |
+| 28 | event | Team Lunch Friday | - | `team-lunch-frida` | ref | `lunch-friday-[t3]` | changed (spec ref) |
+| 29 | event | Team Lunch Monday | after 28 | `team-lunch-monda` | ref | `lunch-monday-[t3]` | changed (spec ref) |
 | 30 | legal | AGB Version 3.1 | - | `agb-v31-[t8]` | ref | `agb-v31-[t8]` | same (spec ref) |
 | 30n | legal | AGB Version 3.1 | minimal | `agb-[t12]` | ref | `agb-[t12]` | same (spec ref) |
 | 31a | edge | (empty) | - | `doc-[t12]` | ref | `doc-[t12]` | same (spec ref) |

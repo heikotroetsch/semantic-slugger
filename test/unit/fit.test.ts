@@ -61,12 +61,13 @@ describe('tail options and cost (SPEC 12)', () => {
 })
 
 // Costs follow the quality round 1 values (docs/DEVIATIONS.md): chunk 80, head 80, skeleton 600,
-// position bonus 90/45/20/10/5; and round 2: stub +60, year 220, direction 200, minor topic words
-// lost at half score.
+// position bonus 90/45/20/10/5; round 2: year 220, direction 200, minor topic words lost at half
+// score; and round 3: stub +80, skeleton 800, the top concept lost at 150%, Q and N words (not
+// quantities and ranges) lost at 125%.
 describe('worked cost checks (SPEC 12.2)', () => {
   it('A: Jahresbericht Vertrieb Nord 2026', () => {
     const c = cands('Jahresbericht Vertrieb Nord 2026')
-    expect(c.slice(0, 3).map(row)).toEqual(['vertrieb-nord-26 120', 'vertrieb-nord+t2 585', 'vertrieb-2026+t2 595'])
+    expect(c.slice(0, 3).map(row)).toEqual(['vertrieb-nord-26 120', 'vertrieb-nord+t2 658', 'vertrieb-2026+t2 732'])
     expect(c[0]?.parts).toEqual({ rungs: 40, cryptic: 0, lost: 0, chunks: 80, tail: 0 })
   })
 
@@ -75,7 +76,7 @@ describe('worked cost checks (SPEC 12.2)', () => {
     const cfg = cfgOf()
     const best = fitBody(pool, cfg)[0] as Candidate
     const r = refitWithTail(pool, cfg, best, 2) as Candidate
-    expect(row(r)).toBe('ver-nord-2026+t2 570')
+    expect(row(r)).toBe('ver-nord-2026+t2 590')
     const max = cfgOf({ lengthMode: 'max' })
     const m = refitWithTail(
       poolOf('Jahresbericht Vertrieb Nord 2026', { lengthMode: 'max' }),
@@ -83,20 +84,20 @@ describe('worked cost checks (SPEC 12.2)', () => {
       best,
       2,
     ) as Candidate
-    expect(row(m)).toBe('ver-nord-26+t2 540')
+    expect(row(m)).toBe('ver-nord-26+t2 560')
   })
 
   it('C: Q3 2026 Marketing Budget Review', () => {
     expect(cands('Q3 2026 Marketing Budget Review').slice(0, 3).map(row)).toEqual([
       'mktg-budget-26q3 240',
       'mktg-review-26q3 435',
-      'mktg-budget-2026 545',
+      'mktg-budget-2026 613',
     ])
   })
 
   it('D: Chocolate Cake Recipe', () => {
     expect(cands('Chocolate Cake Recipe').slice(0, 2).map(row)).toEqual([
-      'choc-cake-recipe 270',
+      'choc-cake-recipe 290',
       'chocolate-recipe 385',
     ])
   })
@@ -104,7 +105,7 @@ describe('worked cost checks (SPEC 12.2)', () => {
 
 describe('padding policy (docs/DEVIATIONS.md, quality round 2)', () => {
   it('a cut grows into its own word instead of a random tail', () => {
-    const c = padCands('Employee Handbook')[0] as Candidate
+    const c = padCands('Employee Handbook').find((x) => x.body === 'employe-handbook') as Candidate
     expect(c.body).toBe('employe-handbook')
     expect(c.tailLen).toBe(0)
     expect(c.parts.tail).toBe(FIT_COST.pad)
@@ -130,6 +131,43 @@ describe('padding policy (docs/DEVIATIONS.md, quality round 2)', () => {
   })
 })
 
+describe('quality round 3 (docs/DEVIATIONS.md)', () => {
+  it('a fill that shows its word gives back its lost score and takes its title place', () => {
+    const c = padCands('Weekend Guide to Stockholm')[0] as Candidate
+    expect(c.body).toBe('weekend-stockhol')
+    expect(padCands('Halloween Costume Contest')[0]?.body).toBe('hallowee-costume')
+  })
+
+  it('a filler fill never moves to the front', () => {
+    expect(padCands('The Quiet Joy of Fixing Old Radios')[0]?.body.startsWith('quiet')).toBe(false)
+  })
+
+  it('one candidate per body: a whole-word fill does not repeat the body of another subset', () => {
+    const bodies = padCands('Jahresbericht Vertrieb Nord 2026').map((c) => `${c.body}+${c.tailLen}`)
+    expect(new Set(bodies).size).toBe(bodies.length)
+  })
+
+  it('one more letter of a shown word costs GROW_ONE, not a padding tail', () => {
+    expect(padCands('Niederschlagstrends in Norddeutschland 1950–2020')[0]?.body).toContain('nord')
+    expect(padCands('Niederschlagstrends in Norddeutschland 1950–2020')[0]?.body).toMatch(/^nieders/)
+  })
+
+  it('the top concept and sibling words cost more when lost', () => {
+    expect(padCands('Bahnstreik legt Fernverkehr am Montag lahm')[0]?.body).toMatch(/^bahnstrei/)
+    const p1 = padCands('Phase 1 Trial Results for Compound KT-201')[0]?.body
+    const p2 = padCands('Phase 2 Trial Results for Compound KT-201')[0]?.body
+    expect(p1).toContain('ph1')
+    expect(p2).toContain('ph2')
+    expect(padCands('Röntgen Kniegelenk links')[0]?.body).toContain('links')
+  })
+
+  it('a modifier split off a compound keeps its place before the head', () => {
+    const body = padCands('Niederschlagstrends in Süddeutschland 1950–2020')[0]?.body ?? ''
+    expect(body.indexOf('sued')).toBeGreaterThan(-1)
+    expect(cands('Norddeutschland Wetter').some((c) => c.body.includes('deutschland-nord'))).toBe(false)
+  })
+})
+
 describe('fit rules', () => {
   it('one candidate per subset: spelling variants never compete', () => {
     for (const t of ['Q3 2026 Marketing Budget Review', 'Rezept Apfelkuchen mit Zimt', 'Firefox v132 Release Notes']) {
@@ -140,7 +178,7 @@ describe('fit rules', () => {
 
   it('tie-break by rung cost in rank order: firefox-rel-v132 beats fir-release-v132', () => {
     const c = cands('Firefox v132 Release Notes')
-    expect(row(c[0] as Candidate)).toBe('firefox-rel-v132 310')
+    expect(row(c[0] as Candidate)).toBe('firefox-rel-v132 330')
   })
 
   it('tie-break by content rank, then body', () => {
@@ -196,7 +234,7 @@ describe('fit rules', () => {
   })
 
   it('slot order T, Q, N, then title position', () => {
-    expect(cands('Elternabend Klasse 4b Grundschule Nord')[0]?.body).toBe('grund-nord-kla4b')
+    expect(cands('Elternabend Klasse 4b Grundschule Nord')[0]?.body).toBe('elter-nord-kla4b')
   })
 
   it('leak minimal: at most 3 segments; maxSegments caps the body', () => {

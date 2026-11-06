@@ -110,11 +110,13 @@ export const FILLER_EN: readonly LexiconEntry[] = fillers('en', [
   'announces announced', 'learn learned', 'switched', 'need needs', 'want wants', 'become becomes', 'helps',
   'says said', 'warns warned', 'reveals revealed', 'hits', 'falls', 'opens opened', 'explains explained', 'managing',
   'implement implementing', 'measuring', 'worrying', 'love', 'survive survives', 'goes going', 'comes coming', 'does',
+  'write writes wrote',
   // adjectives and adverbs
   'best', 'top', 'ultimate', 'great', 'rare', 'severe', 'early', 'next', 'latest', 'local', 'quick', 'easy',
   'simple', 'complete', 'comprehensive', 'essential', 'perfect', 'amazing', 'awesome', 'better', 'good',
   'beautiful', 'real', 'whole', 'entire', 'several', 'many', 'much', 'few', 'certain', 'empirical', 'always',
   'really', 'finally', 'ever', 'quiet', 'hidden', 'classic', 'charming', 'cozy', 'two', 'three', 'five', 'ten',
+  'creamy', 'crispy', 'tasty', 'delicious', 'fluffy', 'juicy', 'rainy',
 ])
 
 // biome-ignore format: word list, one line per group
@@ -127,6 +129,8 @@ export const FILLER_DE: readonly LexiconEntry[] = fillers('de', [
   'schnell schnelle schneller schnellen', 'einfach einfache einfacher einfachen', 'beste besten bester bestes',
   'lecker leckere leckerer leckeren', 'perfekt perfekte', 'ultimativ ultimative', 'schoenste schoensten',
   'leicht leichte', 'lahm', 'lange', 'langsam', 'selbst', 'rund', 'entlang', 'heute', 'wieder', 'erste ersten erstes',
+  'cremig cremige cremiger cremigen', 'knusprig knusprige knuspriger knusprigen', 'saftig saftige saftiger saftigen',
+  'wuerzig wuerzige wuerziger wuerzigen',
   'zwei', 'drei', 'fuenf', 'zehn',
 ])
 

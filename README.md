@@ -240,7 +240,7 @@ const medicine = createSlugger({
   lexicon: [{ key: 'magnetresonanztomographie', lang: 'de', cls: 'topic', abbr: ['mrt'], known: ['mrt'] }],
   denyTokens: ['patient', 'patientin'],
 })
-medicine.slug('Befund Magnetresonanztomographie Schulter rechts') // 'befund-magnetres'
+medicine.slug('Befund Magnetresonanztomographie Schulter rechts') // 'befun-mrt-rechts'
 medicine.slug('Patient Intake Form') // 'intake-form-kh3g'
 ```
 
@@ -314,12 +314,12 @@ rank        key       cls          base  rar  pos  tf  lex  diff  score
             nord      direction     200   50    0   1    0     0    275
             df static (priors only)
             excluded: jahresberich (weak)
-ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(600*)
+ladders     vertrieb: vertrieb(40) ver(110*) vert(110*) vtb(800*)
             jahresberich: jahresbericht(40) jahr(60*) jahresber(70*) bericht(80) jahres(110*)
             y2026: 26(0) 2026(30)
             nord: nord(0)
             (* = cryptic)
-fit         vertrieb-nord-26 120 | vertrieb-jahr-26 565 | vertrieb-nord-ja 635 | nord-vertrieb-26 650 | vertrieb-bericht 860
+fit         vertrieb-nord-26 120 | vertrieb-jahr-26 702 | vertrieb-nord-ja 708 | bericht-vertrieb 1070 | jahresberic-nord 1118
 resolve     vertrieb-nord-26 ok (not checked)
 result      vertrieb-nord-26  reason base  lang de  tail none
 ```
@@ -370,14 +370,14 @@ personal data. Choose what the ID may show:
 | `leak`             | The ID shows                                               | Example: `Onboarding checklist for Maria Lopez at Acme` |
 | ------------------ | ---------------------------------------------------------- | ------------------------------------------------------- |
 | `normal` (default) | the main words, names included                             | `onboarding-maria`                                      |
-| `minimal`          | topic words; drops detected names, codes, numbers, markers | `onboarding-check`                                      |
+| `minimal`          | topic words; drops detected names, codes, numbers, markers | `onboar-checklist`                                      |
 | `opaque`           | nothing: a keyed random-looking code (needs `secret`)      | `h4yf57kxc3m3prsk`                                      |
 
 - **Names.** The library finds names only by clear signals (inner capitals like `iPhone`, a word
   before `Inc` or `GmbH`, a capital word inside an English sentence-case title, your lexicon). In
   German titles, person and city names look like any other noun, so `minimal` keeps them. For every
   name that must never show, in any language, use `denyTokens`:
-  `createSlugger({ denyTokens: ['Maria', 'Lopez'] }).slug(...)` gives `onb-acme-checkli`.
+  `createSlugger({ denyTokens: ['Maria', 'Lopez'] }).slug(...)` gives `onb-checkli-acme`.
 - **`secret`** (16+ chars) keys the tail hash, `titleKey` and hashed stems. It is required for
   `leak: 'opaque'` and `storeStems: 'hashed'`. For multi-tenant use, give each tenant its own secret
   (for example derived from a server key and the tenant id), so tails differ between tenants.
