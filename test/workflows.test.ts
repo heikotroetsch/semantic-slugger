@@ -43,7 +43,7 @@ describe('workflows', () => {
     expect(r).toContain('ref: $' + '{{ github.event.workflow_run.head_sha }}')
     expect(r).toContain('id-token: write')
     expect(r).toContain('environment: npm')
-    expect(r).toContain('publish: pnpm release')
+    expect(r).toContain('publish-script: pnpm release')
     expect(r.replace(/#.*$/gm, '')).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|registry-url/)
   })
 
