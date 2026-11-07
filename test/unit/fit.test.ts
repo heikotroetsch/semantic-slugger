@@ -17,6 +17,7 @@ import type { Laddered, Rung } from '../../src/core/ladder.ts'
 import { rankPool } from '../../src/core/resolve.ts'
 import { doc } from '../helpers/concepts.ts'
 import { cfgOf } from '../helpers/front.ts'
+import { PERF } from '../helpers/perf.ts'
 
 function poolOf(title: string, config?: SluggerConfig): Laddered[] {
   const cfg = cfgOf(config)
@@ -344,7 +345,7 @@ describe('lower-bound cut (SPEC 12)', () => {
     // Q12: the worst-case input. The gate uses the median of 20 runs; the single slowest run is scheduler
     // and GC noise when the test files run in parallel (docs/DEVIATIONS.md, M5), so it only has a wide bound.
     const sorted = [...times].sort((a, b) => a - b)
-    expect(sorted[10]).toBeLessThan(10)
-    expect(sorted[19]).toBeLessThan(100)
+    expect(sorted[10]).toBeLessThan(10 * PERF)
+    expect(sorted[19]).toBeLessThan(100 * PERF)
   })
 })

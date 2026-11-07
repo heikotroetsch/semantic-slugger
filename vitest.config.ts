@@ -4,6 +4,8 @@ const exclude = ['test/browser/**', 'test/smoke/**', 'node_modules/**']
 
 export default defineConfig({
   test: {
+    // CI runners are slower and run with coverage; the property tests need more than the 5 s default there.
+    testTimeout: process.env.CI ? 60_000 : 5_000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],

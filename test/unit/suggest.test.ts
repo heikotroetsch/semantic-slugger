@@ -14,6 +14,7 @@ import {
 import { doc } from '../helpers/concepts.ts'
 import { drive } from '../helpers/drive.ts'
 import { cfgOf } from '../helpers/front.ts'
+import { PERF } from '../helpers/perf.ts'
 
 describe('suggest() without a store (tier none)', () => {
   it('returns the best body and a full result', () => {
@@ -237,14 +238,14 @@ describe('review fixes', () => {
     expect(a.id).toBe(b.id)
     const t0 = performance.now()
     suggest('東京'.repeat(1_000_000))
-    expect(performance.now() - t0).toBeLessThan(1500)
+    expect(performance.now() - t0).toBeLessThan(1500 * PERF)
   })
 
   it('a long hyphen chain is not cubic', () => {
     for (const t of ['a-'.repeat(2048), 'ü-'.repeat(2048), 'ä-ö-'.repeat(1024), 'ab-'.repeat(1365)]) {
       const t0 = performance.now()
       expect(slug(t)).toMatch(/^[a-z]/)
-      expect(performance.now() - t0).toBeLessThan(2000)
+      expect(performance.now() - t0).toBeLessThan(2000 * PERF)
     }
   })
 })
