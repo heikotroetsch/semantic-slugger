@@ -51,7 +51,7 @@
     "access": "public"
   },
   "bin": {
-    "semantic-slugger": "./dist/cli.js"
+    "semantic-slugger": "dist/cli.js"
   },
   "scripts": {
     "clean": "node scripts/clean.ts",
