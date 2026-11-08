@@ -1,6 +1,6 @@
 {
   "name": "semantic-slugger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Turn any title into a short, readable, unique ID. Zero dependencies.",
   "license": "MIT",
   "author": "heikotroetsch",
