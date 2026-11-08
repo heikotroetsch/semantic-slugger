@@ -1,7 +1,7 @@
 {
   "name": "semantic-slugger",
   "version": "0.1.0",
-  "description": "Short, readable, unique IDs from any title. German + English built in. Zero dependencies.",
+  "description": "Turn any title into a short, readable, unique ID. Zero dependencies.",
   "license": "MIT",
   "author": "heikotroetsch",
   "type": "module",
