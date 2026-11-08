@@ -2280,7 +2280,7 @@ Hand-written part. `main`, `module`, `types` and `exports` are **not** written b
     "digest": "node scripts/update-digest.ts",
     "playground": "pnpm build && node scripts/serve-playground.ts",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && node scripts/stage-publish.ts"
   },
   "dependencies": {}
 }
@@ -2401,7 +2401,7 @@ jobs:
 
 One-time setup, in order:
 1. Publish `0.0.1` by hand with 2FA (`pnpm publish --access public`; `prepack` builds `dist/`, `devEngines` blocks npm inside the repo, and provenance is set only in CI) to create the name.
-2. On npmjs.com add a trusted publisher: repo `heikotroetsch/semantic-slugger`, workflow `release.yml`, environment `npm`. Enable direct `npm publish` (new configs default to staged publish).
+2. On npmjs.com add a trusted publisher: repo `heikotroetsch/semantic-slugger`, workflow `release.yml`, environment `npm`. Permission: `npm stage publish` only (rev 3.2: releases are staged by CI and approved with 2FA, see `scripts/stage-publish.ts` and CONTRIBUTING).
 3. Merge the first changeset within 2 days.
 4. Set "Require 2FA and disallow tokens".
 5. Check the provenance badge after the first CI publish (automatic for public repo + public package).

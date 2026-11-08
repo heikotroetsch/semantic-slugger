@@ -12,7 +12,7 @@ instead of `a8f3c2e1` or `jahresbericht-vertrieb-nord-2026`. It works for any ki
 posts, tickets, recipes, meetings, papers, contracts, products, events, files. It knows nothing about
 your field until you tell it (see [Teach it your field](#teach-it-your-field)).
 
-Try it in the [playground](https://heikotroetsch.github.io/semantic-slugger/).
+**Try it in your browser:** https://heikotroetsch.github.io/semantic-slugger/ (type a title, get its ID).
 
 ## Before and after
 

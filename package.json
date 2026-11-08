@@ -74,7 +74,7 @@
     "digest": "node scripts/update-digest.ts",
     "playground": "pnpm build && node scripts/serve-playground.ts",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && node scripts/stage-publish.ts"
   },
   "dependencies": {},
   "devDependencies": {
