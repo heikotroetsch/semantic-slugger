@@ -47,7 +47,7 @@ const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
 const cliPath = join(root, 'dist', 'cli.js')
 check(existsSync(cliPath), 'dist/cli.js exists')
 check(readFileSync(cliPath, 'utf8').startsWith('#!/usr/bin/env node\n'), 'dist/cli.js starts with the shebang')
-check(pkg.bin['semantic-slugger'] === './dist/cli.js', 'bin points to ./dist/cli.js')
+check(pkg.bin['semantic-slugger'] === 'dist/cli.js', 'bin points to dist/cli.js (the form npm stores)')
 const map = JSON.parse(readFileSync(join(root, 'dist', 'index.js.map'), 'utf8')) as { sourcesContent?: string[] }
 check(
   Array.isArray(map.sourcesContent) && map.sourcesContent.length > 0 && map.sourcesContent.every((s) => s.length > 0),
