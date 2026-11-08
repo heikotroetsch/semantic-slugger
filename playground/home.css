@@ -1,0 +1,162 @@
+/* Start page. Colors come from the tokens in style.css. */
+body.home {
+  max-width: none;
+}
+.home .logo {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+}
+.hero h1 {
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  line-height: 1.15;
+  margin: 40px 0 12px;
+}
+.lead {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+#title {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 1.15rem;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  resize: none;
+  overflow: hidden;
+  min-height: 3.2em;
+}
+#title:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.result {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.id-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.id {
+  font-family: var(--mono);
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: none;
+  padding: 0;
+  overflow-wrap: anywhere;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.copy {
+  flex: 0 0 auto;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.copy:hover {
+  filter: brightness(1.08);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.copy:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.parts {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 16px 0 8px;
+}
+.part {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: var(--row-active);
+}
+.part code {
+  background: none;
+  padding: 0;
+  font-weight: 700;
+}
+.part span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.part.tail {
+  background: var(--code-bg);
+}
+.examples {
+  margin-top: 20px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.chips button {
+  font-size: 0.9rem;
+  text-align: left;
+}
+.options {
+  margin-top: 24px;
+}
+.options summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.opt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+.opt-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.how,
+.use {
+  margin-top: 48px;
+}
+.steps {
+  padding-left: 1.3em;
+  line-height: 1.6;
+}
+.steps li {
+  margin-bottom: 8px;
+}
+.use pre {
+  overflow-x: auto;
+}
+.foot {
+  text-align: center;
+  padding: 24px 16px 40px;
+  border-top: 1px solid var(--line);
+}

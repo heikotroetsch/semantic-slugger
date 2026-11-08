@@ -26,16 +26,16 @@
 
 ## Releasing (maintainers)
 
-Releases run in GitHub Actions only (`.github/workflows/release.yml`), after `ci` passed on a push to
-`main`, with npm trusted publishing (OIDC) and provenance. One-time setup:
+Releases run in GitHub Actions (`.github/workflows/release.yml`) after `ci` passed on a push to `main`.
+They use npm trusted publishing (OIDC) with **staged publishing**: CI only stages a version, and a
+maintainer approves it with 2FA. No npm token is stored anywhere.
 
-1. Publish a first version by hand with 2FA to create the package name: `pnpm publish --access public`
-   from a clean clone. `prepack` builds `dist/` first. Use pnpm, not npm: `devEngines` makes npm fail
-   inside the repo. Provenance is not set for this step (it needs the CI OIDC provider); CI sets
-   `NPM_CONFIG_PROVENANCE=true` for every later release.
-2. On npmjs.com, add a trusted publisher: repo `heikotroetsch/semantic-slugger`, workflow
-   `release.yml`, environment `npm`.
-3. Set "Require 2FA and disallow tokens" on the package.
+1. Add a changeset to your pull request: `pnpm changeset`.
+2. After the merge, the release job opens a "version packages" pull request. Merge it.
+3. The release job runs `pnpm release` (`scripts/stage-publish.ts`): it stages the new version with
+   `npm stage publish` and pushes the tag `v<version>`.
+4. Approve the staged version on npmjs.com, or run `npm stage list` and `npm stage approve <id>`.
 
-After that, merge changesets to `main`. The release job opens a "version packages" pull request; merging
-it publishes the new version.
+One-time setup (done): the package was created by a hand publish of 0.1.0. The trusted publisher on
+npmjs.com is repo `heikotroetsch/semantic-slugger`, workflow `release.yml`, environment `npm`, with
+the permission "npm stage publish" only. Set "Require 2FA and disallow tokens" on the package.

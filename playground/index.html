@@ -3,98 +3,101 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>semantic-slugger playground</title>
-    <meta name="description" content="Short, readable, unique IDs from any title. Try semantic-slugger in your browser." />
+    <title>semantic-slugger</title>
+    <meta name="description" content="Type any title and get a short, readable, unique ID. Runs in your browser." />
     <link rel="stylesheet" href="./style.css" />
-    <script type="module" src="./app.js"></script>
+    <link rel="stylesheet" href="./home.css" />
+    <script type="module" src="./home.js"></script>
   </head>
-  <body>
+  <body class="home">
     <header class="top">
       <div class="brand">
-        <h1>semantic-slugger</h1>
-        <p class="tagline">Short, readable, unique IDs from any title.</p>
+        <a class="logo" href="./">semantic-slugger</a>
       </div>
       <nav class="links">
+        <a href="./batch.html">Batch mode</a>
         <a href="https://github.com/heikotroetsch/semantic-slugger">GitHub</a>
         <a href="https://www.npmjs.com/package/semantic-slugger">npm</a>
       </nav>
     </header>
 
-    <p class="banner" role="note">Runs fully in your browser. Do not paste confidential data.</p>
+    <main class="wrap">
+      <section class="hero">
+        <h1>Turn any title into a short ID</h1>
+        <p class="lead">
+          Type a title in German or English. You get an ID that people can read, say on a call and remember.
+        </p>
 
-    <main class="layout">
-      <section class="panel input" aria-labelledby="in-h">
-        <h2 id="in-h">Titles</h2>
-        <label class="sr" for="titles">One title per line</label>
-        <textarea id="titles" spellcheck="false" rows="16" placeholder="One title per line"></textarea>
+        <label class="sr" for="title">Title</label>
+        <textarea id="title" rows="2" spellcheck="false" placeholder="e.g. How to Bake Sourdough Bread at Home"></textarea>
 
-        <fieldset class="controls">
-          <legend>Config</legend>
-          <label>Length <output id="length-out">16</output>
-            <input id="length" type="range" min="8" max="32" value="16" />
-          </label>
-          <label>Length mode
-            <select id="lengthMode"><option>exact</option><option>max</option></select>
-          </label>
-          <label>Separator
-            <select id="separator"><option value="-">- (dash)</option><option value="_">_ (underscore)</option><option value="">none</option></select>
-          </label>
-          <label>Leak
-            <select id="leak"><option>normal</option><option>minimal</option><option>opaque</option></select>
-          </label>
-          <label>Tail alphabet
-            <select id="tailAlphabet"><option>safe</option><option>strict</option></select>
-          </label>
-          <label class="check"><input id="consistentRungs" type="checkbox" /> Consistent spellings</label>
-          <div class="langs">
-            <span>Languages</span>
-            <label class="check"><input id="lang-de" type="checkbox" checked /> de</label>
-            <label class="check"><input id="lang-en" type="checkbox" checked /> en</label>
+        <div class="result" aria-live="polite">
+          <div class="id-row">
+            <code id="id" class="id">&nbsp;</code>
+            <button id="copy" type="button" class="copy" disabled>Copy</button>
           </div>
-          <label class="check"><input id="simulate" type="checkbox" /> Simulate DB (createUnique in order)</label>
-          <p id="secret-note" class="muted small" hidden></p>
-        </fieldset>
+          <ul id="parts" class="parts" aria-label="Where each part comes from"></ul>
+          <p id="meta" class="muted small"></p>
+          <p id="error" class="error" hidden></p>
+        </div>
 
-        <fieldset class="controls">
-          <legend>Your field</legend>
-          <div class="presets">
-            <span>Recipes</span>
-            <button type="button" data-preset="">none</button>
+        <div class="examples">
+          <span class="muted small">Try:</span>
+          <div id="examples" class="chips"></div>
+        </div>
+
+        <details class="options">
+          <summary>Options</summary>
+          <div class="opt-grid">
+            <label>Length <output id="length-out">16</output>
+              <input id="length" type="range" min="8" max="32" value="16" />
+            </label>
+            <label>Length mode
+              <select id="lengthMode">
+                <option value="exact">exact: always this length</option>
+                <option value="max">max: up to this length</option>
+              </select>
+            </label>
+            <label>Separator
+              <select id="separator">
+                <option value="-">- (dash)</option>
+                <option value="_">_ (underscore)</option>
+                <option value="">none</option>
+              </select>
+            </label>
           </div>
-          <label>Stop words <span class="muted">(comma separated)</span>
-            <input id="stopWords" type="text" placeholder="draft, final" />
-          </label>
-          <label>Deny tokens <span class="muted">(never shown)</span>
-            <input id="denyTokens" type="text" placeholder="names, code names" />
-          </label>
-          <label>Reserved words <span class="muted">(never a whole ID)</span>
-            <input id="reserved" type="text" placeholder="new, edit" />
-          </label>
-          <label>Lexicon <span class="muted">(JSON array)</span>
-            <textarea id="lexicon" rows="5" spellcheck="false" placeholder='[{ "key": "kubernetes", "cls": "name", "abbr": ["k8s"], "known": ["k8s"] }]'></textarea>
-          </label>
-        </fieldset>
+        </details>
       </section>
 
-      <section class="panel output" aria-labelledby="out-h">
-        <div class="out-head">
-          <h2 id="out-h">IDs</h2>
-          <button id="share" type="button">Copy link</button>
-        </div>
-        <p id="error" class="error" role="alert" hidden></p>
-        <div class="table-wrap">
-          <table id="results">
-            <thead><tr><th>Title</th><th>ID</th><th>Lang</th><th>Reason</th><th>Tail</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="muted small">Click a row to see every step.</p>
-        <div id="detail" hidden>
-          <h3>Explain: <code id="detail-id"></code></h3>
-          <div class="table-wrap"><table id="rank"></table></div>
-          <pre id="explain"></pre>
-        </div>
+      <section class="how">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><strong>Clean up.</strong> Lower case, umlauts to ae/oe/ue, emojis and punctuation out.</li>
+          <li><strong>Find the important words.</strong> Stop words go. German compounds are split. Rare words, names, years and versions rank high.</li>
+          <li><strong>Shorten.</strong> Words are cut at natural points, so they stay readable: <code>sourdough</code> → <code>sourd</code>.</li>
+          <li><strong>Make it unique.</strong> With a database, a taken ID first gets other words that tell the titles apart. Only then a short code is added.</li>
+        </ol>
+        <p class="muted small">
+          Same title and same settings always give the same ID. On this page there is no database, so every title is checked on its own.
+        </p>
+      </section>
+
+      <section class="use">
+        <h2>Use it in your code</h2>
+        <pre><code>npm install semantic-slugger</code></pre>
+        <pre><code>import { slug } from 'semantic-slugger'
+
+slug('How to Bake Sourdough Bread at Home')
+// → 'bake-sourd-bread'</code></pre>
+        <p class="muted small">
+          Zero dependencies. Works in Node and in the browser. Adapters for an in-memory store, SQL and Prisma
+          keep IDs unique. Read the <a href="https://github.com/heikotroetsch/semantic-slugger#readme">README</a>.
+        </p>
       </section>
     </main>
+
+    <footer class="foot muted small">
+      Runs fully in your browser. Nothing you type is sent anywhere. MIT license.
+    </footer>
   </body>
 </html>

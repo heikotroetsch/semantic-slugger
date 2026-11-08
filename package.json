@@ -1,7 +1,7 @@
 {
   "name": "semantic-slugger",
-  "version": "0.1.0",
-  "description": "Short, readable, unique IDs from any title. German + English built in. Zero dependencies.",
+  "version": "0.1.1",
+  "description": "Turn any title into a short, readable, unique ID. Zero dependencies.",
   "license": "MIT",
   "author": "heikotroetsch",
   "type": "module",
@@ -38,7 +38,7 @@
     "packageManager": {
       "name": "pnpm",
       "version": "12.8.1",
-      "onFail": "error"
+      "onFail": "warn"
     }
   },
   "packageManager": "pnpm@12.8.1",
@@ -74,7 +74,7 @@
     "digest": "node scripts/update-digest.ts",
     "playground": "pnpm build && node scripts/serve-playground.ts",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && node scripts/stage-publish.ts"
   },
   "dependencies": {},
   "devDependencies": {

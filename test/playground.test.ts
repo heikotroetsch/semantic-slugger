@@ -72,10 +72,23 @@ describe('playground', () => {
     if (existsSync(join(root, 'dist', 'index.js'))) {
       expect(existsSync(join(root, 'dist', 'adapters', 'memory.js'))).toBe(true)
     }
-    const html = read('playground/index.html')
+    const html = read('playground/batch.html')
     expect(html).toContain('Runs fully in your browser. Do not paste confidential data.')
     expect(html).toContain('src="./app.js"')
     expect(html).toContain('href="./style.css"')
+  })
+
+  it('the start page imports only the built package and shows a corpus-independent example', () => {
+    const home = read('playground/home.js')
+    expect(home.startsWith('// @ts-check')).toBe(true)
+    const imports = [...home.matchAll(/^import .* from '([^']+)'/gm)].map((m) => m[1])
+    expect(imports).toEqual(['./dist/index.js'])
+    const html = read('playground/index.html')
+    expect(html).toContain('src="./home.js"')
+    expect(html).toContain('href="./batch.html"')
+    expect(read('playground/batch.html')).toContain('href="./"')
+    // the code sample on the start page shows the real output
+    expect(html).toContain(`// → '${createSlugger().slug('How to Bake Sourdough Bread at Home')}'`)
   })
 
   it('the local server maps paths like Pages and stays in its folders', () => {
