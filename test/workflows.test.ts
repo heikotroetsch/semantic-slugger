@@ -57,7 +57,7 @@ describe('workflows', () => {
 
   it('package.json is ready for a public release with provenance', () => {
     const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as Record<string, unknown>
-    expect(pkg.version).toBe('0.1.0')
+    expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/) // changesets bumps it
     expect(pkg.license).toBe('MIT')
     expect(pkg.author).toBe('heikotroetsch')
     expect(pkg.repository).toEqual({ type: 'git', url: 'git+https://github.com/heikotroetsch/semantic-slugger.git' })
