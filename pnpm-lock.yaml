@@ -179,8 +179,8 @@ importers:
         specifier: 3.0.3
         version: 3.0.3
       '@electric-sql/pglite':
-        specifier: 0.5.15
-        version: 0.5.15
+        specifier: 0.5.16
+        version: 0.5.16
       '@size-limit/preset-small-lib':
         specifier: 14.3.0
         version: 14.3.0(size-limit@14.3.0)
@@ -398,8 +398,8 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
 
-  '@electric-sql/pglite@0.5.15':
-    resolution: {integrity: sha512-ERZWgaRTxueGV4cvL1tfpAOzFCWTXoUtbCBqnf2FhHDVs/so9eAKaanvrwWF9Dntx7BYsmFQujVQ0/B4S8Mmiw==}
+  '@electric-sql/pglite@0.5.16':
+    resolution: {integrity: sha512-Nj8KcIsJL748W408U2N8q4+9IlONdpRIU8MJypIAAINMJ5nqKyqpX7Mgg/5XKkXiAib3AoZGR6hnJFlrlLBrcg==}
 
   '@emnapi/core@2.0.0-beta.2':
     resolution: {integrity: sha512-MzCVoWtcg4Pm2B3je5mMvYMvj3MmBKw+fU7vbsJc9/iT8ip6/eYIHo/Dsm/mr+wsHB6SEyJDuxB09Yy6r/8+4A==}
@@ -1802,7 +1802,7 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@electric-sql/pglite@0.5.15': {}
+  '@electric-sql/pglite@0.5.16': {}
 
   '@emnapi/core@2.0.0-beta.2':
     dependencies:
