@@ -80,7 +80,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@arethetypeswrong/core": "0.18.5",
-    "@biomejs/biome": "2.6.5",
+    "@biomejs/biome": "2.6.6",
     "@changesets/cli": "3.0.3",
     "@electric-sql/pglite": "0.5.15",
     "@size-limit/preset-small-lib": "14.3.0",
